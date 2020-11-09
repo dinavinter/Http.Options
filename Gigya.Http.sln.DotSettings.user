@@ -1,0 +1,7 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=fc8d55f6_002D7d04_002D466c_002Da45a_002D6a3697d64a32/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="HadesConnectionRefreshes" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::C9CD62E2-7039-4BF4-A92A-593623412F05::.NETCoreApp,Version=v3.1::Gigya.Http.Client.UnitTests.HttpConnectionConfig&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::C9CD62E2-7039-4BF4-A92A-593623412F05::.NETCoreApp,Version=v3.1::Gigya.Http.Client.UnitTests.HttpClientSanityTests.HttpClient_UseSimpleHttp&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

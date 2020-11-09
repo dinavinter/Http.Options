@@ -1,0 +1,83 @@
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Gigya.Http.Telemetry.Consts;
+
+namespace Gigya.Http.Telemetry.HttpHandler
+{
+    public class HttpTimingHandler<TService> : HttpTimingHandler
+    {
+
+        public HttpTimingHandler(ITelemetryLogger telemetryProducer)
+            : base(FriendlyName<TService>.Instance, telemetryProducer)
+        {
+        }
+    }
+
+
+
+    public class HttpTimingHandler : DelegatingHandler
+    {
+        private readonly ITelemetryLogger _telemetryProducer;
+        private readonly TelementryConsts _consts;
+
+
+        public HttpTimingHandler(string serviceName, ITelemetryLogger telemetryProducer)
+        {
+            _telemetryProducer = telemetryProducer;
+            _consts = new TelementryConsts(serviceName);
+        }
+
+
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var sw = Stopwatch.StartNew();
+
+            try
+            {
+                var response = await base.SendAsync(request, CancellationToken.None);
+
+                TrackServerTime(response, sw);
+
+                return response;
+            }
+            finally
+            {
+                sw.Stop();
+                _telemetryProducer.TrackMetric(_consts.ClientTiming, sw.Elapsed);
+            }
+        }
+
+
+        private void TrackServerTime(HttpResponseMessage response, Stopwatch sw)
+        {
+
+            var serverTime = ParseRequestTiming(response);
+            if (serverTime != null)
+            {
+
+                _telemetryProducer.TrackMetric(_consts.NetworkTiming,
+                    sw.Elapsed - serverTime.Value);
+                _telemetryProducer.TrackMetric(_consts.ServerTiming, serverTime.Value);
+            }
+        }
+
+
+        private static TimeSpan? ParseRequestTiming(HttpResponseMessage httpResponseMessage)
+        {
+            if (httpResponseMessage.Headers.TryGetValues("X-Timing", out var timing))
+            {
+                if (int.TryParse(timing.FirstOrDefault(), out int timeInMs))
+                    return TimeSpan.FromMilliseconds(timeInMs);
+            }
+
+            return null;
+        }
+
+
+    }
+}
