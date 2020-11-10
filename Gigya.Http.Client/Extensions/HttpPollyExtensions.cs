@@ -49,19 +49,10 @@ namespace Gigya.Http.Telemetry.Extensions
         }
 
 
-        private static PolicyBuilder<HttpResponseMessage> HttpTransientError =
+        private static readonly PolicyBuilder<HttpResponseMessage> HttpTransientError =
             HttpPolicyExtensions
                 .HandleTransientHttpError()
                 .Or<TimeoutRejectedException>(); // thrown by Polly's TimeoutPolicy if the inner call times out
 
-
-        // policyRegistry.Add(
-        //     HttpServicePolyKeys<TCluster>.HttpBulkhead,
-        //     Policy.BulkheadAsync<HttpResponseMessage>(maxParallelization: 500, maxQueuingActions: int.MaxValue));
-        //
-        // policyRegistry.Add(HttpServicePolyKeys<TCluster>.HttpCircuitBreaker,
-        //     HttpPolicyExtensions
-        //         .HandleTransientHttpError().CircuitBreaker(handledEventsAllowedBeforeBreaking: 100,
-        //             durationOfBreak: TimeSpan.FromMilliseconds(200)));
     }
 }
