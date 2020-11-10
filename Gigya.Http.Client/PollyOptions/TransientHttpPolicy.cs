@@ -4,11 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Gigya.Http.Telemetry.PollyOptions
 {
-    public class ResiliencePolicyOptions
+    public class HttpPollyOptions
     {
-        public Func<IServiceProvider, ResiliencePolicyOptions> Provider;
+        public Func<IServiceProvider, HttpPollyOptions> Provider;
 
-        public ResiliencePolicyOptions()
+        public HttpPollyOptions()
         {
             Provider = sp => this;
         }

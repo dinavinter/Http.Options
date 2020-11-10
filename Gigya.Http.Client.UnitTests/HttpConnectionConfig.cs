@@ -21,7 +21,7 @@ namespace Gigya.Http.Client.UnitTests
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "service";
-                options.ConnectionOptions.Provider = () => new HttpConnection()
+                options.ConnectionOptions.Provider = () => new HttpConnectionOptions()
                 {
                     Server = "service.com",
                     Schema = "https",
@@ -45,7 +45,7 @@ namespace Gigya.Http.Client.UnitTests
             var serviceCollection = new ServiceCollection();
             // serviceCollection.AddSingleton<HttpJsonPlaceholderService, HttpJsonPlaceholderService>();
 
-            var config = new HttpConnection()
+            var config = new HttpConnectionOptions()
             {
                 Server = "before",
                 Schema = "https",

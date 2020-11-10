@@ -7,11 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Gigya.Http.Telemetry.Options
 {
-    public class HttpConnection
+    public class HttpConnectionOptions
     {
-        public Func<HttpConnection> Provider;
+        public Func<HttpConnectionOptions> Provider;
 
-        public HttpConnection()
+        public HttpConnectionOptions()
         {
             Provider = () => this;
         }

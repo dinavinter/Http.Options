@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace Gigya.Http.Telemetry.Extensions
 {
-    public static class HttpClientFactoryExtensions
+    public static class HttpClientHandlerExtensions
     {
           
         public static IHttpClientBuilder AddTelemetryHandlers(this IHttpClientBuilder httpBuilder, string serviceName,
@@ -22,19 +22,20 @@ namespace Gigya.Http.Telemetry.Extensions
                 .AddHttpCounterTelemetry(serviceName);
         }
 
-        public static IHttpClientBuilder AddHttpTimingTelemetry( this IHttpClientBuilder httpBuilder, string serviceName)
+        public static IHttpClientBuilder AddHttpTimingTelemetry(this IHttpClientBuilder httpBuilder, string serviceName)
         {
             return httpBuilder
                 .AddHttpMessageHandler(sp =>
                     new HttpTimingHandler(serviceName, sp.GetRequiredService<ITelemetryLogger>()));
         }
+
         public static IHttpClientBuilder AddHttpCounterTelemetry(this IHttpClientBuilder httpBuilder, string serviceName)
         {
             return httpBuilder
                 .AddHttpMessageHandler(sp =>
                     new HttpCounterHandler(serviceName, sp.GetRequiredService<ITelemetryLogger>()));
         }
-        public static IHttpClientBuilder AddTimeoutHandler(this IHttpClientBuilder httpBuilder, Func<TimeoutOptions> options)
+        public static IHttpClientBuilder AddTimeoutHandler(this IHttpClientBuilder httpBuilder, Func<HttpTimeoutOptions> options)
         {
             return httpBuilder
                 .AddHttpMessageHandler(sp => new TimeoutHandler(() => options().Timeout));

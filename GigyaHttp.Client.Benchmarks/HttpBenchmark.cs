@@ -78,6 +78,7 @@ namespace PerformanceBenchmarks
         private ServiceProvider _serviceProvider;
 
         private readonly HttpClient _httpClient;
+        private IHttpClientFactory _factory;
 
         [ParamsSource(nameof(HttpOptions))] public string ClientName { get; set; }
 
@@ -85,10 +86,19 @@ namespace PerformanceBenchmarks
         {
             return new[]
             {
-                "basic", "max-connection-5", "max-connection-10", "max-connection-20", "max-connection-30",
-                "max-connection-40", "max-connection-50", "max-connection-1", "bulkhead-10", "bulkhead-100",
-                "bulkhead-100-max-connection-20", "bulkhead-10-max-connection-20"
+                // "max-connection-20", "max-connection-30",
+                // "max-connection-40", "max-connection-50", "bulkhead-10", 
+                //   "bulkhead-100-max-connection-20", "bulkhead-10-max-connection-20", 
+                "max-connection-30-hlt-10", "max-connection-30-hlt-2", "max-connection-30-hlt-20"
             };
+
+            //all
+            // return new[]
+            // {
+            //     "basic", "max-connection-5", "max-connection-10", "max-connection-20", "max-connection-30",
+            //     "max-connection-40", "max-connection-50", "max-connection-1", "bulkhead-10", "bulkhead-100",
+            //     "bulkhead-100-max-connection-20", "bulkhead-10-max-connection-20",  "max-connection-30-hlt-2", "max-connection-30-hlt-20"
+            // };
         }
 
 
@@ -106,21 +116,19 @@ namespace PerformanceBenchmarks
                 options.HttpClientHandlerOptions.MaxConnection = null;
             });
 
-            
+
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "max-connection-1";
                 ConfigureJsonPlaceHolder(options);
                 options.HttpClientHandlerOptions.MaxConnection = 1;
-
             });
-            
+
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "max-connection-5";
                 ConfigureJsonPlaceHolder(options);
                 options.HttpClientHandlerOptions.MaxConnection = 5;
- 
             });
 
 
@@ -137,7 +145,6 @@ namespace PerformanceBenchmarks
                 options.ServiceName = "max-connection-20";
                 ConfigureJsonPlaceHolder(options);
                 options.HttpClientHandlerOptions.MaxConnection = 20;
-
             });
 
             serviceCollection.AddGigyaHttpClient(options =>
@@ -145,15 +152,36 @@ namespace PerformanceBenchmarks
                 options.ServiceName = "max-connection-30";
                 ConfigureJsonPlaceHolder(options);
                 options.HttpClientHandlerOptions.MaxConnection = 30;
-
             });
 
+            serviceCollection.AddGigyaHttpClient(options =>
+            {
+                options.ServiceName = "max-connection-30-hlt-10";
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 30;
+                options.HttpClientHandlerOptions.HandlerLifeTimeMinutes = 10;
+            });
+            serviceCollection.AddGigyaHttpClient(options =>
+            {
+                options.ServiceName = "max-connection-30-hlt-20";
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 30;
+                ;
+                options.HttpClientHandlerOptions.HandlerLifeTimeMinutes = 20;
+            });
+
+            serviceCollection.AddGigyaHttpClient(options =>
+            {
+                options.ServiceName = "max-connection-30-hlt-2";
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 30;
+                options.HttpClientHandlerOptions.HandlerLifeTimeMinutes = 2;
+            });
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "max-connection-40";
                 ConfigureJsonPlaceHolder(options);
                 options.HttpClientHandlerOptions.MaxConnection = 40;
-
             });
 
             serviceCollection.AddGigyaHttpClient(options =>
@@ -168,7 +196,6 @@ namespace PerformanceBenchmarks
                 options.ServiceName = "bulkhead-10";
                 ConfigureJsonPlaceHolder(options);
                 options.HttpClientHandlerOptions.MaxConnection = null;
- 
             });
             serviceCollection.AddGigyaHttpClient(options =>
             {
@@ -177,10 +204,9 @@ namespace PerformanceBenchmarks
                 options.HttpClientHandlerOptions.MaxConnection = 20;
                 options.PollyOptions.Bulkhead.Enabled = true;
                 options.PollyOptions.Bulkhead.MaxParallelization = 10;
-
             });
-            
-            
+
+
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "bulkhead-100";
@@ -190,7 +216,6 @@ namespace PerformanceBenchmarks
                     Enabled = true,
                     MaxParallelization = 100
                 };
-
             });
 
 
@@ -201,16 +226,17 @@ namespace PerformanceBenchmarks
                 options.HttpClientHandlerOptions.MaxConnection = 20;
                 options.PollyOptions.Bulkhead.Enabled = true;
                 options.PollyOptions.Bulkhead.MaxParallelization = 100;
-
             });
 
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
+
+            _factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
         }
 
         private static void ConfigureJsonPlaceHolder(HttpClientOptions options)
         {
-            options.ConnectionOptions.Server = "jsonplaceholder.typicode.com/todos/1";
+            options.ConnectionOptions.Server = "jsonplaceholder.typicode.com";
             options.ConnectionOptions.Schema = "http";
             options.ConnectionOptions.Port = 80;
             options.ConnectionOptions.Timeout = Timeout;
@@ -220,8 +246,7 @@ namespace PerformanceBenchmarks
         [Benchmark]
         public async Task GetAsync()
         {
-            var factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
-            await Run(() => factory.CreateClient(ClientName).GetAsync(""));
+            await Run(() => _factory.CreateClient(ClientName).GetAsync("todos/1"));
         }
 
 
