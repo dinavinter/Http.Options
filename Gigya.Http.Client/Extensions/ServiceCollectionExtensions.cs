@@ -21,22 +21,22 @@ namespace Gigya.Http.Telemetry.Extensions
             return serviceCollection
                 .AddHttpClient(options.ServiceName)
                 .ConfigureHttpConnection(options.ConnectionFactory)
-                // .AddTelemetryHandlers(options.ServiceName, serviceCollection)
-                // .AddHttpMessageHandler<TimeoutHandler>()
-                .AddResiliencePolicies(options.PolicyFactory)
+               .AddTelemetryHandlers(options.ServiceName, serviceCollection)
+               .AddHttpMessageHandler(sp=>new TimeoutHandler(() => options.Connection.Timeout))
+               .AddResiliencePolicies(options.PolicyFactory)
 
-                // .ConfigurePrimaryHttpMessageHandler(() =>
-                // {
-                //     if (options.Connection.MaxConnection != null)
-                //     {
-                //         return new HttpClientHandler()
-                //         {
-                //             MaxConnectionsPerServer = options.Connection.MaxConnection.Value
-                //         };
-                //     }
-                //
-                //     return new HttpClientHandler();
-                // })
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                {
+                    if (options.Connection.MaxConnection != null)
+                    {
+                        return new HttpClientHandler()
+                        {
+                            MaxConnectionsPerServer = options.Connection.MaxConnection.Value
+                        };
+                    }
+                
+                    return new HttpClientHandler();
+                })
                
                 ;
 

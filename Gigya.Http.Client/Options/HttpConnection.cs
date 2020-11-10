@@ -24,6 +24,6 @@ namespace Gigya.Http.Telemetry.Options
 
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
 
-        public int? MaxConnection = 5;
+        public int? MaxConnection = 30;
     }
 }

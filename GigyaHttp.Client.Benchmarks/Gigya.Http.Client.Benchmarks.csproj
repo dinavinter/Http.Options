@@ -8,11 +8,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
-  <ItemGroup>
-    <Folder Include="BenchmarkDotNet.Artifacts\results" />
-    <Folder Include="Properties" />
-  </ItemGroup>
-  <ItemGroup>
+   <ItemGroup>
     <ProjectReference Include="..\Gigya.Http.Client\Gigya.Http.Client.csproj" />
   </ItemGroup>
   <ItemGroup>

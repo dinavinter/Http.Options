@@ -13,7 +13,7 @@ namespace Gigya.Hades.Client.Benchmarks
         public static void Main(string[] args)
         {      
             BenchmarkRunner
-                .Run<HttpClientBenchmark>(
+                .Run<HttpBenchmark>(
                     DefaultConfig.Instance
                                  .AddValidator(ExecutionValidator.FailOnError));
             // BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);

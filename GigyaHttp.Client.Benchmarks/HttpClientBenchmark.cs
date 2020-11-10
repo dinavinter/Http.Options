@@ -26,11 +26,8 @@ using Polly;
 namespace PerformanceBenchmarks
 {
     [Config(typeof(Config))]
-    [ConcurrencyVisualizerProfiler]
-    [AnyCategoriesFilter("NamedClient")]
+     [AnyCategoriesFilter("MediumClient")]
     // [AnyCategoriesFilter( "HttpClient")]
-
-    //[NativeMemoryProfiler] 
     public class HttpClientBenchmark
     {
         private static TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
@@ -38,6 +35,7 @@ namespace PerformanceBenchmarks
         private readonly HttpClient _jsonPlaceHolderHttpClient;
         private readonly HttpClient _restExampleHttpClient;
         private readonly CancellationToken _cancellationToken = CancellationToken.None;//new CancellationTokenSource(Timeout).Token;
+        private IHttpClientFactory http_factory;
 
 
         private class Config : ManualConfig
@@ -79,10 +77,10 @@ namespace PerformanceBenchmarks
                 //     .WithStrategy(RunStrategy.Throughput));
 
 
-                AddExporter(MarkdownExporter.GitHub);
+                AddExporter(MarkdownExporter.GitHub, HtmlExporter.Default);
                 AddDiagnoser(MemoryDiagnoser.Default);
 
-                AddAnalyser(OutliersAnalyser.Default);
+                AddAnalyser(OutliersAnalyser.Default, MinIterationTimeAnalyser.Default);
 
                 // AddHardwareCounters(HardwareCounter.Timer,HardwareCounter.TotalCycles);
                 AddColumn(StatisticColumn.P95, StatisticColumn.Max, StatisticColumn.Median,
@@ -143,6 +141,8 @@ namespace PerformanceBenchmarks
 
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
+             http_factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
+
         }
 
 
@@ -150,8 +150,7 @@ namespace PerformanceBenchmarks
         [BenchmarkCategory("NamedClient", "MediumClient")]
         public async Task NamedClient_Jsonplaceholder()
         {
-            var factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
-            await Run(() => factory.CreateClient("jsonplaceholder").GetAsync($"todos/2"));
+            await Run(() => http_factory.CreateClient("jsonplaceholder").GetAsync($"todos/2"));
         }
 
         [Benchmark]

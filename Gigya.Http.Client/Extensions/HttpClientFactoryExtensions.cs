@@ -68,7 +68,8 @@ namespace Gigya.Http.Telemetry.Extensions
                 //the default is 2 min
                 //this would consume a bit more memory but enable more efficient caching for http connections
                 //(HttpMessageHandler can be reused as long as it is not expired)
-                .SetHandlerLifetime(TimeSpan.FromMinutes(10));
+              .SetHandlerLifetime(TimeSpan.FromMinutes(10))
+            ;
         }
     }
 }
