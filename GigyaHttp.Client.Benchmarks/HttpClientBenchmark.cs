@@ -26,7 +26,7 @@ using Polly;
 namespace PerformanceBenchmarks
 {
     [Config(typeof(Config))]
-     [AnyCategoriesFilter("MediumClient")]
+    [AnyCategoriesFilter("MediumClient")]
     // [AnyCategoriesFilter( "HttpClient")]
     public class HttpClientBenchmark
     {
@@ -34,7 +34,10 @@ namespace PerformanceBenchmarks
         private readonly ServiceProvider _serviceProvider;
         private readonly HttpClient _jsonPlaceHolderHttpClient;
         private readonly HttpClient _restExampleHttpClient;
-        private readonly CancellationToken _cancellationToken = CancellationToken.None;//new CancellationTokenSource(Timeout).Token;
+
+        private readonly CancellationToken
+            _cancellationToken = CancellationToken.None; //new CancellationTokenSource(Timeout).Token;
+
         private IHttpClientFactory http_factory;
 
 
@@ -112,37 +115,31 @@ namespace PerformanceBenchmarks
             };
 
             serviceCollection.AddGigyaHttpClient(options =>
-            {
-                options.ServiceName = "jsonplaceholder";
-                options.ConnectionFactory = () => new HttpConnection()
                 {
-                    Server = "jsonplaceholder.typicode.com",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout,
-                   // MaxConnection = 5
-                };
-            }).AddTypedClient<HttpJsonPlaceholderService>();
+                    options.ServiceName = "jsonplaceholder";
+
+                    options.ConnectionOptions.Server = "jsonplaceholder.typicode.com";
+                    options.ConnectionOptions.Schema = "http";
+                    options.ConnectionOptions.Port = 80;
+                    options.ConnectionOptions.Timeout = Timeout;
+                })
+                .AddTypedClient<HttpJsonPlaceholderService>();
 
 
             serviceCollection.AddGigyaHttpClient(options =>
                 {
                     options.ServiceName = "restapiexample";
-                    options.ConnectionFactory = () => new HttpConnection()
-                    {
-                        Server = "dummy.restapiexample.com",
-                        Schema = "http",
-                        Port = 80,
-                        TimeoutMS = 10000,
-                        MaxConnection = 5
-                    };
+
+                    options.ConnectionOptions.Server = "dummy.restapiexample.com";
+                    options.ConnectionOptions.Schema = "http";
+                    options.ConnectionOptions.Port = 80;
+                    options.ConnectionOptions.MaxConnection = 5;
                 })
                 .AddTypedClient<HttpRestExampleService>();
 
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
-             http_factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
-
+            http_factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
         }
 
 

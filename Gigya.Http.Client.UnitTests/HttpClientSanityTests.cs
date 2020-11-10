@@ -18,14 +18,12 @@ namespace Gigya.Http.Client.UnitTests
 
             serviceCollection.AddGigyaHttpClient(options =>
             {
-                options.ServiceName = "service";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com",
-                    Schema = "http",
-                    Port = 80,
-                    TimeoutMS = 1000
-                };
+                options.ServiceName = "service"; 
+                options.ConnectionOptions.Server = "jsonplaceholder.typicode.com";
+                options.ConnectionOptions.Schema = "http";
+                options.ConnectionOptions.Port = 80;
+                options.ConnectionOptions.TimeoutMS = 1000;
+
             });
 
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();

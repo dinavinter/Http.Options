@@ -13,33 +13,6 @@ namespace Gigya.Http.Telemetry.Extensions
 {
     public static class HttpPollyExtensions
     {
-        public static IHttpClientBuilder AddResiliencePolicies<THttpOptions>(this IHttpClientBuilder httpClientBuilder )
-            where THttpOptions : HttpClientOptions, new()
-        {
-            return AddResiliencePolicies(httpClientBuilder, sp => sp
-                                                                     .GetService<IOptions<THttpOptions>>()?
-                                                                     .Value
-                                                                     .ResiliencePolicyOptions ?? new ResiliencePolicyOptions());
-        }
-
-        public static IHttpClientBuilder AddResiliencePolicies(
-            this IHttpClientBuilder httpClientBuilder,
-            Func<ResiliencePolicyOptions> policyOptions )
-        {
-
-            return AddResiliencePolicies(httpClientBuilder, sp => policyOptions());
-        }
-
-        public static IHttpClientBuilder AddResiliencePolicies(
-            this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, ResiliencePolicyOptions> getConfig)
-        {
-            return httpClientBuilder.AddBulkheadPolicy(sp => getConfig(sp).Bulkhead)
-                                    .AddTimeoutPolicy(sp => getConfig(sp).Timeout)
-                                    .AddRetryPolicy(sp => getConfig(sp).Retry)
-                                    .AddCircuitBreakerPolicy((sp => getConfig(sp).CircuitBreaker));
-
-        }
-
  
         public static IHttpClientBuilder AddBulkheadPolicy(
             this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, BulkheadPolicyOptions> getConfig)

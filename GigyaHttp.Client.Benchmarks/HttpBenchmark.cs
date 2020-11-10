@@ -30,22 +30,22 @@ namespace PerformanceBenchmarks
     [Config(typeof(Config))]
     public class HttpBenchmark
     {
-        private static TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
+        private static TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
 
         private class Config : ManualConfig
         {
             public Config()
             {
                 //AddJob(Job.LongRun, Job.ShortRun, Job.RyuJitX64);
-                AddJob(Job.ShortRun
-                    .WithGcConcurrent(true)
-                    .WithGcServer(true)
-                    .WithWarmupCount(20)
-                    .WithRuntime(ClrRuntime.Net472)
-                    .WithMaxRelativeError(0.1)
-                    .WithMinIterationCount(20)
-                    .WithStrategy(RunStrategy.Throughput));
-                
+                // AddJob(Job.ShortRun
+                //     .WithGcConcurrent(true)
+                //     .WithGcServer(true)
+                //     .WithWarmupCount(20)
+                //     .WithRuntime(ClrRuntime.Net472)
+                //     .WithMaxRelativeError(0.1)
+                //     .WithMinIterationCount(20)
+                //     .WithStrategy(RunStrategy.Throughput));
+
                 AddJob(Job.MediumRun
                     .WithGcConcurrent(true)
                     .WithGcServer(true)
@@ -54,15 +54,15 @@ namespace PerformanceBenchmarks
                     .WithMaxRelativeError(0.1)
                     .WithMinIterationCount(20)
                     .WithStrategy(RunStrategy.Throughput));
-                
-                AddJob(Job.LongRun
-                    .WithGcConcurrent(true)
-                    .WithGcServer(true)
-                    .WithWarmupCount(20)
-                    .WithRuntime(ClrRuntime.Net472)
-                    .WithMaxRelativeError(0.1)
-                    .WithMinIterationCount(20)
-                    .WithStrategy(RunStrategy.Throughput));
+                //
+                // AddJob(Job.LongRun
+                //     .WithGcConcurrent(true)
+                //     .WithGcServer(true)
+                //     .WithWarmupCount(20)
+                //     .WithRuntime(ClrRuntime.Net472)
+                //     .WithMaxRelativeError(0.1)
+                //     .WithMinIterationCount(20)
+                //     .WithStrategy(RunStrategy.Throughput));
 
                 AddExporter(MarkdownExporter.GitHub);
                 AddDiagnoser(MemoryDiagnoser.Default);
@@ -83,8 +83,12 @@ namespace PerformanceBenchmarks
 
         public static IEnumerable<string> HttpOptions()
         {
-            return new[] {"basic", "max-connection-5", "max-connection-10", "max-connection-20", "max-connection-30", "max-connection-40", "max-connection-50", "max-connection-1", "bulkhead-10", "bulkhead-100", "bulkhead-100-max-connection-20"};
-
+            return new[]
+            {
+                "basic", "max-connection-5", "max-connection-10", "max-connection-20", "max-connection-30",
+                "max-connection-40", "max-connection-50", "max-connection-1", "bulkhead-10", "bulkhead-100",
+                "bulkhead-100-max-connection-20", "bulkhead-10-max-connection-20"
+            };
         }
 
 
@@ -92,179 +96,124 @@ namespace PerformanceBenchmarks
         {
             var serviceCollection = new ServiceCollection();
 
-             
+
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "basic";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout,
-                    MaxConnection = null
-                };
+
+                ConfigureJsonPlaceHolder(options);
+
+                options.HttpClientHandlerOptions.MaxConnection = null;
+            });
+
+            
+            serviceCollection.AddGigyaHttpClient(options =>
+            {
+                options.ServiceName = "max-connection-1";
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 1;
+
             });
             
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "max-connection-5";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout,
-                    MaxConnection = 5
-                };
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 5;
+ 
             });
-            
-               
-            serviceCollection.AddGigyaHttpClient(options =>
-            {
-                options.ServiceName = "max-connection-1";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout,
-                    MaxConnection = 1
-                };
-            });
+
+
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "max-connection-10";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout,
-                    MaxConnection = 10
-                };
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 10;
             });
-         
-            
+
+
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "max-connection-20";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout,
-                    MaxConnection = 20
-                };
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 20;
+
             });
-            
+
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "max-connection-30";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout,
-                    MaxConnection = 30
-                };
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 30;
+
             });
-            
+
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "max-connection-40";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout,
-                    MaxConnection = 30
-                };
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 40;
+
             });
-            
+
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "max-connection-50";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout,
-                    MaxConnection = 50
-                };
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 50;
             });
 
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "bulkhead-10";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout, 
-                };
-              
-                options.PolicyFactory = () => new ResiliencePolicyOptions()
-                {
-                    Bulkhead = new BulkheadPolicyOptions()
-                    {
-                        Enabled = true,
-                        MaxParallelization = 10
-                    }
-                };
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = null;
+ 
             });
+            serviceCollection.AddGigyaHttpClient(options =>
+            {
+                options.ServiceName = "bulkhead-10-max-connection-20";
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 20;
+                options.PollyOptions.Bulkhead.Enabled = true;
+                options.PollyOptions.Bulkhead.MaxParallelization = 10;
+
+            });
+            
             
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "bulkhead-100";
-                options.ConnectionFactory = () => new HttpConnection()
+                ConfigureJsonPlaceHolder(options);
+                options.PollyOptions.Bulkhead = new BulkheadPolicyOptions()
                 {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout, 
+                    Enabled = true,
+                    MaxParallelization = 100
                 };
-              
-                options.PolicyFactory = () => new ResiliencePolicyOptions()
-                {
-                    Bulkhead = new BulkheadPolicyOptions()
-                    {
-                        Enabled = true,
-                        MaxParallelization = 100
-                    }
-                };
+
             });
-            
+
 
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "bulkhead-100-max-connection-20";
-                options.ConnectionFactory = () => new HttpConnection()
-                {
-                    Server = "jsonplaceholder.typicode.com/todos/1",
-                    Schema = "http",
-                    Port = 80,
-                    Timeout = Timeout, 
-                    MaxConnection = 20
-                };
-              
-                options.PolicyFactory = () => new ResiliencePolicyOptions()
-                {
-                    Bulkhead = new BulkheadPolicyOptions()
-                    {
-                        Enabled = true,
-                        MaxParallelization = 100
-                    }
-                };
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 20;
+                options.PollyOptions.Bulkhead.Enabled = true;
+                options.PollyOptions.Bulkhead.MaxParallelization = 100;
+
             });
 
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
+        }
+
+        private static void ConfigureJsonPlaceHolder(HttpClientOptions options)
+        {
+            options.ConnectionOptions.Server = "jsonplaceholder.typicode.com/todos/1";
+            options.ConnectionOptions.Schema = "http";
+            options.ConnectionOptions.Port = 80;
+            options.ConnectionOptions.Timeout = Timeout;
         }
 
 
@@ -275,8 +224,6 @@ namespace PerformanceBenchmarks
             await Run(() => factory.CreateClient(ClientName).GetAsync(""));
         }
 
- 
-
 
         private async Task Run(Func<Task> action)
         {
@@ -286,10 +233,5 @@ namespace PerformanceBenchmarks
 
             Task send(int i) => action();
         }
-
-
-
     }
-
-    
 }

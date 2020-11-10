@@ -21,7 +21,7 @@ namespace Gigya.Http.Client.UnitTests
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "service";
-                options.ConnectionFactory = () => new HttpConnection()
+                options.ConnectionOptions.Provider = () => new HttpConnection()
                 {
                     Server = "service.com",
                     Schema = "https",
@@ -55,7 +55,7 @@ namespace Gigya.Http.Client.UnitTests
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "service";
-                options.ConnectionFactory = () => config;
+                options.ConnectionOptions.Provider = () => config;
             });
 
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();

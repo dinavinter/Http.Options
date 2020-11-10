@@ -5,9 +5,9 @@
         <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IncludeSymbols>true</IncludeSymbols>
-        <AssemblyVersion>1.0.3.0</AssemblyVersion>
-        <FileVersion>1.0.3.0</FileVersion>
-        <Version>1.0.3.0</Version>
+        <AssemblyVersion>1.0.5.0</AssemblyVersion>
+        <FileVersion>1.0.5.0</FileVersion>
+        <Version>1.0.5.0</Version>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
 
@@ -20,7 +20,7 @@
       <PackageReference Include="Polly" Version="[7.1.0,8.0)" />
       <PackageReference Include="Polly.Extensions.Http" Version="[3.0.0,4.0)" />
       <PackageReference Include="System.ComponentModel.Annotations" Version="[4.7.0,5)" />
-      <PackageReference Include="System.Configuration.ConfigurationManager" Version="[5.0.0,6.0)" />
+      <PackageReference Include="System.Configuration.ConfigurationManager" Version="[4.7,6.0)" />
     </ItemGroup>
 
 </Project>
