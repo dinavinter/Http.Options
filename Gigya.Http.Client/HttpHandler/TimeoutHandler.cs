@@ -22,7 +22,7 @@ namespace Gigya.Http.Telemetry.HttpHandler
             {
                 try
                 {
-                    return await base.SendAsync(request, cts.Token);
+                    return await base.SendAsync(request, cts.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                     when (!cancellationToken.IsCancellationRequested)

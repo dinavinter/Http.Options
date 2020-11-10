@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace Gigya.Http.Telemetry.Options
 {
-     public class HttpClientOptions
+     public class HttpClientOptions 
     {
         public string ServiceName;
 
@@ -33,5 +33,6 @@ namespace Gigya.Http.Telemetry.Options
 
             return httpClientBuilder;
         }
+ 
     }
 }

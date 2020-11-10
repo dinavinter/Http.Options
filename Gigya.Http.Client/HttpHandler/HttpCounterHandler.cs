@@ -47,7 +47,7 @@ namespace Gigya.Http.Telemetry.HttpHandler
 
             try
             {
-                var response = await base.SendAsync(request, CancellationToken.None);
+                var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 _telemetryProducer.IncrementMetric(FailureHttpStatusCode(response)
                     ? _consts.ErrorCounter

@@ -39,7 +39,7 @@ namespace Gigya.Http.Telemetry.HttpHandler
 
             try
             {
-                var response = await base.SendAsync(request, CancellationToken.None);
+                var response = await base.SendAsync(request, CancellationToken.None).ConfigureAwait(false);
 
                 TrackServerTime(response, sw);
 
@@ -58,10 +58,8 @@ namespace Gigya.Http.Telemetry.HttpHandler
 
             var serverTime = ParseRequestTiming(response);
             if (serverTime != null)
-            {
-
-                _telemetryProducer.TrackMetric(_consts.NetworkTiming,
-                    sw.Elapsed - serverTime.Value);
+            { 
+                _telemetryProducer.TrackMetric(_consts.NetworkTiming, sw.Elapsed - serverTime.Value);
                 _telemetryProducer.TrackMetric(_consts.ServerTiming, serverTime.Value);
             }
         }

@@ -28,7 +28,7 @@ namespace Gigya.Http.Telemetry.HttpHandler
 
                 _logger.LogDebug($"HTTP {request.Method} {request.RequestUri} Starting request");
 
-                var response = await base.SendAsync(request, cancellationToken);
+                var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 
                 _logger.LogDebug($"HTTP {request.Method} {request.RequestUri} Finished request within {sw.ElapsedMilliseconds}ms");
 

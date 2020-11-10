@@ -4,6 +4,7 @@ using Polly.Timeout;
 
 namespace Gigya.Http.Telemetry.PollyOptions
 {
+    //TODO use polly timeout instead of handler
     public class TimeoutPolicyOptions : PolicyOptions
     {
         public int TimeoutMS { get; set; } = 2000;
