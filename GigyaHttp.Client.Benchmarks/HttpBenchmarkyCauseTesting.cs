@@ -23,12 +23,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using Perfolizer.Horology;
 using Polly;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
+using WireMock.Server;
 
 namespace PerformanceBenchmarks
 {
     [Config(typeof(Config))]
-    public class HttpBenchmark
+    public class HttpChaosBenchmark
     {
         private static TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
 
@@ -46,12 +50,13 @@ namespace PerformanceBenchmarks
                 //     .WithMinIterationCount(20)
                 //     .WithStrategy(RunStrategy.Throughput));
 
-                AddJob(Job.MediumRun
+                AddJob(Job.LongRun
                     .WithGcConcurrent(true)
                     .WithGcServer(true)
                     .WithWarmupCount(20)
                     .WithRuntime(ClrRuntime.Net472)
-                    .WithMaxRelativeError(0.1)
+                    //.WithMaxAbsoluteError(TimeInterval.Second)
+                 //   .WithMaxRelativeError(0.3)
                     .WithMinIterationCount(20)
                     .WithStrategy(RunStrategy.Throughput));
                 //
@@ -81,6 +86,7 @@ namespace PerformanceBenchmarks
 
         private readonly HttpClient _httpClient;
         private IHttpClientFactory _factory;
+        private   WireMockServer _server;
 
         [ParamsSource(nameof(HttpOptions))] public string ClientName { get; set; }
 
@@ -89,9 +95,9 @@ namespace PerformanceBenchmarks
             return new[]
             {
                 // "max-connection-20", "max-connection-30",
-                // "max-connection-40", "max-connection-50", "bulkhead-10", 
-                //   "bulkhead-100-max-connection-20", "bulkhead-10-max-connection-20", 
-                "max-connection-30-hlt-10", "max-connection-30-hlt-2", "max-connection-30-hlt-20"
+                // "max-connection-40", "max-connection-50", "bulkhead-10", , "max-connection-30-hlt-2"
+                "bulkhead-100-max-connection-20", "bulkhead-10-max-connection-20", 
+                "max-connection-30-hlt-10", "max-connection-30-hlt-20"
             };
 
             //all
@@ -103,12 +109,46 @@ namespace PerformanceBenchmarks
             // };
         }
 
+        public IEnumerable<(string path, double weight, TimeSpan delay, int statusCode)> _maps =
+            new (string path, double weight, TimeSpan delay, int statusCode)[]
+            {
+                ("/timeout/1s", 0.01, TimeSpan.FromSeconds(1), 408),
+                ("/delay/1s", 0.01, TimeSpan.FromSeconds(1), 200),
+                ("/delay/2s", 0.01, TimeSpan.FromSeconds(2), 200),
+                ("/delay/5s", 0.01, TimeSpan.FromSeconds(1), 200),
+                ("/delay/10ms", 0.4, TimeSpan.FromMilliseconds(10), 200),
+                ("/delay/5ms", 0.2, TimeSpan.FromMilliseconds(5), 200),
+                ("/delay/200ms", 0.6, TimeSpan.FromMilliseconds(5), 200),
+                ("/delay/300ms", 0.4, TimeSpan.FromMilliseconds(5), 200),
+                ("/error/5ms", 0.01, TimeSpan.FromMilliseconds(5), 500),
 
-        public HttpBenchmark()
+            };
+
+        [GlobalSetup]
+        public void GlobalSetup()
         {
-            var serviceCollection = new ServiceCollection();
+            _server = WireMockServer.Start();
 
+            foreach (var map in _maps)
+            {
+                _server
+                    .Given(Request.Create()
+                        .WithPath(map.path)
+                        .UsingGet())
+                    .RespondWith(Response.Create()
+                        .WithStatusCode(map.statusCode).WithDelay(map.delay)
+                        .WithBodyAsJson(new
+                        {
+                            booo = "abc",
+                            bla = "uupodsodp"
+                        }))
+                    ;
 
+            }
+            
+              var serviceCollection = new ServiceCollection();
+
+            
             serviceCollection.AddGigyaHttpClient(options =>
             {
                 options.ServiceName = "basic";
@@ -236,19 +276,35 @@ namespace PerformanceBenchmarks
             _factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
         }
 
-        private static void ConfigureJsonPlaceHolder(HttpClientOptions options)
+        public HttpChaosBenchmark()
         {
-            options.ConnectionOptions.Server = "jsonplaceholder.typicode.com";
+          
+        }
+
+        private   void ConfigureJsonPlaceHolder(HttpClientOptions options)
+        {
+            options.ConnectionOptions.Server = "127.0.0.1";
             options.ConnectionOptions.Schema = "http";
-            options.ConnectionOptions.Port = 80;
-            options.ConnectionOptions.Timeout = Timeout;
+            options.ConnectionOptions.Port = _server.Ports.First();
+            // options.ConnectionOptions.Timeout = Timeout;
+            options.PollyOptions.Timeout.Enabled = true;
+
         }
 
 
         [Benchmark]
         public async Task GetAsync()
         {
-            await Run(() => _factory.CreateClient(ClientName).GetAsync("todos/1"));
+            await Run( async() =>
+            {
+                
+                 await  _factory.CreateClient(ClientName).GetAsync(_maps.RandomElementByWeight(x=>x.weight).path);
+                 // await  _factory.CreateClient(ClientName).GetAsync("/timeout/2s");
+                 // await  _factory.CreateClient(ClientName).GetAsync("/delay/1s");
+                 // await  _factory.CreateClient(ClientName).GetAsync("todos/1");
+            });
+            
+            
         }
 
 

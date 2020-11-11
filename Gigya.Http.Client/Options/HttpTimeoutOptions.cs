@@ -7,7 +7,7 @@ namespace Gigya.Http.Telemetry.Options
     public class HttpTimeoutOptions
     {
         public Func<HttpTimeoutOptions> Provider;
-        public bool Enabled = true;
+        public bool Enabled = false;
 
         public HttpTimeoutOptions()
         {
