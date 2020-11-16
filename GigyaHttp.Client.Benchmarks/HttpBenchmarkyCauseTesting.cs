@@ -34,7 +34,7 @@ namespace PerformanceBenchmarks
     [Config(typeof(Config))]
     public class HttpChaosBenchmark
     {
-        private static TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
+        private static TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(2);
 
         private class Config : ManualConfig
         {
@@ -84,7 +84,7 @@ namespace PerformanceBenchmarks
 
         private ServiceProvider _serviceProvider;
 
-        private readonly HttpClient _httpClient;
+        private   HttpClient _httpClient;
         private IHttpClientFactory _factory;
         private   WireMockServer _server;
 
@@ -92,6 +92,10 @@ namespace PerformanceBenchmarks
 
         public static IEnumerable<string> HttpOptions()
         {
+            return new[]
+            {
+                "basic"
+            };
             return new[]
             {
                 // "max-connection-20", "max-connection-30",
@@ -112,15 +116,16 @@ namespace PerformanceBenchmarks
         public IEnumerable<(string path, double weight, TimeSpan delay, int statusCode)> _maps =
             new (string path, double weight, TimeSpan delay, int statusCode)[]
             {
-                ("/timeout/1s", 0.01, TimeSpan.FromSeconds(1), 408),
+                ("/timeout/1s", 0.1, TimeSpan.FromSeconds(1), 408),
                 ("/delay/1s", 0.01, TimeSpan.FromSeconds(1), 200),
-                ("/delay/2s", 0.01, TimeSpan.FromSeconds(2), 200),
-                ("/delay/5s", 0.01, TimeSpan.FromSeconds(1), 200),
+                ("/delay/2s", 0.1, TimeSpan.FromSeconds(2), 200),
+                ("/delay/5s", 0.1, TimeSpan.FromSeconds(5), 200),
                 ("/delay/10ms", 0.4, TimeSpan.FromMilliseconds(10), 200),
                 ("/delay/5ms", 0.2, TimeSpan.FromMilliseconds(5), 200),
                 ("/delay/200ms", 0.6, TimeSpan.FromMilliseconds(5), 200),
                 ("/delay/300ms", 0.4, TimeSpan.FromMilliseconds(5), 200),
                 ("/error/5ms", 0.01, TimeSpan.FromMilliseconds(5), 500),
+                ("/error/5s", 0.01, TimeSpan.FromSeconds(5), 500),
 
             };
 
@@ -270,6 +275,14 @@ namespace PerformanceBenchmarks
                 options.PollyOptions.Bulkhead.MaxParallelization = 100;
             });
 
+            var option = new HttpClientOptions();
+            ConfigureJsonPlaceHolder(option);
+            
+            _httpClient = new HttpClient()
+            {
+                BaseAddress = option.ConnectionOptions.BaseUrl,
+            };
+
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -297,11 +310,11 @@ namespace PerformanceBenchmarks
         {
             await Run( async() =>
             {
-                
-                 await  _factory.CreateClient(ClientName).GetAsync(_maps.RandomElementByWeight(x=>x.weight).path);
-                 // await  _factory.CreateClient(ClientName).GetAsync("/timeout/2s");
-                 // await  _factory.CreateClient(ClientName).GetAsync("/delay/1s");
-                 // await  _factory.CreateClient(ClientName).GetAsync("todos/1");
+                await _httpClient.GetAsync(_maps.RandomElementByWeight(x => x.weight).path, new CancellationTokenSource(Timeout).Token);
+                // await  _factory.CreateClient(ClientName).GetAsync(_maps.RandomElementByWeight(x=>x.weight).path);
+                // await  _factory.CreateClient(ClientName).GetAsync("/timeout/2s");
+                // await  _factory.CreateClient(ClientName).GetAsync("/delay/1s");
+                // await  _factory.CreateClient(ClientName).GetAsync("todos/1");
             });
             
             
