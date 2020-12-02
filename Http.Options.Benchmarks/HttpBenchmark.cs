@@ -202,11 +202,9 @@ namespace Http.Options.Benchmarks
             {
                 options.ServiceName = "bulkhead-100";
                 ConfigureJsonPlaceHolder(options);
-                options.PollyOptions.Bulkhead = new BulkheadPolicyOptions()
-                {
-                    Enabled = true,
-                    MaxParallelization = 100
-                };
+                options.PollyOptions.Bulkhead.Enabled = true;
+                options.PollyOptions.Bulkhead.MaxParallelization = 100;
+                 
             });
 
 

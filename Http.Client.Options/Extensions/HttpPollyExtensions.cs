@@ -12,24 +12,24 @@ namespace Http.Options
     {
  
         public static IHttpClientBuilder AddBulkheadPolicy(
-            this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, BulkheadPolicyOptions> getConfig)
+            this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, BulkheadPolicyOptions<HttpResponseMessage>> getConfig)
         {
 
-            return httpClientBuilder.AddPolicyHandler((sp, r) => getConfig(sp).Polly<HttpResponseMessage>());
+            return httpClientBuilder.AddPolicyHandler((sp, r) => getConfig(sp).Polly());
 
         }
 
 
         public static IHttpClientBuilder AddCircuitBreakerPolicy(
-            this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, CircuitBreakerOptions> getConfig)
+            this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, CircuitBreakerOptions<HttpResponseMessage>> getConfig)
         {
-            return httpClientBuilder.AddPolicyHandler((sp, r) => getConfig(sp).Polly(HttpTransientError, sp.GetService<ILogger<CircuitBreakerOptions>>()));
+            return httpClientBuilder.AddPolicyHandler((sp, r) => getConfig(sp).Polly(HttpTransientError, sp.GetService<ILogger<CircuitBreakerOptions<HttpResponseMessage>>>()));
 
         }
 
 
         public static IHttpClientBuilder AddRetryPolicy(
-            this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, RetryPolicyOptions> getConfig)
+            this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, RetryPolicyOptions<HttpResponseMessage>> getConfig)
         {
 
             return httpClientBuilder.AddPolicyHandler((sp, r) => getConfig(sp).Polly(HttpTransientError));
@@ -38,10 +38,10 @@ namespace Http.Options
 
 
         public static IHttpClientBuilder AddTimeoutPolicy(
-            this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, TimeoutPolicyOptions> getConfig)
+            this IHttpClientBuilder httpClientBuilder, Func<IServiceProvider, TimeoutPolicyOptions<HttpResponseMessage>> getConfig)
         {
 
-            return httpClientBuilder.AddPolicyHandler((sp, r) => getConfig(sp).Polly<HttpResponseMessage>());
+            return httpClientBuilder.AddPolicyHandler((sp, r) => getConfig(sp).Polly());
 
         }
 

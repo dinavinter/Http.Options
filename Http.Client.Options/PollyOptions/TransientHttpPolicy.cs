@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Http.Options
@@ -12,10 +13,10 @@ namespace Http.Options
             Provider = sp => this;
         }
         
-        public CircuitBreakerOptions CircuitBreaker = new CircuitBreakerOptions();
-        public RetryPolicyOptions Retry = new RetryPolicyOptions();
-        public TimeoutPolicyOptions Timeout = new TimeoutPolicyOptions();
-        public BulkheadPolicyOptions Bulkhead = new BulkheadPolicyOptions();
+        public CircuitBreakerOptions<HttpResponseMessage> CircuitBreaker = new CircuitBreakerOptions<HttpResponseMessage>();
+        public RetryPolicyOptions<HttpResponseMessage> Retry = new RetryPolicyOptions<HttpResponseMessage>();
+        public TimeoutPolicyOptions<HttpResponseMessage> Timeout = new TimeoutPolicyOptions<HttpResponseMessage>();
+        public BulkheadPolicyOptions<HttpResponseMessage> Bulkhead = new BulkheadPolicyOptions<HttpResponseMessage>();
 
         public IHttpClientBuilder AddResiliencePolicies(IHttpClientBuilder httpClientBuilder)
         { 

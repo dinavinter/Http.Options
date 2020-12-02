@@ -4,11 +4,11 @@ using Polly;
 
 namespace Http.Options
 {
-    public abstract class PolicyOptions
+    public abstract class PolicyOptions<T>
     {
         public bool Enabled { get; set; } = false;
  
-        protected IAsyncPolicy<T> PolicyOrNoOP<T>(IAsyncPolicy<T> policy) => Enabled
+        protected IAsyncPolicy<T> PolicyOrNoOP(IAsyncPolicy<T> policy) => Enabled
             ? policy
             : Policy.NoOpAsync<T>();
 
@@ -16,7 +16,7 @@ namespace Http.Options
 
 
 
-    public class RetryPolicyOptions : PolicyOptions
+    public class RetryPolicyOptions<T> : PolicyOptions<T>
     {
         public bool Enabled { get; set; }
         public int Count { get; set; } = 3;
