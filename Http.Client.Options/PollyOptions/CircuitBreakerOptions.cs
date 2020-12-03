@@ -36,7 +36,7 @@ namespace Http.Options
  
         public IAsyncPolicy<T> Polly(PolicyBuilder<T> policy, ILogger<CircuitBreakerOptions<T>> log)
         {
-            return _policy = _policy ?? PolicyOrNoOP(FailPolicy == "fail" ? LogAndFail() : LogOnly());
+            return _policy ??= PolicyOrNoOP(FailPolicy == "fail" ? LogAndFail() : LogOnly());
 
 
             IAsyncPolicy<T> LogOnly()

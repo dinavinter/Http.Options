@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
@@ -90,7 +91,53 @@ namespace Http.Options.UnitTests
 
 
         }
-        
+       
+        [Test]
+        public async Task HttpClient_BulkheadTests()
+        {
+            var serviceCollection = new ServiceCollection();
+            // serviceCollection.AddSingleton<HttpJsonPlaceholderService, HttpJsonPlaceholderService>();
+
+            
+            serviceCollection.AddHttpClientOptions(options =>
+            {
+                options.ServiceName = "service";
+                ConfigureWireMockServer(options);
+            });
+
+            var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
+            var client = factory.CreateClient("service");
+
+            var stopwatch = Stopwatch.StartNew();
+            var rate = await Observable
+                .FromAsync(ct =>
+                    client
+                        .GetAsync("/delay/5ms", ct))
+                .Repeat(400)
+                .Buffer(TimeSpan.FromSeconds(1))
+                .Select(x => x.Count)
+                .Scan(new List<int>(), (list, element) =>
+                {
+                     list.Add(element);
+                     return list;
+                });
+            
+              
+                // =await Observable
+                // .FromAsync(ct =>
+                //     client
+                //         .GetAsync("/delay/5ms", ct))
+                // .Repeat(9000)
+                // .Buffer(100)
+                // .TimeInterval()
+                // .Select(x => x.Interval.Milliseconds)
+                // .Average();
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.Elapsed);
+
+            Assert.That(rate.Average(), Is.EqualTo(70).Within(10));
+
+        }
         
         [Test]
         [Ignore("TBD circuit doesn't catch timeouts")]

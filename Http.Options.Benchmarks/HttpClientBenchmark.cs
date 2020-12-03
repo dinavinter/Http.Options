@@ -124,7 +124,7 @@ namespace Http.Options.Benchmarks
                     options.ConnectionOptions.Server = "dummy.restapiexample.com";
                     options.ConnectionOptions.Schema = "http";
                     options.ConnectionOptions.Port = 80;
-                    options.ConnectionOptions.MaxConnection = 5;
+                    options.HttpClientHandlerOptions.MaxConnection = 5;
                 })
                 .AddTypedClient<HttpRestExampleService>();
 

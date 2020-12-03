@@ -34,8 +34,7 @@ namespace Http.Options
         }
 
         public TimeSpan? Timeout { get; set; } = TimeSpan.FromSeconds(10);
-
-        public int? MaxConnection = 30;
+ 
 
         public void ConfigureHttpClient(IHttpClientBuilder httpClientBuilder)
         {
