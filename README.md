@@ -5,7 +5,7 @@ Simplefied usage of [http client factory](https://docs.microsoft.com/en-us/dotne
 # Configuration options
 All configuration are not requierd
 
-### Connection
+## Connection 
 Http client base url properties
 
 | option | value |
@@ -30,7 +30,7 @@ Http client base url properties
 ```
 
 
-### Http Client Handler
+## Http Client Handler
 The http client heandler properties 
  
 | option | value |
@@ -50,7 +50,7 @@ The http client heandler properties
 
 ```
 
-### Telemetry
+## Telemetry
 Enable or disable metrix options
 
 | option | value |
@@ -145,7 +145,9 @@ All policies are disabled by default
             });
 ```
 
-### Bind Http Client by type
+## Binding Options 
+
+### Bind http Client by type
 
 ```csharp
        serviceCollection.AddHttpClientOptions<ServiceClient>(options =>
@@ -159,7 +161,8 @@ All policies are disabled by default
             
 ```
  
- ### Usage of named client
+### Usage of named client
+
  ```csharp
    var factory = serviceProvider.GetRequiredService<IHttpClientFactory>();
    var client = factory.CreateClient("service");
@@ -167,7 +170,8 @@ All policies are disabled by default
     
  ```
  
- ### Usage of typed client
+### Usage of typed client
+
  ```csharp
  class ServiceClient
         {
