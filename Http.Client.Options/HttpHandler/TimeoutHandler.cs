@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 namespace Http.Options
 {
+    
+    //TODO get rid of this
     public class TimeoutHandler : DelegatingHandler
     {
         private readonly Func<TimeSpan> _timeout;

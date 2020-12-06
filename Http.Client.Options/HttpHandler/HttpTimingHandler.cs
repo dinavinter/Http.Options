@@ -67,6 +67,7 @@ namespace Http.Options
 
         private static TimeSpan? ParseRequestTiming(HttpResponseMessage httpResponseMessage)
         {
+            //TODO custom header from config
             if (httpResponseMessage.Headers.TryGetValues("X-Timing", out var timing))
             {
                 if (int.TryParse(timing.FirstOrDefault(), out int timeInMs))

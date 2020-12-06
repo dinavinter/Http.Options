@@ -16,7 +16,7 @@ namespace Http.Options.UnitTests
 
             serviceCollection.AddHttpClientOptions(options =>
             {
-                options.ServiceName = "service"; 
+                options.ServiceName = "service";
                 options.ConnectionOptions.Server = "jsonplaceholder.typicode.com";
                 options.ConnectionOptions.Schema = "http";
                 options.ConnectionOptions.Port = 80;

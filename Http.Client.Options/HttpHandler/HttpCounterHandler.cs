@@ -40,6 +40,7 @@ namespace Http.Options
             _telemetryProducer.IncrementMetric(_consts.RequestCounter);
             _telemetryProducer.IncrementMetric(_consts.ActiveRequestCounter);
             //TODO!!
+            // TOD cancel if canceled
             if (cancellationToken.IsCancellationRequested)
             {
                 _telemetryProducer.IncrementMetric(_consts.CancelRequestCounter);

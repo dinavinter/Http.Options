@@ -36,7 +36,7 @@ namespace Http.Options.UnitTests
 
 
         [Test]
-        public async Task HadesConnectionChangesAfterConfigChange()
+        public async Task HttpConnectionChangesAfterConfigChange()
         {
         
 

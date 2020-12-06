@@ -36,8 +36,8 @@ namespace Http.Options
 
                     return new HttpClientHandler();
                 })            
-                .SetHandlerLifetime(TimeSpan.FromMinutes(HandlerLifeTimeMinutes))
-                ;
+                .SetHandlerLifetime(TimeSpan.FromMinutes(HandlerLifeTimeMinutes));
+                
         }
     }
 }

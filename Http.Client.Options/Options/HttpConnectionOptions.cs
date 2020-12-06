@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Http.Options
 {
+    // TODO compare with service endpoint
     public class HttpConnectionOptions
     {
         public Func<HttpConnectionOptions> Provider;
@@ -21,7 +22,7 @@ namespace Http.Options
         public string Schema { get; set; } = "http";
         public int Port { get; set; } = 9090;
 
-        [Required] public string Server { get; set; }
+        public string Server { get; set; }
 
         public Uri BaseUrl => new Uri($@"{Schema}://{Server}:{Port}/");
 

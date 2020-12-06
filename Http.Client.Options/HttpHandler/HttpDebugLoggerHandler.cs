@@ -37,7 +37,7 @@ namespace Http.Options
             catch (Exception e)
             {
                 _logger.LogError(500,
-                    "http.hades.errors" + e.Message + "\r\nspan start time: ", e);
+                    "http.errors" + e.Message + "\r\nspan start time: ", e);
                 throw;
             }
         }

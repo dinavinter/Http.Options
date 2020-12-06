@@ -12,29 +12,27 @@ namespace Http.Options
 
 
 
+    //TODO metrics version greateer then not lower then
     public class MetricsLogger : ITelemetryLogger
     {
-         private static readonly MetricsContext Context = Metric.Context("HadesClient");
-
  
-
-
+  
         public void IncrementMetric(string metric)
         {
-            Context.Counter(metric, Unit.Requests).Increment();
+            Metric.Context(metric).Counter(metric, Unit.Requests).Increment();
         }
 
 
         public void TrackMetric(string metric, TimeSpan timeSpan)
         {
-            Context.Timer(metric, Unit.Requests).Record((long)timeSpan.TotalMilliseconds, TimeUnit.Milliseconds);
+            Metric.Context(metric).Timer(metric, Unit.Requests).Record((long)timeSpan.TotalMilliseconds, TimeUnit.Milliseconds);
 
         }
 
 
         public void DecrementMetric(string metric)
         {
-            Context.Counter(metric, Unit.Requests).Decrement();
+            Metric.Context(metric).Counter(metric, Unit.Requests).Decrement();
         }
     }
 }
