@@ -188,4 +188,28 @@ All policies are disabled by default
             }
         }
  ```
+ 
+ 
+ ## Runtime configuration source
+  
+  ```csharp
 
+       serviceCollection.AddHttpClientOptions(options =>
+            {
+                options.ServiceName = "service";
+                options.ConnectionOptions.Provider = () => new HttpConnectionOptions()
+                {
+                    Server = ExternalProvider.Get<HttpServiceProps>().Domain
+                };
+                options.PollyOptions.Provider = () => new HttpPollyOptions()
+                {
+                    Retry = ExternalProvider.Get<HttpServiceProps>().Retry
+                };
+                
+                options.HttpClientHandlerOptions.Provider = () => new HttpClientHandlerOptions()
+                {
+                    MaxConnection = ExternalProvider.Get<HttpServiceProps>().MaxConnection
+                };
+            });
+
+ ```
