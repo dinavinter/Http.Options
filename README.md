@@ -110,23 +110,7 @@ All policies are disabled by default
 ```
 
 
-### Retry
-
-```csharp
-
-  
-            serviceCollection.AddHttpClientOptions(options =>
-            {
-                options.ServiceName = "service";
-
-                options.PollyOptions.Retry.Enabled = true;
-                options.PollyOptions.Retry.Count = 5;
-                options.PollyOptions.Retry.BackoffPower = 3;
-                options.PollyOptions.Retry.MaxJitter = 100;
-
-
-            });
-```
+ 
 
 ### CircuitBreaker
 
