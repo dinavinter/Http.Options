@@ -20,7 +20,7 @@ namespace Http.Options
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            using (var cts = GetCancellationTokenSource(cancellationToken))
+             using (var cts = GetCancellationTokenSource(cancellationToken))
             {
                 try
                 {

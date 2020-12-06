@@ -39,7 +39,7 @@ namespace Http.Options
 
             try
             {
-                var response = await base.SendAsync(request, CancellationToken.None).ConfigureAwait(false);
+                var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 TrackServerTime(response, sw);
 

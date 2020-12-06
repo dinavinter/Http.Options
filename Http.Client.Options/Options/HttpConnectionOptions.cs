@@ -20,7 +20,7 @@ namespace Http.Options
             new MediaTypeWithQualityHeaderValue("application/json");
 
         public string Schema { get; set; } = "http";
-        public int Port { get; set; } = 9090;
+        public int Port { get; set; } = 80;
 
         public string Server { get; set; }
 
@@ -34,19 +34,24 @@ namespace Http.Options
             }
         }
 
-        public TimeSpan? Timeout { get; set; } = TimeSpan.FromSeconds(10);
- 
+        public TimeSpan? Timeout { get; set; }
+
 
         public void ConfigureHttpClient(IHttpClientBuilder httpClientBuilder)
         {
             httpClientBuilder.ConfigureHttpClient(ConfigureHttp);
         }
 
-        public void ConfigureHttp(HttpClient httpClient)
+        public void ConfigureHttp(IServiceProvider sp, HttpClient httpClient)
         {
             var connection = Provider();
-            httpClient.BaseAddress = connection.BaseUrl;
-            httpClient.Timeout = connection.Timeout ?? httpClient.Timeout;
+
+            if (connection.Server != null)
+            {
+                httpClient.BaseAddress = connection.BaseUrl;
+            }
+
+            httpClient.Timeout = connection.Timeout ?? httpClient.Timeout; 
 
             //TODO from config
             httpClient.DefaultRequestHeaders.Accept.Add(ApplicationJsonHeader);

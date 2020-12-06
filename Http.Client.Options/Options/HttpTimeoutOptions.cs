@@ -5,8 +5,7 @@ namespace Http.Options
 {
     public class HttpTimeoutOptions
     {
-        public Func<HttpTimeoutOptions> Provider;
-        public bool Enabled = false;
+        public Func<HttpTimeoutOptions> Provider; 
 
         public HttpTimeoutOptions()
         {
@@ -21,12 +20,12 @@ namespace Http.Options
             }
         }
 
-        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
+        public TimeSpan Timeout { get; set; } = System.Threading.Timeout.InfiniteTimeSpan;
 
 
         public IHttpClientBuilder AddTimeoutHandler(IHttpClientBuilder httpClientBuilder)
         {
-            return Enabled ? httpClientBuilder.AddTimeoutHandler(Provider) : httpClientBuilder;
+            return httpClientBuilder.AddTimeoutHandler(Provider);
         }
     }
 }

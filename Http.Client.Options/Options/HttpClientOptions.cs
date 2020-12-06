@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Http.Options
 {
-     public class HttpClientOptions 
+    public class HttpClientOptions
     {
         public string ServiceName;
 
@@ -17,12 +17,13 @@ namespace Http.Options
             TelemetryOptions = new HttpTelemetryOptions(this);
         }
 
-        public IHttpClientBuilder ConfigureHttpClientBuilder(IServiceCollection serviceCollection)
+
+        public IHttpClientBuilder AddHttpClientBuilder(IServiceCollection serviceCollection)
         {
             var httpClientBuilder = serviceCollection.AddHttpClient(ServiceName);
+            TelemetryOptions.AddTelemetryLogger(serviceCollection);
 
             HttpClientHandlerOptions.ConfigurePrimaryHttpMessageHandler(httpClientBuilder);
-            TelemetryOptions.AddTelemetryLogger(serviceCollection);
             TelemetryOptions.AddTelemetryHandlers(httpClientBuilder);
             TimeoutOptions.AddTimeoutHandler(httpClientBuilder);
             PollyOptions.AddResiliencePolicies(httpClientBuilder);
@@ -30,6 +31,16 @@ namespace Http.Options
 
             return httpClientBuilder;
         }
- 
+
+        public IHttpClientBuilder ConfigureHttpClientBuilder(IHttpClientBuilder httpClientBuilder)
+        {
+            HttpClientHandlerOptions.ConfigurePrimaryHttpMessageHandler(httpClientBuilder);
+            TelemetryOptions.AddTelemetryHandlers(httpClientBuilder);
+            TimeoutOptions.AddTimeoutHandler(httpClientBuilder);
+            PollyOptions.AddResiliencePolicies(httpClientBuilder);
+            ConnectionOptions.ConfigureHttpClient(httpClientBuilder);
+
+            return httpClientBuilder;
+        }
     }
 }

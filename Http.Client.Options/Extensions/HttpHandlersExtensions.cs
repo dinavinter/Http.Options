@@ -36,11 +36,7 @@ namespace Http.Options
                 .AddHttpMessageHandler(sp => new TimeoutHandler(() => options().Timeout));
         }
 
-        public static IServiceCollection AddMetricsTelemetry(this IServiceCollection serviceCollection)
-        {
-            serviceCollection.TryAddSingleton<ITelemetryLogger, MetricsLogger>();
-            return serviceCollection;
-        } 
+   
          
         
         public static IHttpClientBuilder ConfiguresDebugHandlers(
