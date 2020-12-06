@@ -71,41 +71,94 @@ Enable or disable metrix options
             
 ```
 
-### Polly
-You can configure the follwoing policies:
+## Polly Options
+All policies are disabled by default
 
-- CircuitBreaker
-- Retry
-- Bulkhead
-- Timeout
+### Bulkhead
+ 
+```csharp
 
-For example:
+  
+            serviceCollection.AddHttpClientOptions(options =>
+            {
+                options.ServiceName = "service";
+
+                options.PollyOptions.Bulkhead.Enabled = true;
+                options.PollyOptions.Bulkhead.MaxParallelization = 100;
+                options.PollyOptions.Bulkhead.MaxQueuingActions = 10000;
+
+
+            });
+```
+
+### Retry
 
 ```csharp
 
-   serviceCollection.AddHttpClientOptions(options =>
+  
+            serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "service";
-             
-                options.PollyOptions.Bulkhead.MaxParallelization = 100;
-                options.PollyOptions.Bulkhead.MaxQueuingActions = 10000;
 
                 options.PollyOptions.Retry.Enabled = true;
                 options.PollyOptions.Retry.Count = 5;
                 options.PollyOptions.Retry.BackoffPower = 3;
-                
-                
+                options.PollyOptions.Retry.MaxJitter = 100;
+
+
+            });
+```
+
+
+### Retry
+
+```csharp
+
+  
+            serviceCollection.AddHttpClientOptions(options =>
+            {
+                options.ServiceName = "service";
+
+                options.PollyOptions.Retry.Enabled = true;
+                options.PollyOptions.Retry.Count = 5;
+                options.PollyOptions.Retry.BackoffPower = 3;
+                options.PollyOptions.Retry.MaxJitter = 100;
+
+
+            });
+```
+
+### CircuitBreaker
+
+```csharp
+
+  
+            serviceCollection.AddHttpClientOptions(options =>
+            {
+                options.ServiceName = "service";
+
                 options.PollyOptions.CircuitBreaker.Enabled = true;
                 options.PollyOptions.CircuitBreaker.FailureThreshold = 0.7;
                 options.PollyOptions.CircuitBreaker.MinimumThroughput = 20;
                 options.PollyOptions.CircuitBreaker.SamplingDuration = 1000;
-             
-                options.PollyOptions.Timeout.Enabled = true;
-                options.PollyOptions.Timeout.TimeoutMS = 1000;
+
 
 
             });
+```
 
+### Timeout
+
+```csharp
+
+  
+            serviceCollection.AddHttpClientOptions(options =>
+            {
+                options.ServiceName = "service";
+
+                options.PollyOptions.Timeout.Enabled = true;
+                options.PollyOptions.Timeout.TimeoutMS = 1000; 
+            });
 ```
 
 ### Bind Http Client by type
