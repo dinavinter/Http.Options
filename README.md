@@ -3,17 +3,19 @@
 Simplefied usage of [http client factory](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests) using Options pattern
 
 # Configuration options
+All configuration are not requierd
 
 ### Connection
-You can configure the follwoing properties:
-- server
-- port
-- schema
-- timeout
- 
+Http client base url properties
 
-For example:
+| option | value |
+| ------ | ------ |
+| server | The domain name of the base url  |
+| port | The port part of the base url |
+| schema | The schema part of the base url (http/ https) |
+| timeout | Connection timeout, will be set as http client timeout |
 
+  
 ```csharp
 
  serviceCollection.AddHttpClientOptions(options =>
@@ -28,13 +30,15 @@ For example:
 ```
 
 
-### ClientHandler
-You can configure the following handler properties:
-- Max connections
-- Handler liftime
+### Http Client Handler
+The http client heandler properties 
+ 
+| option | value |
+| ------ | ------ |
+| MaxConnection | The maximum number of concurrent connections (per server endpoint) |
+| HandlerLifeTimeMinutes | The length of time that a HttpMessageHandler instance can be reused |
 
-For example:
-
+ 
 ```csharp
 
   serviceCollection.AddHttpClientOptions(options =>
@@ -47,13 +51,14 @@ For example:
 ```
 
 ### Telemetry
-You can enabled the following telemetry metrix:
+Enable or disable metrix options
 
-- Counter
-- Timing 
+| option | value |
+| ------ | ------ |
+| Counter | Enable count of total requests, active request, sucesses,and errors |
+| Timing |  Enable timing of the http requests |
 
-For example:
-
+ 
 ```csharp
        serviceCollection.AddHttpClientOptions(options =>
             {
