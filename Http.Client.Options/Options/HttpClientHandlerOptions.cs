@@ -6,7 +6,7 @@ namespace Http.Options
 {
     public class HttpClientHandlerOptions
     {
-        public int? MaxConnection = 30;
+        public int? MaxConnection = null;
         
         //the default is 2 min
         //this would consume a bit more memory but enable more efficient caching for http connections
@@ -29,7 +29,7 @@ namespace Http.Options
                     if (maxConnection != null)
                     {
                         return new HttpClientHandler()
-                        {
+                        { 
                             MaxConnectionsPerServer = maxConnection.Value
                         };
                     }
