@@ -95,7 +95,7 @@ namespace Http.Options
             }
 
 
-            void logOnBreak<T>(DelegateResult<T> result, CircuitState circuitState, TimeSpan timeSpan,
+            void logOnBreak(DelegateResult<T> result, CircuitState circuitState, TimeSpan timeSpan,
                 Context context)
             {
                 log.Log(LogLevel.Error, 0, state: new BrokenCircuitStatus()

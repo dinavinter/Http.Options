@@ -56,7 +56,7 @@ namespace Http.Options
 
                 return response;
             }
-            catch (Exception e)
+            catch (Exception )
             {
                 _telemetryProducer.IncrementMetric(_consts.ErrorCounter);
                 throw;

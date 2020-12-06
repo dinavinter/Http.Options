@@ -17,8 +17,7 @@ namespace Http.Options
 
 
     public class RetryPolicyOptions<T> : PolicyOptions<T>
-    {
-        public bool Enabled { get; set; }
+    { 
         public int Count { get; set; } = 3;
         public int BackoffPower { get; set; } = 2;
         public int MaxJitter { get; set; } = 100;
@@ -26,17 +25,13 @@ namespace Http.Options
         private static readonly ThreadLocal<Random> TlRng = new ThreadLocal<Random>(() => new Random());
 
       
-        public IAsyncPolicy<T> Polly<T>(PolicyBuilder<T> policyBuilder) =>
+        public IAsyncPolicy<T> Polly(PolicyBuilder<T> policyBuilder) =>
             PolicyOrNoOP(policyBuilder
                 .WaitAndRetryAsync(Count, retryAttempt =>
                                               TimeSpan.FromSeconds(Math.Pow(BackoffPower, retryAttempt))
                                               + TimeSpan.FromMilliseconds(TlRng.Value.Next(0, MaxJitter)))
             );
-
-        public IAsyncPolicy<T> PolicyOrNoOP<T>(IAsyncPolicy<T> policy) => Enabled
-            ? policy
-            : Policy.NoOpAsync<T>();
-
+ 
 
 
     }
