@@ -103,6 +103,43 @@ For example:
 
 ```
 
+### Bind Http Client by type
 
+```csharp
+       serviceCollection.AddHttpClientOptions<ServiceClient>(options =>
+            {
+                options.ServiceName = "service";
+             
+                options.TelemetryOptions.Counter = true;
+                options.TelemetryOptions.Timing = true;
+  
+            });
+            
+```
  
+ ### Usage of named client
+ ```csharp
+   var factory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+   var client = factory.CreateClient("service");
+   await client.GetAsync("todos/1");
+    
+ ```
+ 
+ ### Usage of typed client
+ ```csharp
+ class ServiceClient
+        {
+            private readonly HttpClient _httpClient;
+
+            public ServiceClient(HttpClient httpClient)
+            {
+                _httpClient = httpClient;
+            }
+
+            public Task<HttpResponseMessage> Get()
+            {
+                return _httpClient.GetAsync("todos/1");
+            }
+        }
+ ```
 
