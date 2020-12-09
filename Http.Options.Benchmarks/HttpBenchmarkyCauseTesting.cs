@@ -13,7 +13,9 @@ using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Jobs;
+using Http.Options.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
+using Perfolizer.Horology;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -23,7 +25,7 @@ namespace Http.Options.Benchmarks
     [Config(typeof(Config))]
     public class HttpChaosBenchmark
     {
-        private static TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(2);
+        private static TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
 
         private class Config : ManualConfig
         {
@@ -39,13 +41,15 @@ namespace Http.Options.Benchmarks
                 //     .WithMinIterationCount(20)
                 //     .WithStrategy(RunStrategy.Throughput));
 
-                AddJob(Job.LongRun
+                AddJob(Job.MediumRun
                     .WithGcConcurrent(true)
                     .WithGcServer(true)
-                    .WithWarmupCount(20)
+                    
+                    .WithWarmupCount(90)
                     .WithRuntime(ClrRuntime.Net472)
-                    //.WithMaxAbsoluteError(TimeInterval.Second)
-                 //   .WithMaxRelativeError(0.3)
+                    .WithMaxAbsoluteError(TimeInterval.Second)
+                   
+                  //   .WithMaxRelativeError(0.3)
                     .WithMinIterationCount(20)
                     .WithStrategy(RunStrategy.Throughput));
                 //
@@ -75,7 +79,7 @@ namespace Http.Options.Benchmarks
 
         private   HttpClient _httpClient;
         private IHttpClientFactory _factory;
-        private   WireMockServer _server;
+        private   WireServer _server;
 
         [ParamsSource(nameof(HttpOptions))] public string ClientName { get; set; }
 
@@ -83,7 +87,7 @@ namespace Http.Options.Benchmarks
         {
             return new[]
             {
-                "basic"
+               "max-connection-20"
             };
             return new[]
             {
@@ -102,44 +106,13 @@ namespace Http.Options.Benchmarks
             // };
         }
 
-        public IEnumerable<(string path, double weight, TimeSpan delay, int statusCode)> _maps =
-            new (string path, double weight, TimeSpan delay, int statusCode)[]
-            {
-                ("/timeout/1s", 0.1, TimeSpan.FromSeconds(1), 408),
-                ("/delay/1s", 0.01, TimeSpan.FromSeconds(1), 200),
-                ("/delay/2s", 0.1, TimeSpan.FromSeconds(2), 200),
-                ("/delay/5s", 0.1, TimeSpan.FromSeconds(5), 200),
-                ("/delay/10ms", 0.4, TimeSpan.FromMilliseconds(10), 200),
-                ("/delay/5ms", 0.2, TimeSpan.FromMilliseconds(5), 200),
-                ("/delay/200ms", 0.6, TimeSpan.FromMilliseconds(5), 200),
-                ("/delay/300ms", 0.4, TimeSpan.FromMilliseconds(5), 200),
-                ("/error/5ms", 0.01, TimeSpan.FromMilliseconds(5), 500),
-                ("/error/5s", 0.01, TimeSpan.FromSeconds(5), 500),
-
-            };
+         
 
         [GlobalSetup]
         public void GlobalSetup()
         {
-            _server = WireMockServer.Start();
-
-            foreach (var map in _maps)
-            {
-                _server
-                    .Given(Request.Create()
-                        .WithPath(map.path)
-                        .UsingGet())
-                    .RespondWith(Response.Create()
-                        .WithStatusCode(map.statusCode).WithDelay(map.delay)
-                        .WithBodyAsJson(new
-                        {
-                            booo = "abc",
-                            bla = "uupodsodp"
-                        }))
-                    ;
-
-            }
-            
+            _server = WireServer.Start();
+  
               var serviceCollection = new ServiceCollection();
 
             
@@ -208,6 +181,13 @@ namespace Http.Options.Benchmarks
 
             serviceCollection.AddHttpClientOptions(options =>
             {
+                options.ServiceName = "max-connection-1000";
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 1000;
+            });
+            
+            serviceCollection.AddHttpClientOptions(options =>
+            {
                 options.ServiceName = "max-connection-30-hlt-2";
                 ConfigureJsonPlaceHolder(options);
                 options.HttpClientHandlerOptions.MaxConnection = 30;
@@ -226,7 +206,12 @@ namespace Http.Options.Benchmarks
                 ConfigureJsonPlaceHolder(options);
                 options.HttpClientHandlerOptions.MaxConnection = 50;
             });
-
+            serviceCollection.AddHttpClientOptions(options =>
+            {
+                options.ServiceName = "max-connection-200";
+                ConfigureJsonPlaceHolder(options);
+                options.HttpClientHandlerOptions.MaxConnection = 200;
+            });
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "bulkhead-10";
@@ -265,10 +250,10 @@ namespace Http.Options.Benchmarks
             var option = new HttpClientOptions();
             ConfigureJsonPlaceHolder(option);
             
-            _httpClient = new HttpClient()
-            {
-                BaseAddress = option.ConnectionOptions.BaseUrl,
-            };
+            // _httpClient = new HttpClient()
+            // {
+            //     BaseAddress = option.ConnectionOptions.BaseUrl,
+            // };
 
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
@@ -283,11 +268,10 @@ namespace Http.Options.Benchmarks
 
         private   void ConfigureJsonPlaceHolder(HttpClientOptions options)
         {
-            options.ConnectionOptions.Server = "127.0.0.1";
-            options.ConnectionOptions.Schema = "http";
-            options.ConnectionOptions.Port = _server.Ports.First();
+            _server.ConfigureWireMockServer(options);
             // options.ConnectionOptions.Timeout = Timeout;
             options.PollyOptions.Timeout.Enabled = true;
+            options.PollyOptions.Timeout.TimeoutMS = (int)Timeout.TotalMilliseconds;
 
         }
 
@@ -297,7 +281,7 @@ namespace Http.Options.Benchmarks
         {
             await Run( async() =>
             {
-                await _httpClient.GetAsync(_maps.RandomElementByWeight(x => x.weight).path, new CancellationTokenSource(Timeout).Token);
+                await _factory.CreateClient(ClientName).GetAsync(_server.RandomPath());
                 // await  _factory.CreateClient(ClientName).GetAsync(_maps.RandomElementByWeight(x=>x.weight).path);
                 // await  _factory.CreateClient(ClientName).GetAsync("/timeout/2s");
                 // await  _factory.CreateClient(ClientName).GetAsync("/delay/1s");

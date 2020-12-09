@@ -12,6 +12,8 @@ ProjectSection(SolutionItems) = preProject
 	.gitignore = .gitignore
 EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Client.Options.WireServer", "Http.Client.Options.WireServer\Http.Client.Options.WireServer.csproj", "{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{C9CD62E2-7039-4BF4-A92A-593623412F05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9CD62E2-7039-4BF4-A92A-593623412F05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9CD62E2-7039-4BF4-A92A-593623412F05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

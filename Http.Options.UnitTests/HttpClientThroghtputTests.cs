@@ -50,6 +50,7 @@ namespace Http.Options.UnitTests
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "service";
+                options.HttpClientHandlerOptions.MaxConnection = 100;
                 _server.ConfigureWireMockServer(options);
             });
 
