@@ -16,11 +16,34 @@ namespace Http.Options
         public HttpConnectionOptions Connection = new HttpConnectionOptions();
         public HttpTelemetryOptions Telemetry = new HttpTelemetryOptions();
 
-        
+        public HttpClientOptions()
+        {
+            HttpMessageHandlerBuilderConfiguration += ConfigureHttpMessageHandlerBuilder;
+            HttpClientConfiguration += ConfigureHttpClient;
+            HttpClientFactoryOptionConfiguration += ConfigureHttpClientFactoryOptions;
+        }
+
+
         /// <summary>
         /// used to configure http message build, called from options snapshot whenever new message handler is created
         /// </summary>
-        public virtual void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder builder)
+        public Action<HttpMessageHandlerBuilder> HttpMessageHandlerBuilderConfiguration;
+
+        /// <summary>
+        ///used to configure factory options, called once after http options is configured
+        /// </summary> 
+        public Action<HttpClient> HttpClientConfiguration;
+
+        /// <summary>
+        ///used to configure factory options, called once after http options is configured
+        /// </summary> 
+        public Action<HttpClientFactoryOptions> HttpClientFactoryOptionConfiguration;
+
+
+        /// <summary>
+        /// used to configure http message build, called from default HttpMessageHandlerBuilderConfiguration delegate
+        /// </summary>
+        protected virtual void ConfigureHttpMessageHandlerBuilder(HttpMessageHandlerBuilder builder)
         {
             Handler.ConfigureHttpClientBuilder(builder);
             Timeout.ConfigureHttpClientBuilder(builder);
@@ -30,21 +53,21 @@ namespace Http.Options
         }
 
         /// <summary>
-        /// used to configure http client, called from options snapshot whenever new instance of http client is created
+        /// used to configure http client, called from default HttpClientConfiguration delegate
         /// </summary>
-         public virtual void ConfigureHttpClient(HttpClient httpClient)
+        protected virtual void ConfigureHttpClient(HttpClient httpClient)
         {
             Connection.ConfigureHttpClient(httpClient);
         }
 
+
         /// <summary>
-        ///used to configure factory options, called once after http options is configured
+        ///used to configure factory options, called from default HttpClientFactoryOptionConfiguration delegate
         /// </summary> 
-        public virtual void ConfigureHttpClientFactoryOptions(HttpClientFactoryOptions options)
+        protected virtual void ConfigureHttpClientFactoryOptions(HttpClientFactoryOptions options)
         {
             options.HandlerLifetime =
                 TimeSpan.FromMinutes(Handler.HandlerLifeTimeMinutes);
-
         }
     }
 }

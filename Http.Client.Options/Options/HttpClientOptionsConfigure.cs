@@ -22,12 +22,12 @@ namespace Http.Options
 
         public void Configure(string name, HttpClientFactoryOptions options)
         {
-            _optionsSnapshot.Get(name).ConfigureHttpClientFactoryOptions(options);
-            options.HttpClientActions.Add(httpClient => _optionsSnapshot.Get(name).ConfigureHttpClient(httpClient));
+            _optionsSnapshot.Get(name).HttpClientFactoryOptionConfiguration(options);
+            options.HttpClientActions.Add(httpClient => _optionsSnapshot.Get(name).HttpClientConfiguration(httpClient));
 
             options.HttpMessageHandlerBuilderActions.Add(builder =>
             {
-                _optionsSnapshot.Get(name).ConfigureHttpClientBuilder(builder);
+                _optionsSnapshot.Get(name).HttpMessageHandlerBuilderConfiguration(builder);
             });
          }
     }
