@@ -2,25 +2,25 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace Http.Options
 {
-    
-    //TODO get rid of this
-    public class TimeoutHandler : DelegatingHandler
+     public class TimeoutHandler : DelegatingHandler
     {
-        private readonly Func<TimeSpan> _timeout;
+        private readonly TimeSpan _timeout;
 
-        public TimeoutHandler(Func<TimeSpan> timeout )
+
+        public TimeoutHandler(TimeSpan timeSpan)
         {
-            _timeout = timeout;
+            _timeout = timeSpan;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-             using (var cts = GetCancellationTokenSource(cancellationToken))
+            using (var cts = GetCancellationTokenSource(cancellationToken))
             {
                 try
                 {
@@ -38,10 +38,9 @@ namespace Http.Options
             CancellationToken cancellationToken)
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var timeout = _timeout();
-            if (timeout != Timeout.InfiniteTimeSpan)
+            if (_timeout != Timeout.InfiniteTimeSpan)
             {
-                cts.CancelAfter(timeout);
+                cts.CancelAfter(_timeout);
             }
 
             return cts;

@@ -1,6 +1,8 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Options;
 
 namespace Http.Options
 {
@@ -8,32 +10,32 @@ namespace Http.Options
     {
         public static IHttpClientBuilder AddHttpClientOptions(
             this IServiceCollection serviceCollection,
-            Action<HttpClientOptions> clustersOptions)
+            Action<HttpClientOptions> configure)
         {
             var options = new HttpClientOptions();
-            clustersOptions?.Invoke(options);
-
+            configure?.Invoke(options);
+ 
+            serviceCollection
+                .AddHttpClientOptions()
+                .AddOptions<HttpClientOptions>(options.ServiceName)
+                .Configure(configure);
+  
             return serviceCollection
-                .AddHttpClient(options.ServiceName)
-                .ConfigureHttpClientOptions(clustersOptions);
+                .AddHttpClient(options.ServiceName);
+ 
         }
 
-        public static IHttpClientBuilder ConfigureHttpClientOptions(
-            this IHttpClientBuilder httpClientBuilder,
-            Action<HttpClientOptions> clustersOptions)
+        public static IServiceCollection AddHttpClientOptions(this IServiceCollection serviceCollection)
         {
-            var options = new HttpClientOptions();
-            clustersOptions?.Invoke(options);
-            httpClientBuilder.Services.AddMetricsTelemetry();
-            return options.ConfigureHttpClientBuilder(httpClientBuilder);
+            serviceCollection.AddMetricsTelemetry();
+            serviceCollection.TryAddTransient<HttpCounterHandler>();
+            serviceCollection.TryAddTransient<HttpTimingHandler>();
+            serviceCollection.AddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientOptionsConfigure>();
+            serviceCollection.AddOptions<HttpClientOptions>();
+            serviceCollection.AddHttpClient();
+            return serviceCollection;
         }
-
-        public static IHttpClientBuilder AddHttpClientOptions<T>(
-            this IServiceCollection serviceCollection,
-            Action<HttpClientOptions> clustersOptions) where T : class
-        {
-            return serviceCollection.AddHttpClient<T>().ConfigureHttpClientOptions(clustersOptions);
-        }
+ 
 
         public static IServiceCollection AddMetricsTelemetry(this IServiceCollection serviceCollection)
         {

@@ -135,7 +135,7 @@ namespace Http.Options.UnitTests
             stopwatch.Stop();
             Console.WriteLine(stopwatch.Elapsed);
 
-            Assert.That(rate.Average(), Is.EqualTo(70).Within(10));
+            Assert.That(rate.Average(), Is.EqualTo(70).Within(15));
 
         }
         

@@ -42,7 +42,7 @@ namespace Http.Options.UnitTests
         [TestCase("/delay/5ms", 1000, TestName = "5ms throughput test")]
         [TestCase("/delay/10ms", 1000, TestName = "10ms throughput test")]
         [TestCase("/delay/200ms", 1000, TestName = "200ms throughput test")]
-        [TestCase("/delay/1s", 1000, TestName = "1s throughput test")]
+        [TestCase("/delay/1s", 1000, 900,  TestName = "1s throughput test")]
         [TestCase("/error/5ms", 1000, TestName = "error throughput test")]
         public async Task HttpClient_DefaultConfigThroughputTests(string endpoint, int rate, int within = 10)
         {

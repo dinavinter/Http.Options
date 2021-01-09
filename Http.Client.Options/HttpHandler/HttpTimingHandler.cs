@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Http.Options.Consts;
+using Microsoft.Extensions.Http;
 
 namespace Http.Options
 {
@@ -32,6 +33,9 @@ namespace Http.Options
         }
 
 
+        public HttpTimingHandler(HttpMessageHandlerBuilder httpMessageHandler, ITelemetryLogger telemetryProducer):this(httpMessageHandler.Name, telemetryProducer)
+        {
+         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {

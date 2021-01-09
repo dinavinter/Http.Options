@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 
 namespace Http.Options
 {
@@ -11,33 +12,18 @@ namespace Http.Options
         //the default is 2 min
         //this would consume a bit more memory but enable more efficient caching for http connections
         //(HttpMessageHandler can be reused as long as it is not expired)
-        public int HandlerLifeTimeMinutes = 10;
-        
-        public Func<HttpClientHandlerOptions> Provider;
-
-        public HttpClientHandlerOptions()
+        public double HandlerLifeTimeMinutes = 10;
+         
+        public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder httpClientBuilder)
         {
-            Provider = () => this;
-        }
-
-        public IHttpClientBuilder ConfigurePrimaryHttpMessageHandler(IHttpClientBuilder httpClientBuilder)
-        {
-            return httpClientBuilder
-                .ConfigurePrimaryHttpMessageHandler(() =>
+            if (MaxConnection != null)
+            {
+                if (httpClientBuilder.PrimaryHandler is HttpClientHandler httpClientHandler)
                 {
-                    var maxConnection = Provider().MaxConnection;
-                    if (maxConnection != null)
-                    {
-                        return new HttpClientHandler()
-                        { 
-                            MaxConnectionsPerServer = maxConnection.Value
-                        };
-                    }
+                    httpClientHandler.MaxConnectionsPerServer = MaxConnection.Value;
+                } 
+            }
 
-                    return new HttpClientHandler();
-                })            
-                .SetHandlerLifetime(TimeSpan.FromMinutes(HandlerLifeTimeMinutes));
-                
         }
     }
 }

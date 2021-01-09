@@ -1,36 +1,39 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 
 namespace Http.Options
 {
     public class HttpTelemetryOptions
     {
-        private readonly HttpClientOptions _httpClientOptions;
-        public bool Counter = true;
-        public bool Timing = true;
+        public bool Counter { get; set; } = true;
+        public bool Timing { get; set; } = true;
 
-        public HttpTelemetryOptions(HttpClientOptions httpClientOptions)
+        public HttpTelemetryOptions( )
         {
-            _httpClientOptions = httpClientOptions;
+         }
+ 
+        public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder httpClientBuilder)
+        {
+            foreach (var handler in Handlers(httpClientBuilder.Services))
+            {
+                httpClientBuilder.AdditionalHandlers.Add(handler); 
+            }
         }
 
-
-        public IServiceCollection AddTelemetryLogger(IServiceCollection serviceCollection)
+        private IEnumerable<DelegatingHandler> Handlers(IServiceProvider serviceProvider)
         {
-            serviceCollection.AddMetricsTelemetry();
-            return serviceCollection;
-        }
 
-        public IHttpClientBuilder AddTelemetryHandlers(IHttpClientBuilder httpClientBuilder)
-        {
-            httpClientBuilder = Counter
-                ? httpClientBuilder.AddHttpTimingTelemetry(_httpClientOptions.ServiceName)
-                : httpClientBuilder;
+            if (Counter)
+                yield return serviceProvider.GetRequiredService<HttpCounterHandler>();
+               
 
-            httpClientBuilder = Timing
-                ? httpClientBuilder.AddHttpCounterTelemetry(_httpClientOptions.ServiceName)
-                : httpClientBuilder;
+           if(Timing)
+               yield return serviceProvider.GetRequiredService<HttpTimingHandler>();
 
-            return httpClientBuilder;
+ 
         }
     }
 }

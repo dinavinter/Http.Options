@@ -1,16 +1,16 @@
 using System;
+using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 
 namespace Http.Options
 {
+     
     public class HttpTimeoutOptions
     {
-        public Func<HttpTimeoutOptions> Provider; 
-
-        public HttpTimeoutOptions()
+         public HttpTimeoutOptions( )
         {
-            Provider = () => this;
-        }
+         }
 
         public int? TimeoutMS
         {
@@ -23,9 +23,15 @@ namespace Http.Options
         public TimeSpan Timeout { get; set; } = System.Threading.Timeout.InfiniteTimeSpan;
 
 
-        public IHttpClientBuilder AddTimeoutHandler(IHttpClientBuilder httpClientBuilder)
+       
+        public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder httpClientBuilder)
         {
-            return httpClientBuilder.AddTimeoutHandler(Provider);
+            if (Timeout != System.Threading.Timeout.InfiniteTimeSpan)
+            {
+                httpClientBuilder.AdditionalHandlers.Add(new TimeoutHandler(Timeout));
+            }
+            
         }
+        
     }
 }

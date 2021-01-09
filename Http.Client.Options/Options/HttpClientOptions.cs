@@ -1,4 +1,9 @@
+using System;
+using System.Linq;
+using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Options;
 
 namespace Http.Options
 {
@@ -6,41 +11,55 @@ namespace Http.Options
     {
         public string ServiceName;
 
-        public readonly HttpPollyOptions PollyOptions = new HttpPollyOptions();
-        public readonly HttpTimeoutOptions TimeoutOptions = new HttpTimeoutOptions();
-        public readonly HttpClientHandlerOptions HttpClientHandlerOptions = new HttpClientHandlerOptions();
-        public readonly HttpConnectionOptions ConnectionOptions = new HttpConnectionOptions();
-        public readonly HttpTelemetryOptions TelemetryOptions;
+        public HttpPollyOptions PollyOptions = new HttpPollyOptions();
+        public HttpTimeoutOptions TimeoutOptions = new HttpTimeoutOptions();
+        public HttpClientHandlerOptions HttpClientHandlerOptions = new HttpClientHandlerOptions();
+        public HttpConnectionOptions ConnectionOptions = new HttpConnectionOptions();
+        public HttpTelemetryOptions TelemetryOptions = new HttpTelemetryOptions();
 
-        public HttpClientOptions()
+        public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder builder)
         {
-            TelemetryOptions = new HttpTelemetryOptions(this);
+            HttpClientHandlerOptions.ConfigureHttpClientBuilder(builder);
+            TimeoutOptions.ConfigureHttpClientBuilder(builder);
+            TelemetryOptions.ConfigureHttpClientBuilder(builder);
+            PollyOptions.ConfigureHttpClientBuilder(builder);
+            HttpClientHandlerOptions.ConfigureHttpClientBuilder(builder);
         }
 
-
-        public IHttpClientBuilder AddHttpClientBuilder(IServiceCollection serviceCollection)
+        public void ConfigureHttpClient(HttpClient httpClient)
         {
-            var httpClientBuilder = serviceCollection.AddHttpClient(ServiceName);
-            TelemetryOptions.AddTelemetryLogger(serviceCollection);
+            ConnectionOptions.ConfigureHttpClient(httpClient);
+        }
+    }
 
-            HttpClientHandlerOptions.ConfigurePrimaryHttpMessageHandler(httpClientBuilder);
-            TelemetryOptions.AddTelemetryHandlers(httpClientBuilder);
-            TimeoutOptions.AddTimeoutHandler(httpClientBuilder);
-            PollyOptions.AddResiliencePolicies(httpClientBuilder);
-            ConnectionOptions.ConfigureHttpClient(httpClientBuilder);
 
-            return httpClientBuilder;
+    public class HttpClientOptionsConfigure : IConfigureNamedOptions<HttpClientFactoryOptions>
+    {
+        private readonly IOptionsMonitor<HttpClientOptions> _optionsSnapshot;
+
+        public HttpClientOptionsConfigure(IOptionsMonitor<HttpClientOptions> optionsSnapshot,
+            IOptionsMonitorCache<HttpClientFactoryOptions> cache)
+        {
+            _optionsSnapshot = optionsSnapshot;
+            optionsSnapshot.OnChange((options, name) => { cache.TryRemove(name); });
         }
 
-        public IHttpClientBuilder ConfigureHttpClientBuilder(IHttpClientBuilder httpClientBuilder)
+        public void Configure(HttpClientFactoryOptions options)
         {
-            HttpClientHandlerOptions.ConfigurePrimaryHttpMessageHandler(httpClientBuilder);
-            TelemetryOptions.AddTelemetryHandlers(httpClientBuilder);
-            TimeoutOptions.AddTimeoutHandler(httpClientBuilder);
-            PollyOptions.AddResiliencePolicies(httpClientBuilder);
-            ConnectionOptions.ConfigureHttpClient(httpClientBuilder);
+            Configure(Microsoft.Extensions.Options.Options.DefaultName, options);
+        }
 
-            return httpClientBuilder;
+        public void Configure(string name, HttpClientFactoryOptions options)
+        {
+            options.HttpClientActions.Add(httpClient => _optionsSnapshot.Get(name).ConfigureHttpClient(httpClient));
+
+            options.HttpMessageHandlerBuilderActions.Add(builder =>
+            {
+                _optionsSnapshot.Get(name).ConfigureHttpClientBuilder(builder);
+            });
+
+            options.HandlerLifetime =
+                TimeSpan.FromMinutes(_optionsSnapshot.Get(name).HttpClientHandlerOptions.HandlerLifeTimeMinutes);
         }
     }
 }

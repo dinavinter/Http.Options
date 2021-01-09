@@ -7,10 +7,16 @@ namespace Http.Options
     public abstract class PolicyOptions<T>
     {
         public bool Enabled { get; set; } = false;
- 
+
         protected IAsyncPolicy<T> PolicyOrNoOP(IAsyncPolicy<T> policy) => Enabled
             ? policy
-            : Policy.NoOpAsync<T>();
+            : PolicyNoOp<T>.AsyncPolicy;
+
+    }
+    
+    public static class PolicyNoOp<T>
+    {
+        public static IAsyncPolicy<T> AsyncPolicy = Policy.NoOpAsync<T>();
 
     }
 

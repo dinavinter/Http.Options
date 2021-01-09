@@ -1,10 +1,11 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Http.Options
 {
-    public static class HttpClientHandlerExtensions
+    public static class HttpClientTelemetryHandlerExtensions
     {
           
         public static IHttpClientBuilder AddTelemetryHandlers(this IHttpClientBuilder httpBuilder, string serviceName,
@@ -30,14 +31,8 @@ namespace Http.Options
                 .AddHttpMessageHandler(sp =>
                     new HttpCounterHandler(serviceName, sp.GetRequiredService<ITelemetryLogger>()));
         }
-        public static IHttpClientBuilder AddTimeoutHandler(this IHttpClientBuilder httpBuilder, Func<HttpTimeoutOptions> options)
-        {
-            return httpBuilder
-                .AddHttpMessageHandler(sp => new TimeoutHandler(() => options().Timeout));
-        }
-
-   
-         
+     
+     
         
         public static IHttpClientBuilder ConfiguresDebugHandlers(
             this IHttpClientBuilder httpBuilder)

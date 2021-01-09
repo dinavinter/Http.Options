@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Http.Options.Consts;
+using Microsoft.Extensions.Http;
 
 namespace Http.Options
 {
@@ -22,6 +23,13 @@ namespace Http.Options
          private readonly ITelemetryLogger _telemetryProducer;
 
         private readonly TelementryConsts _consts;
+
+  
+        public HttpCounterHandler(HttpMessageHandlerBuilder httpMessageHandler, 
+                                  ITelemetryLogger telemetryProducer):this(httpMessageHandler.Name, telemetryProducer)
+        { 
+           
+        }
 
 
         public HttpCounterHandler(string serviceName,
