@@ -29,10 +29,10 @@ namespace Http.Options.UnitTests
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "service";
-                options.ConnectionOptions.Server = "service.com";
-                options.ConnectionOptions.Schema = "https";
-                options.ConnectionOptions.Port = 443;
-                options.ConnectionOptions.TimeoutMS = 50;
+                options.Connection.Server = "service.com";
+                options.Connection.Schema = "https";
+                options.Connection.Port = 443;
+                options.Connection.TimeoutMS = 50;
             });
 
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
@@ -60,10 +60,10 @@ namespace Http.Options.UnitTests
             serviceCollection
                 .Configure<HttpClientOptions>("service", options =>
                 {
-                    options.ConnectionOptions.Server = config.Server;
-                    options.ConnectionOptions.Schema = config.Schema;
-                    options.ConnectionOptions.Port = config.Port;
-                    options.ConnectionOptions.Timeout = config.Timeout;
+                    options.Connection.Server = config.Server;
+                    options.Connection.Schema = config.Schema;
+                    options.Connection.Port = config.Port;
+                    options.Connection.Timeout = config.Timeout;
                 }); 
 
 
@@ -123,10 +123,10 @@ namespace Http.Options.UnitTests
             serviceCollection
                 .Configure<HttpClientOptions>("service", options =>
                 {
-                    options.ConnectionOptions.Server = config.Server;
-                    options.ConnectionOptions.Schema = config.Schema;
-                    options.ConnectionOptions.Port = config.Port;
-                    options.ConnectionOptions.Timeout = config.Timeout;
+                    options.Connection.Server = config.Server;
+                    options.Connection.Schema = config.Schema;
+                    options.Connection.Port = config.Port;
+                    options.Connection.Timeout = config.Timeout;
                 });
   
          
@@ -180,11 +180,11 @@ namespace Http.Options.UnitTests
              serviceCollection
                 .Configure<HttpClientOptions>("service", options =>
                 {
-                    options.ConnectionOptions.Server = config.Server;
-                    options.ConnectionOptions.Schema = config.Schema;
-                    options.ConnectionOptions.Port = config.Port;
-                    options.HttpClientHandlerOptions.HandlerLifeTimeMinutes = 0.05;
-                    options.TimeoutOptions.Timeout = timeout.Timeout;
+                    options.Connection.Server = config.Server;
+                    options.Connection.Schema = config.Schema;
+                    options.Connection.Port = config.Port;
+                    options.Handler.HandlerLifeTimeMinutes = 0.05;
+                    options.Timeout.Timeout = timeout.Timeout;
                 });
 
             serviceCollection
@@ -241,11 +241,11 @@ namespace Http.Options.UnitTests
              serviceCollection
                 .Configure<HttpClientOptions>("service", options =>
                 {
-                    options.ConnectionOptions.Server = config.Server;
-                    options.ConnectionOptions.Schema = config.Schema;
-                    options.ConnectionOptions.Port = config.Port;
-                    options.HttpClientHandlerOptions.HandlerLifeTimeMinutes = 0.05;
-                    options.TimeoutOptions.Timeout = timeout.Timeout;
+                    options.Connection.Server = config.Server;
+                    options.Connection.Schema = config.Schema;
+                    options.Connection.Port = config.Port;
+                    options.Handler.HandlerLifeTimeMinutes = 0.05;
+                    options.Timeout.Timeout = timeout.Timeout;
                 });
  
 

@@ -87,7 +87,7 @@ namespace Http.Options.Benchmarks
         {
             return new[]
             {
-               "max-connection-20"
+                "max-connection-200"
             };
             return new[]
             {
@@ -122,7 +122,7 @@ namespace Http.Options.Benchmarks
 
                 ConfigureJsonPlaceHolder(options);
 
-                options.HttpClientHandlerOptions.MaxConnection = null;
+                options.Handler.MaxConnection = null;
             });
 
 
@@ -130,14 +130,14 @@ namespace Http.Options.Benchmarks
             {
                 options.ServiceName = "max-connection-1";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 1;
+                options.Handler.MaxConnection = 1;
             });
 
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "max-connection-5";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 5;
+                options.Handler.MaxConnection = 5;
             });
 
 
@@ -145,7 +145,7 @@ namespace Http.Options.Benchmarks
             {
                 options.ServiceName = "max-connection-10";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 10;
+                options.Handler.MaxConnection = 10;
             });
 
 
@@ -153,78 +153,78 @@ namespace Http.Options.Benchmarks
             {
                 options.ServiceName = "max-connection-20";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 20;
+                options.Handler.MaxConnection = 20;
             });
 
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "max-connection-30";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 30;
+                options.Handler.MaxConnection = 30;
             });
 
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "max-connection-30-hlt-10";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 30;
-                options.HttpClientHandlerOptions.HandlerLifeTimeMinutes = 10;
+                options.Handler.MaxConnection = 30;
+                options.Handler.HandlerLifeTimeMinutes = 10;
             });
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "max-connection-30-hlt-20";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 30;
+                options.Handler.MaxConnection = 30;
                 ;
-                options.HttpClientHandlerOptions.HandlerLifeTimeMinutes = 20;
+                options.Handler.HandlerLifeTimeMinutes = 20;
             });
 
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "max-connection-1000";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 1000;
+                options.Handler.MaxConnection = 1000;
             });
             
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "max-connection-30-hlt-2";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 30;
-                options.HttpClientHandlerOptions.HandlerLifeTimeMinutes = 2;
+                options.Handler.MaxConnection = 30;
+                options.Handler.HandlerLifeTimeMinutes = 2;
             });
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "max-connection-40";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 40;
+                options.Handler.MaxConnection = 40;
             });
 
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "max-connection-50";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 50;
+                options.Handler.MaxConnection = 50;
             });
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "max-connection-200";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 200;
+                options.Handler.MaxConnection = 200;
             });
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "bulkhead-10";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = null;
+                options.Handler.MaxConnection = null;
             });
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "bulkhead-10-max-connection-20";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 20;
-                options.PollyOptions.Bulkhead.Enabled = true;
-                options.PollyOptions.Bulkhead.MaxParallelization = 10;
+                options.Handler.MaxConnection = 20;
+                options.Polly.Bulkhead.Enabled = true;
+                options.Polly.Bulkhead.MaxParallelization = 10;
             });
 
 
@@ -232,8 +232,8 @@ namespace Http.Options.Benchmarks
             {
                 options.ServiceName = "bulkhead-100";
                 ConfigureJsonPlaceHolder(options);
-                options.PollyOptions.Bulkhead.Enabled = true;
-                options.PollyOptions.Bulkhead.MaxParallelization = 100;
+                options.Polly.Bulkhead.Enabled = true;
+                options.Polly.Bulkhead.MaxParallelization = 100;
 
             });
 
@@ -242,9 +242,9 @@ namespace Http.Options.Benchmarks
             {
                 options.ServiceName = "bulkhead-100-max-connection-20";
                 ConfigureJsonPlaceHolder(options);
-                options.HttpClientHandlerOptions.MaxConnection = 20;
-                options.PollyOptions.Bulkhead.Enabled = true;
-                options.PollyOptions.Bulkhead.MaxParallelization = 100;
+                options.Handler.MaxConnection = 20;
+                options.Polly.Bulkhead.Enabled = true;
+                options.Polly.Bulkhead.MaxParallelization = 100;
             });
 
             var option = new HttpClientOptions();
@@ -270,8 +270,8 @@ namespace Http.Options.Benchmarks
         {
             _server.ConfigureWireMockServer(options);
             // options.ConnectionOptions.Timeout = Timeout;
-            options.PollyOptions.Timeout.Enabled = true;
-            options.PollyOptions.Timeout.TimeoutMS = (int)Timeout.TotalMilliseconds;
+            options.Polly.Timeout.Enabled = false;
+            options.Polly.Timeout.TimeoutMS = (int)Timeout.TotalMilliseconds;
 
         }
 

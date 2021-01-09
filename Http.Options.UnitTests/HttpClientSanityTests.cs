@@ -17,10 +17,10 @@ namespace Http.Options.UnitTests
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "service";
-                options.ConnectionOptions.Server = "jsonplaceholder.typicode.com";
-                options.ConnectionOptions.Schema = "http";
-                options.ConnectionOptions.Port = 80;
-                options.ConnectionOptions.TimeoutMS = 1000;
+                options.Connection.Server = "jsonplaceholder.typicode.com";
+                options.Connection.Schema = "http";
+                options.Connection.Port = 80;
+                options.Connection.TimeoutMS = 1000;
 
             });
 

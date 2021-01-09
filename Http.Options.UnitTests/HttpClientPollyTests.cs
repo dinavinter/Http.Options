@@ -69,8 +69,8 @@ namespace Http.Options.UnitTests
             {
                 options.ServiceName = "service";
                 ConfigureWireMockServer(options);
-                options.PollyOptions.CircuitBreaker.SamplingDuration = 3000;
-                options.PollyOptions.CircuitBreaker.Enabled = true;  
+                options.Polly.CircuitBreaker.SamplingDuration = 3000;
+                options.Polly.CircuitBreaker.Enabled = true;  
              });
 
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
@@ -150,9 +150,9 @@ namespace Http.Options.UnitTests
             {
                 options.ServiceName = "service";
                 ConfigureWireMockServer(options);
-                options.PollyOptions.Timeout.TimeoutMS = 1000; 
-                options.PollyOptions.CircuitBreaker.Enabled = true;  
-                options.PollyOptions.CircuitBreaker.SamplingDuration = 10000;  
+                options.Polly.Timeout.TimeoutMS = 1000; 
+                options.Polly.CircuitBreaker.Enabled = true;  
+                options.Polly.CircuitBreaker.SamplingDuration = 10000;  
             });
 
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
@@ -177,9 +177,9 @@ namespace Http.Options.UnitTests
         }
         private   void ConfigureWireMockServer(HttpClientOptions options)
         {
-            options.ConnectionOptions.Server = "127.0.0.1";
-            options.ConnectionOptions.Schema = "http";
-            options.ConnectionOptions.Port = _server.Ports.First(); 
+            options.Connection.Server = "127.0.0.1";
+            options.Connection.Schema = "http";
+            options.Connection.Port = _server.Ports.First(); 
 
         }
     }

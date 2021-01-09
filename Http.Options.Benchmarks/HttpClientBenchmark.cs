@@ -109,10 +109,10 @@ namespace Http.Options.Benchmarks
                 {
                     options.ServiceName = "jsonplaceholder";
 
-                    options.ConnectionOptions.Server = "jsonplaceholder.typicode.com";
-                    options.ConnectionOptions.Schema = "http";
-                    options.ConnectionOptions.Port = 80;
-                    options.ConnectionOptions.Timeout = Timeout;
+                    options.Connection.Server = "jsonplaceholder.typicode.com";
+                    options.Connection.Schema = "http";
+                    options.Connection.Port = 80;
+                    options.Connection.Timeout = Timeout;
                 })
                 .AddTypedClient<HttpJsonPlaceholderService>();
 
@@ -121,10 +121,10 @@ namespace Http.Options.Benchmarks
                 {
                     options.ServiceName = "restapiexample";
 
-                    options.ConnectionOptions.Server = "dummy.restapiexample.com";
-                    options.ConnectionOptions.Schema = "http";
-                    options.ConnectionOptions.Port = 80;
-                    options.HttpClientHandlerOptions.MaxConnection = 5;
+                    options.Connection.Server = "dummy.restapiexample.com";
+                    options.Connection.Schema = "http";
+                    options.Connection.Port = 80;
+                    options.Handler.MaxConnection = 5;
                 })
                 .AddTypedClient<HttpRestExampleService>();
 
