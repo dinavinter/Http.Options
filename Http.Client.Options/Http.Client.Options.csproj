@@ -5,12 +5,12 @@
         <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IncludeSymbols>true</IncludeSymbols>
-        <AssemblyVersion>2.0.2.0</AssemblyVersion>
-        <FileVersion>2.0.2.0</FileVersion>
-        <Version>2.0.2.0</Version>
+        <AssemblyVersion>2.0.6.0</AssemblyVersion>
+        <FileVersion>2.0.6.0</FileVersion>
+        <Version>2.0.6.0</Version>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
-
+         <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

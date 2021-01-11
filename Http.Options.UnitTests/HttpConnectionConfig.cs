@@ -301,26 +301,7 @@ namespace Http.Options.UnitTests
         public string Name { get; } 
     }
     
-    public class EntityConfigurationProvider : ConfigurationProvider
-    {
-        private readonly Action<HttpClientOptions> _optionsAction;
-
-        public EntityConfigurationProvider(Action<HttpClientOptions> optionsAction) =>
-            _optionsAction = optionsAction;
-
-        public override void Load()
-        {
-            var builder = new HttpClientOptions();
-
-            _optionsAction(builder);
-
-
-            Data = JsonConvert.DeserializeObject<Dictionary<string, string>>
-                (JsonConvert.SerializeObject(builder));
-        }
-
-           
-    }
+   
 
 
     public class ChangeToken : IChangeToken

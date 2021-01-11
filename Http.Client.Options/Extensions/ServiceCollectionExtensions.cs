@@ -33,6 +33,7 @@ namespace Http.Options
             serviceCollection.AddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientOptionsConfigure>();
             serviceCollection.AddOptions<HttpClientOptions>();
             serviceCollection.AddHttpClient();
+            serviceCollection.AddScoped<HttpClientScope>();
             return serviceCollection;
         }
  

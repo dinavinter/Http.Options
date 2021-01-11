@@ -28,7 +28,8 @@ namespace Http.Options
         /// used to configure http message build, called from options snapshot whenever new message handler is created
         /// </summary>
         public Action<HttpMessageHandlerBuilder> HttpMessageHandlerBuilderConfiguration;
-
+        
+    
         /// <summary>
         ///used to configure factory options, called once after http options is configured
         /// </summary> 
@@ -50,6 +51,8 @@ namespace Http.Options
             Telemetry.ConfigureHttpClientBuilder(builder);
             Polly.ConfigureHttpClientBuilder(builder);
             Handler.ConfigureHttpClientBuilder(builder);
+            // builder.AdditionalHandlers.Insert(0, new HttpClientScopeHandler(builder, this));
+
         }
 
         /// <summary>
@@ -69,5 +72,27 @@ namespace Http.Options
             options.HandlerLifetime =
                 TimeSpan.FromMinutes(Handler.HandlerLifeTimeMinutes);
         }
+
+        public void AddHandler<THandler>(Func<HttpClientOptions, THandler> handler) where THandler : DelegatingHandler
+        {
+            HttpMessageHandlerBuilderConfiguration += builder =>
+                builder.AdditionalHandlers.Add(handler(this));
+        }
+        
+        public void AddHandler<THandler>(Func<IServiceProvider, HttpClientOptions, THandler> handler) where THandler : DelegatingHandler
+        {
+            HttpMessageHandlerBuilderConfiguration += builder =>
+                builder.AdditionalHandlers.Add(handler(builder.Services, this));
+        }
+
+
+        public void Configure(string name, HttpClientOptions options)
+        {
+            options.ServiceName = ServiceName ?? name;
+            options.Connection = Connection ?? options.Connection;
+            options.Timeout = Timeout ?? options.Timeout;
+            options.Handler = Handler ?? options.Handler; 
+        }
+
     }
 }
