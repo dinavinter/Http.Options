@@ -29,6 +29,6 @@ namespace Http.Options
             {
                 _optionsSnapshot.Get(name).HttpMessageHandlerBuilderConfiguration(builder);
             });
-         }
+        }
     }
 }

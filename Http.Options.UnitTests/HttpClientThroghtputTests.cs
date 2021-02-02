@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
+using System.Threading.Tasks; 
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
@@ -54,23 +54,24 @@ namespace Http.Options.UnitTests
                 _server.ConfigureWireMockServer(options);
             });
 
+            
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
             var client = factory.CreateClient("service");
 
             var stopwatch = Stopwatch.StartNew();
 
             var rateStats = await
-                TrafficMaker
+                TrafficGenerator
                     .GenerateTraffic(rate, () => client.GetAsync(endpoint))
-                    .Rps()
+                    .RPS()
+                    .Stats()
                     .TakeUntil(DateTimeOffset.Now.AddSeconds(20));
 
 
             stopwatch.Stop();
-            Console.WriteLine(
-                $"rate: {rate}\r\nrps stats: median:{rateStats.median} | avg:{rateStats.avarage} | max:{rateStats.max} | min:{rateStats.min}");
-
-            Assert.That(rateStats.median, Is.GreaterThanOrEqualTo(rate).Within(within));
+            Console.WriteLine(rateStats.Print());
+ 
+            Assert.That(rateStats.Success.Median, Is.GreaterThanOrEqualTo(rate).Within(within));
         }
 
         [Test]
@@ -94,15 +95,15 @@ namespace Http.Options.UnitTests
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
             var client = factory.CreateClient("service");
 
-             var latencyStats = await TrafficMaker
+             var latencyStats = await TrafficGenerator
                 .GenerateTraffic(rate, () => client.GetAsync(endpoint))
                 .Latency()
                 .TakeUntil(DateTimeOffset.Now.AddSeconds(20));
              
              Console.WriteLine(
-                 $"rate: {rate}\r\nrps stats: median:{latencyStats.median} | avg:{latencyStats.avarage} | max:{latencyStats.max} | min:{latencyStats.min}");
+                 latencyStats.Print());
 
-            Assert.That(latencyStats.median, Is.EqualTo(expectedLatency).Within(within));
+            Assert.That(latencyStats.Median, Is.EqualTo(expectedLatency).Within(within));
         }
     }
 }

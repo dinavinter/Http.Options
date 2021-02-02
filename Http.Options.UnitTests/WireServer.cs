@@ -41,6 +41,10 @@ namespace Http.Options.UnitTests
                         {
                             booo = "abc",
                             bla = "uupodsodp"
+                        })
+                        .WithHeaders(new Dictionary<string, string>()
+                        {
+                            ["Content-Length"] = "50"
                         }))
                     ;
 
