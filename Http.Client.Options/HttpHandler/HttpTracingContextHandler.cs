@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
@@ -18,10 +19,23 @@ namespace Http.Options
             CancellationToken cancellationToken)
         {
             var context = HttpRequestTracingContext.TraceRequest(request, _options);
-            var response = await base.SendAsync(request, cancellationToken);
-            context.OnResponse(response);
 
-            return response;
+            try
+            {
+                var response = await base.SendAsync(request, cancellationToken);
+                context.OnResponse(response);
+
+                return response;
+
+            }
+            catch (Exception e)
+            {
+                context.OnError(e);
+
+                throw;
+            }
+           
+
         }
     }
 }

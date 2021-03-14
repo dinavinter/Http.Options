@@ -20,10 +20,7 @@ namespace Http.Options
             tracing.Tags[Port] = options.Connection?.Port.ToString().NullOr(string.Intern);
             tracing.Tags[Schema] = options.Connection?.Schema.NullOr(string.Intern);
             tracing.Tags[Name] = options.ServiceName.NullOr(string.Intern);
-            tracing.Tags[Timeout] =
-                (options.Timeout?.Timeout == System.Threading.Timeout.InfiniteTimeSpan
-                    ? "Infinite"
-                    : options.Timeout?.Timeout.ToString()).NullOr(string.Intern);
+            tracing.Tags[Timeout] = options.Timeout?.Timeout.TotalMilliseconds; 
             tracing.Tags[MaxConnection] = options.Handler?.MaxConnection;
             tracing.Tags[LifeTimeMinutes] = options.Handler?.HandlerLifeTimeMinutes;
         }

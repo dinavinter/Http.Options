@@ -14,6 +14,8 @@ EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Client.Options.WireServer", "Http.Client.Options.WireServer\Http.Client.Options.WireServer.csproj", "{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Options.Consule", "Http.Options.Consule\Http.Options.Consule.csproj", "{7FD162BC-AD8F-43B3-B192-C947616A54EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FD162BC-AD8F-43B3-B192-C947616A54EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FD162BC-AD8F-43B3-B192-C947616A54EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FD162BC-AD8F-43B3-B192-C947616A54EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FD162BC-AD8F-43B3-B192-C947616A54EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

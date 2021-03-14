@@ -26,9 +26,9 @@ namespace Http.Options
                 {
                     return await base.SendAsync(request, cts.Token).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException e)
                     when (!cancellationToken.IsCancellationRequested)
-                {
+                { 
                     throw new TimeoutException() {Data = {["timeout"] = _timeout}};
                 }
             }

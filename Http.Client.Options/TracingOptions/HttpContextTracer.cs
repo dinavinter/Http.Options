@@ -4,8 +4,9 @@ namespace Http.Options
 {
     public class HttpContextTracer
     {
-        public string RequestStart = "request.start";
-        public string RequestEnd = "request.end";
+        public string RequestStart = "time.start";
+        public string RequestEnd = "time.end";
+        public string TotalTime = "time.total";
         public string CorrelationsId = "correlation.id";
 
         public void TraceStart(HttpRequestTracingContext context)
@@ -16,8 +17,9 @@ namespace Http.Options
 
         public void TraceEnd(HttpRequestTracingContext context)
         {
-            context.Tags[RequestEnd] = context.ResponseEndTimestamp; 
- 
+            context.Tags[RequestEnd] = context.ResponseEndTimestamp;
+            context.Tags[TotalTime] = context.TotalTime;
+
         }
     }
 }

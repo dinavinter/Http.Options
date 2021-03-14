@@ -10,8 +10,9 @@ namespace Http.Options
         private readonly HttpRequestTracingOptions _tracingOptions;
         public readonly HttpClientOptions HttpClientOptions;
         public string CorrelationId = Guid.NewGuid().ToString("N");
-        public long ResponseEndTimestamp;
-        public long RequestStartTimestamp;
+        public long? ResponseEndTimestamp;
+        public long? RequestStartTimestamp;
+        public long? TotalTime => ResponseEndTimestamp - RequestStartTimestamp;
         public Dictionary<string, object> Tags { get; } = new Dictionary<string, object>();
 
         public HttpRequestTracingContext(HttpRequestTracingOptions tracingOptions, HttpClientOptions options)
@@ -53,5 +54,12 @@ namespace Http.Options
 
         }
 
+        public void OnError(Exception exception)
+        {
+            ResponseEndTimestamp = Stopwatch.GetTimestamp();
+            HttpClientOptions.Tracing.TraceError(this, exception); 
+            HttpClientOptions.Tracing.TraceEnd(this);
+
+        }
     }
 }

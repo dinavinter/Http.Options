@@ -12,6 +12,7 @@ namespace Http.Options
         public Action<HttpRequestTracingContext, HttpClientOptions> TraceConfig;
         public Action<HttpRequestTracingContext, HttpRequestMessage> TraceRequest;
         public Action<HttpRequestTracingContext, HttpResponseMessage> TraceResponse;
+        public Action<HttpRequestTracingContext, Exception> TraceError;
         public Action<HttpRequestTracingContext> TraceStart;
         public Action<HttpRequestTracingContext> TraceEnd;
 
@@ -23,6 +24,7 @@ namespace Http.Options
             TraceResponse = Default.Response;
             TraceStart = Default.ContextTracer.TraceStart;
             TraceEnd = Default.ContextTracer.TraceEnd;
+            TraceError = Default.ErrorTracer;
         }
 
         public class DefaultTracer
@@ -31,6 +33,7 @@ namespace Http.Options
             public readonly HttpRequestMessageTracer Request = new HttpRequestMessageTracer();
             public readonly HttpResponseMessageTracer Response = new HttpResponseMessageTracer();
             public readonly HttpContextTracer ContextTracer = new HttpContextTracer();
+            public readonly HttpErrorTracer ErrorTracer = new HttpErrorTracer(); 
         }
 
         public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder builder, HttpClientOptions options)
