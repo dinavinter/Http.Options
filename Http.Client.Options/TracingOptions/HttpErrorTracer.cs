@@ -4,12 +4,12 @@ namespace Http.Options
 {
     public class HttpErrorTracer
     {
-        public string Error =OpenTelemetryConventions.AttributeExceptionMessage;
-        public string Type =OpenTelemetryConventions.AttributeExceptionType;
-        public string StackTrace = OpenTelemetryConventions.AttributeExceptionStacktrace ;
-        public string InnerError =  "exception.inner.message" ;
-        public string InnerType =  "exception.inner.type" ;
-        public string InnerStackTrace =  "exception.inner.stackTrace" ;
+        public TracingTag Error =OpenTelemetryConventions.AttributeExceptionMessage;
+        public TracingTag Type =OpenTelemetryConventions.AttributeExceptionType;
+        public TracingTag StackTrace = OpenTelemetryConventions.AttributeExceptionStacktrace ;
+        public TracingTag InnerError =  "exception.inner.message" ;
+        public TracingTag InnerType =  "exception.inner.type" ;
+        public TracingTag InnerStackTrace =  "exception.inner.stackTrace" ;
  
         public void Trace(HttpRequestTracingContext context, Exception exception)
         { 

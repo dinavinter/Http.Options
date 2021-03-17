@@ -5,12 +5,12 @@ namespace Http.Options
 {
     public class HttpRequestMessageTracer
     {
-        public string Method = "request.method";
-        public string Query = "request.query";
-        public string Schema = "request.schema";
-        public string Host = "request.host";
-        public string RequestPath = "request.uri";
-        public string RequestLength = "request.length";
+        public TracingTag Method = "request.method";
+        public TracingTag Query = "request.query";
+        public TracingTag Schema = "request.schema";
+        public TracingTag Host = "request.host";
+        public TracingTag RequestPath = "request.uri";
+        public TracingTag RequestLength = "request.length";
  
         public void Trace(HttpRequestTracingContext tracing, HttpRequestMessage request)
         {

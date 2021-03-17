@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using OpenTelemetry.Trace;
@@ -28,12 +29,12 @@ namespace Http.Options
             TraceConfig = Default.Config;
             TraceRequest = Default.Request;
             TraceResponse = Default.Response;
-            TraceStart = Default.ContextTracer.TraceStart;
-            TraceEnd = Default.ContextTracer.TraceEnd;
-            TraceError = Default.ErrorTracer;
-        
-            
-           
+            TraceStart = Default.Context.TraceStart;
+            TraceEnd = Default.Context.TraceEnd;
+            TraceError = Default.Error; 
+            TraceStart += Default.Tcp;
+
+
         }
 
 
@@ -45,8 +46,9 @@ namespace Http.Options
             public readonly HttpClientOptionsTracer Config = new HttpClientOptionsTracer();
             public readonly HttpRequestMessageTracer Request = new HttpRequestMessageTracer();
             public readonly HttpResponseMessageTracer Response = new HttpResponseMessageTracer();
-            public readonly HttpContextTracer ContextTracer = new HttpContextTracer();
-            public readonly HttpErrorTracer ErrorTracer = new HttpErrorTracer(); 
+            public readonly HttpContextTracer Context = new HttpContextTracer();
+            public readonly HttpErrorTracer Error = new HttpErrorTracer(); 
+            public readonly TcpTracer Tcp = new TcpTracer(); 
         }
 
         public class TracingActivity
@@ -68,7 +70,8 @@ namespace Http.Options
                 {
                     ActivityStarted = AggregateActivity,
                     ActivityStopped = AggregateActivity,
-                    ShouldListenTo = source => true
+                    ShouldListenTo = source => true,
+                    Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData
                     
                 });
             }

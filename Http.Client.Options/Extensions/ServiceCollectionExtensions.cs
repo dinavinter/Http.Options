@@ -36,6 +36,7 @@ namespace Http.Options
             serviceCollection.AddOptions<HttpClientOptions>();
             serviceCollection.AddHttpClient();
             serviceCollection.AddScoped<HttpClientScope>();
+            serviceCollection.AddSingleton<TcpConnectionsEnumerator>();
             // serviceCollection.AddOpenTelemetryTracing((builder) =>
             // {
             //     builder

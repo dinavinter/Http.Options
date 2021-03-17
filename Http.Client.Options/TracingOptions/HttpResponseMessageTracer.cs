@@ -7,9 +7,9 @@ namespace Http.Options
 {
     public class HttpResponseMessageTracer
     {
-        public string ContentLength = "response.length";
-        public string HttpStatusCode = "response.statusCode";
-        public string ResponseTime = "response.timestamp";
+        public TracingTag ContentLength = "response.length";
+        public TracingTag HttpStatusCode = "response.statusCode";
+        public TracingTag ResponseTime = "response.timestamp";
 
         public void Trace(HttpRequestTracingContext context, HttpResponseMessage httpResponseMessage)
         { 

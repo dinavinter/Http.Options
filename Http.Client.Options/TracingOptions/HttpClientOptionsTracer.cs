@@ -6,24 +6,24 @@ namespace Http.Options
 {
     public class HttpClientOptionsTracer
     {
-        public string Server = "config.server";
-        public string Port = "config.port";
-        public string Schema = "config.schema";
-        public string Name = "config.name";
-        public string Timeout = "config.timeout";
-        public string MaxConnection = "config.handler.maxConnection";
-        public string LifeTimeMinutes = "config.handler.lifeTimeMinutes";
+        public TracingTag Server = "config.server";
+        public TracingTag Port = "config.port";
+        public TracingTag Schema = "config.schema";
+        public TracingTag Name = "config.name";
+        public TracingTag Timeout = "config.timeout";
+        public TracingTag MaxConnection = "config.handler.maxConnection";
+        public TracingTag LifeTimeMinutes = "config.handler.lifeTimeMinutes";
 
 
         public void Trace(HttpRequestTracingContext tracing, HttpClientOptions options)
         { 
-            tracing.Tags[Server] = options.Connection?.Server.NullOr(string.Intern);
-            tracing.Tags[Port] = options.Connection?.Port.ToString().NullOr(string.Intern);
-            tracing.Tags[Schema] = options.Connection?.Schema.NullOr(string.Intern);
-            tracing.Tags[Name] = options.ServiceName.NullOr(string.Intern);
-            tracing.Tags[Timeout] = options.Timeout?.Timeout.TotalMilliseconds; 
-            tracing.Tags[MaxConnection] = options.Handler?.MaxConnection;
-            tracing.Tags[LifeTimeMinutes] = options.Handler?.HandlerLifeTimeMinutes;
+            Server.Tag(tracing.Tags , options.Connection?.Server.NullOr(string.Intern));
+            Port.Tag(tracing.Tags, options.Connection?.Port.ToString().NullOr(string.Intern));
+            Schema.Tag(tracing.Tags , options.Connection?.Schema.NullOr(string.Intern));
+            Name.Tag(tracing.Tags, options.ServiceName.NullOr(string.Intern));
+            Timeout.Tag(tracing.Tags,options.Timeout?.Timeout.TotalMilliseconds); 
+            MaxConnection.Tag(tracing.Tags, options.Handler?.MaxConnection);
+            LifeTimeMinutes.Tag(tracing.Tags, options.Handler?.HandlerLifeTimeMinutes);
         }
 
         public static implicit operator

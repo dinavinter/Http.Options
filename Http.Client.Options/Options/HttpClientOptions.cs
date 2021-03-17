@@ -47,8 +47,8 @@ namespace Http.Options
         /// </summary>
         protected virtual void ConfigureHttpMessageHandlerBuilder(HttpMessageHandlerBuilder builder)
         {
-             Tracing.ConfigureHttpClientBuilder(builder, this);
-             Handler.ConfigureHttpClientBuilder(builder);
+            Tracing.ConfigureHttpClientBuilder(builder, this);
+            Handler.ConfigureHttpClientBuilder(builder);
             Timeout.ConfigureHttpClientBuilder(builder);
             Telemetry.ConfigureHttpClientBuilder(builder);
             Polly.ConfigureHttpClientBuilder(builder);

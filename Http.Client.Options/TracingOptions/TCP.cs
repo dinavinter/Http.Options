@@ -2,63 +2,86 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Http.Options
 {
-    public class TcpConnectionsEnumerator  
+    public class TcpConnectionsEnumerator
     {
-        private DateTime _lastResult = DateTime.UtcNow;
         private TcpConnectionInformation[] _current;
+        private TcpConnectionFetcher _fetcher;
 
 
-
-        public void RegisterCounters(Action<string, Func<TimeSpan, float>> counter,
+        public void RegisterCounters(Action<TcpState?, Func<TimeSpan, float>> counter,
             Func<TcpConnectionInformation, bool> connectionFilter = null, Func<TcpState, bool> stateFilter = null)
         {
             connectionFilter ??= (_ => true);
             stateFilter ??= (_ => true);
 
-            counter(@"all", period => Get(period).Count(connectionFilter));
- 
-            foreach (var tcpState in   Enum.GetValues(typeof(TcpState)).Cast<TcpState>().Where(stateFilter))
+
+            counter(null, period => Get(period).Count(connectionFilter));
+
+            foreach (var tcpState in Enum.GetValues(typeof(TcpState)).Cast<TcpState>().Where(stateFilter))
             {
                 registerStateCounter(tcpState);
             }
+
             void registerStateCounter(TcpState tcpState)
             {
-                counter(tcpState.ToString().ToLower(),
+                counter(tcpState,
                     period => Get(period)
                         .Where(connectionFilter)
                         .Count(inState));
 
                 bool inState(TcpConnectionInformation connectionInformation) => connectionInformation.State == tcpState;
-
             }
-
         }
-
 
 
         public IEnumerable<TcpConnectionInformation> Get(TimeSpan period)
         {
             if (_current == null)
             {
-                setCurrent();
+                setCurrent().ConfigureAwait(false);
             }
-            else if (_lastResult.Add(period) <= DateTime.UtcNow)
+            else if (_fetcher.Expired(period))
             {
-                Task.Run(setCurrent).ConfigureAwait(false);
+                setCurrent().ConfigureAwait(false);
             }
 
-            return _current;
+            return _current ?? Enumerable.Empty<TcpConnectionInformation>();
 
-            void setCurrent()
+            async Task setCurrent()
             {
-                _lastResult = DateTime.UtcNow;
-                _current = IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections();
+                var fetcher = new TcpConnectionFetcher();
+                if (Interlocked.CompareExchange(ref _fetcher, fetcher, _fetcher) == fetcher)
+                {
+                    _current = await _fetcher.FetchAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private class TcpConnectionFetcher
+        {
+            private Task<TcpConnectionInformation[]> _collection;
+            private DateTime _fetchTime;
+
+            public TcpConnectionFetcher()
+            {
+                _fetchTime = DateTime.UtcNow;
+            }
+
+            public bool Expired(TimeSpan expiration)
+            {
+                return _fetchTime.Add(expiration) <= DateTime.UtcNow && _collection?.IsFaulted != true;
+            }
+
+            public Task<TcpConnectionInformation[]> FetchAsync()
+            {
+                return _collection ??= Task.Run(() =>
+                    IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections());
             }
         }
     }
-
 }
