@@ -19,11 +19,13 @@ namespace Http.Options
         {
             _tracingOptions = tracingOptions;
             HttpClientOptions = options;
+             
         }
         
         
         public static HttpRequestTracingContext TraceRequest(HttpRequestMessage requestMessage, HttpClientOptions options)
         {
+
             requestMessage.Properties.TryGetValue(options.Tracing.ContextPropertyName, out var context);
             if (context != null && context is HttpRequestTracingContext tracingContext)
             {
@@ -36,6 +38,9 @@ namespace Http.Options
             options.Tracing.TraceConfig(tracingContext, options);
             options.Tracing.TraceRequest(tracingContext, requestMessage);
             options.Tracing.TraceStart(tracingContext);
+
+            
+            
             return tracingContext;
 
         }

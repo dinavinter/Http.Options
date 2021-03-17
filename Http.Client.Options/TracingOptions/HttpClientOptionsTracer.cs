@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.Tracing;
 using System.Threading;
 
 namespace Http.Options
@@ -15,7 +16,7 @@ namespace Http.Options
 
 
         public void Trace(HttpRequestTracingContext tracing, HttpClientOptions options)
-        {
+        { 
             tracing.Tags[Server] = options.Connection?.Server.NullOr(string.Intern);
             tracing.Tags[Port] = options.Connection?.Port.ToString().NullOr(string.Intern);
             tracing.Tags[Schema] = options.Connection?.Schema.NullOr(string.Intern);

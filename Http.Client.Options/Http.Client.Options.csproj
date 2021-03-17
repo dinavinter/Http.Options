@@ -10,17 +10,20 @@
         <Version>2.0.6.0</Version>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
-         <LangVersion>latest</LangVersion>
+         <LangVersion>8</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Metrics" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="3.*" />
       <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.*" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc2" />
       <PackageReference Include="Polly" Version="7.*" />
       <PackageReference Include="Polly.Extensions.Http" Version="3.*" />
       <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.*" />
       <PackageReference Include="System.ComponentModel.Annotations" Version="4.*" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc2" />
+        <PackageReference Include="OpenTelemetry" Version="1.0.1" />
 
     </ItemGroup>
 
