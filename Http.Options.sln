@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 ProjectSection(SolutionItems) = preProject
 	nuget_push.bat = nuget_push.bat
 	.gitignore = .gitignore
+	Directory.Build.targets = Directory.Build.targets
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Client.Options.WireServer", "Http.Client.Options.WireServer\Http.Client.Options.WireServer.csproj", "{2B3F83D3-7BFE-42AA-A50D-43FE37D30135}"

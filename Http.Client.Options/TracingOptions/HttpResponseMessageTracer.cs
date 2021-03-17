@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Http;
+using OpenTelemetry.Trace;
 
 namespace Http.Options
 {
@@ -12,7 +13,7 @@ namespace Http.Options
 
         public void Trace(HttpRequestTracingContext context, HttpResponseMessage httpResponseMessage)
         { 
-           
+ 
             context.Tags[ContentLength] = httpResponseMessage.Content.Headers.ContentLength;
             context.Tags[HttpStatusCode] = (int) httpResponseMessage.StatusCode;
             context.Tags[ResponseTime] = context.ResponseEndTimestamp;

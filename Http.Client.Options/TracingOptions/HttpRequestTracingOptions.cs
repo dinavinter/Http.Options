@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
+using OpenTelemetry.Trace;
 
 namespace Http.Options
 {
@@ -52,10 +54,9 @@ namespace Http.Options
             public ActivitySource Source = new ActivitySource("http-options-activity-source");
             public string ActivityName = "http-options-activity";
  
-
             public Activity StartActivity (HttpRequestTracingContext context)
             {
-                return Source.StartActivity("http-options-activity",
+                return Source.StartActivity(ActivityName,
                     ActivityKind.Client, 
                     default(ActivityContext),
                     context.Tags); 
@@ -95,9 +96,9 @@ namespace Http.Options
 
                 if (activity.GetCustomProperty("http-activity") is  Activity httpActivity )
                 {
-                    foreach (var tag in httpActivity.TagObjects  )
+                    foreach (var tag in activity.TagObjects  )
                     {
-                        activity.SetTag(tag.Key, tag.Value);
+                        httpActivity.SetTag(tag.Key, tag.Value);
                     }
                      
                 }
