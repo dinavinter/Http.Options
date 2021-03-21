@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
+using OpenTelemetry.Trace;
 
 namespace Http.Options
 {
@@ -28,17 +29,17 @@ namespace Http.Options
 
             requestMessage.Properties.TryGetValue(options.Tracing.ContextPropertyName, out var context);
             if (context != null && context is HttpRequestTracingContext tracingContext)
-            {
+            { 
                 return tracingContext;
 
             }
-
+ 
             tracingContext = new HttpRequestTracingContext(options) {RequestStartTimestamp = Stopwatch.GetTimestamp()};
             requestMessage.Properties[options.Tracing.ContextPropertyName] = tracingContext; 
             options.Tracing.TraceConfig(tracingContext, options);
             options.Tracing.TraceRequest(tracingContext, requestMessage);
             options.Tracing.TraceStart(tracingContext);
-
+ 
             
             
             return tracingContext;
@@ -65,6 +66,11 @@ namespace Http.Options
             HttpClientOptions.Tracing.TraceError(this, exception); 
             HttpClientOptions.Tracing.TraceEnd(this);
 
+        }
+        
+        public object this[TracingTag  tag]
+        { 
+            set => tag.Tag(Tags, value);
         }
     }
 }

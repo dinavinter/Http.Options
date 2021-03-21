@@ -59,5 +59,10 @@ namespace Http.Options.UnitTests
             options.Connection.Port = _server.Ports.First(); 
 
         }
+
+        public string  Url(string path)
+        {
+            return $"http://127.0.0.1:{_server.Ports.First()}/{path}";
+        }
     }
 }

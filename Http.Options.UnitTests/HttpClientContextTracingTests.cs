@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -13,11 +14,12 @@ namespace Http.Options.UnitTests
     public class HttpClientContextTracingTests
     {
         private readonly WireServer _server;
+        private WireMockServer _wireServer;
 
         public HttpClientContextTracingTests()
         {
-            _server = new WireServer(WireMockServer.Start());
-
+            _wireServer = WireMockServer.Start();
+            _server = new WireServer(_wireServer);
         }
         
         [Test]
@@ -26,7 +28,7 @@ namespace Http.Options.UnitTests
             var serviceCollection = new ServiceCollection();
             HttpRequestTracingContext tracingCtx= null;
 
-            var startTime = Stopwatch.GetTimestamp();
+            // var startTime = Stopwatch.GetTimestamp();
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "service";
@@ -45,6 +47,8 @@ namespace Http.Options.UnitTests
             
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
             var client = factory.CreateClient("service");
+            await client.GetAsync("/delay/5ms");
+            var startTime = Stopwatch.GetTimestamp();
 
             var result = await client.GetAsync("/delay/1s");
 
@@ -59,11 +63,10 @@ namespace Http.Options.UnitTests
                 AssertTag(tracingCtx, "schema", Is.EqualTo("http"));
                 AssertTag(tracingCtx, "r.schema", Is.EqualTo("http"));
                 AssertTag(tracingCtx, "host", Is.EqualTo("127.0.0.1"));
-                AssertTag(tracingCtx, "request.query", Is.EqualTo(""));
+                AssertTag(tracingCtx, OpenTelemetryConventions.AttributeHttpMethod, Is.EqualTo("GET"));
                 AssertTag(tracingCtx, "path", Is.EqualTo("/delay/1s"));
-                AssertTag(tracingCtx, "response.statusCode", Is.Not.Null.And.EqualTo(200));
-                AssertTag(tracingCtx, "response.timestamp", Is.Not.Null.And.EqualTo(tracingCtx.ResponseEndTimestamp));
-                AssertTag(tracingCtx, "time.end", Is.Not.Null.And.EqualTo(tracingCtx.ResponseEndTimestamp));
+                AssertTag(tracingCtx,OpenTelemetryConventions.AttributeHttpStatusCode , Is.Not.Null.And.EqualTo(200));
+                 AssertTag(tracingCtx, "time.end", Is.Not.Null.And.EqualTo(tracingCtx.ResponseEndTimestamp));
             });
 
 
@@ -76,7 +79,6 @@ namespace Http.Options.UnitTests
             var serviceCollection = new ServiceCollection();
             HttpRequestTracingContext tracingCtx= null;
 
-            var startTime = Stopwatch.GetTimestamp();
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "service";
@@ -95,6 +97,10 @@ namespace Http.Options.UnitTests
             
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
             var client = factory.CreateClient("service");
+
+            //worm up
+            await client.GetAsync("/delay/5ms");
+            var startTime = Stopwatch.GetTimestamp();
 
            var result=   await client.GetAsync("/error/5ms");
            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
@@ -110,11 +116,10 @@ namespace Http.Options.UnitTests
                 AssertTag(tracingCtx, "schema", Is.EqualTo("http"));
                 AssertTag(tracingCtx, "r.schema", Is.EqualTo("http"));
                 AssertTag(tracingCtx, "host", Is.EqualTo("127.0.0.1"));
-                AssertTag(tracingCtx, "request.query", Is.EqualTo(""));
+                AssertTag(tracingCtx, OpenTelemetryConventions.AttributeHttpUrl, Is.EqualTo(_server.Url("error/5ms")));
                 AssertTag(tracingCtx, "path", Is.EqualTo("/error/5ms"));
-                AssertTag(tracingCtx, "response.statusCode", Is.Not.Null.And.EqualTo(500));
-                AssertTag(tracingCtx, "response.timestamp", Is.Not.Null.And.EqualTo(tracingCtx.ResponseEndTimestamp));
-                AssertTag(tracingCtx, "time.end", Is.Not.Null.And.EqualTo(tracingCtx.ResponseEndTimestamp));
+                AssertTag(tracingCtx, OpenTelemetryConventions.AttributeHttpStatusCode, Is.Not.Null.And.EqualTo(500));
+                 AssertTag(tracingCtx, "time.end", Is.Not.Null.And.EqualTo(tracingCtx.ResponseEndTimestamp));
             });
 
 
@@ -127,8 +132,7 @@ namespace Http.Options.UnitTests
             var serviceCollection = new ServiceCollection();
             HttpRequestTracingContext tracingCtx= null;
 
-            var startTime = Stopwatch.GetTimestamp();
-            serviceCollection.AddHttpClientOptions(options =>
+             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "service";
                 options.Timeout.TimeoutMS = 5;
@@ -147,6 +151,11 @@ namespace Http.Options.UnitTests
             
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
             var client = factory.CreateClient("service");
+            
+            // //worm up
+            // await client.GetAsync("/delay/5ms");
+            var startTime = Stopwatch.GetTimestamp();
+
             Assert.ThrowsAsync<TimeoutException>(async () => await client.GetAsync("/delay/200ms"));
             Assert.NotNull(tracingCtx);
 
@@ -162,9 +171,8 @@ namespace Http.Options.UnitTests
                 AssertTag(tracingCtx, "schema", Is.EqualTo("http"));
                 AssertTag(tracingCtx, "r.schema", Is.EqualTo("http"));
                 AssertTag(tracingCtx, "host", Is.EqualTo("127.0.0.1"));
-                AssertTag(tracingCtx, "request.query", Is.EqualTo(""));
-                AssertTag(tracingCtx, "path", Is.EqualTo("/delay/200ms"));
-                AssertTag(tracingCtx, "response.statusCode", Is.Null);
+                 AssertTag(tracingCtx, "path", Is.EqualTo("/delay/200ms"));
+                AssertTag(tracingCtx, OpenTelemetryConventions.AttributeHttpStatusCode, Is.Null);
                 AssertTag(tracingCtx, "time.end", Is.Not.Null.And.EqualTo(tracingCtx.ResponseEndTimestamp));
                 AssertTag(tracingCtx, "time.total", Is.Not.Null.And.EqualTo(tracingCtx.TotalTime));
             });

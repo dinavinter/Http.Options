@@ -5,22 +5,24 @@ namespace Http.Options
 {
     public class HttpRequestMessageTracer
     {
-        public TracingTag Method = "request.method";
-        public TracingTag Query = "request.query";
-        public TracingTag Schema = "request.schema";
-        public TracingTag Host = "request.host";
-        public TracingTag RequestPath = "request.uri";
-        public TracingTag RequestLength = "request.length";
- 
+        public TracingTag Method = OpenTelemetryConventions.AttributeHttpMethod;
+        public TracingTag Url = OpenTelemetryConventions.AttributeHttpUrl;
+        public TracingTag Schema = OpenTelemetryConventions.AttributeHttpScheme;
+        public TracingTag Host = OpenTelemetryConventions.AttributeHttpTarget;
+        public TracingTag RequestPath = OpenTelemetryConventions.AttributeHttpRoute;
+        public TracingTag RequestLength = OpenTelemetryConventions.AttributeHttpRequestContentLength;
+        public TracingTag Port = OpenTelemetryConventions.AttributeHttpHostPort;
+
         public void Trace(HttpRequestTracingContext tracing, HttpRequestMessage request)
         {
-            tracing.Tags[Method] = request.Method.ToString();
-            tracing.Tags[Query] = request.RequestUri.Query.NullOr(string.Intern);
-            tracing.Tags[Schema] = request.RequestUri.Scheme.NullOr(string.Intern);
-            tracing.Tags[Host] = request.RequestUri.Host.NullOr(string.Intern);
-            tracing.Tags[RequestPath] = request.RequestUri.LocalPath.NullOr(string.Intern);
-            tracing.Tags[RequestLength] = request.Content?.Headers.ContentLength;
-         }
+            tracing[Method] = request.Method.ToString();
+            tracing[Url] = request.RequestUri?.AbsoluteUri.NullOr(string.Intern);
+            tracing[Schema] = request.RequestUri.Scheme.NullOr(string.Intern);
+            tracing[Host] = request.RequestUri.Host.NullOr(string.Intern);
+            tracing[RequestPath] = request.RequestUri.AbsolutePath.NullOr(string.Intern);
+            tracing[RequestLength] = request.Content?.Headers.ContentLength;
+            tracing[Port] = request.RequestUri.Port;
+        }
 
         public static implicit operator Action<HttpRequestTracingContext, HttpRequestMessage>(
             HttpRequestMessageTracer me) => me.Trace;

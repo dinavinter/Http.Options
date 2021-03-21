@@ -13,14 +13,14 @@ namespace Http.Options
         private TcpConnectionFetcher _fetcher;
 
 
-        public void RegisterCounters(Action<TcpState?, Func<TimeSpan, float>> counter,
+        public void RegisterCounters(Action<TcpState?, Func<TimeSpan, IEnumerable<TcpConnectionInformation>>> counter,
             Func<TcpConnectionInformation, bool> connectionFilter = null, Func<TcpState, bool> stateFilter = null)
         {
             connectionFilter ??= (_ => true);
             stateFilter ??= (_ => true);
 
 
-            counter(null, period => Get(period).Count(connectionFilter));
+            counter(null, period => Get(period).Where(connectionFilter));
 
             foreach (var tcpState in Enum.GetValues(typeof(TcpState)).Cast<TcpState>().Where(stateFilter))
             {
@@ -32,7 +32,7 @@ namespace Http.Options
                 counter(tcpState,
                     period => Get(period)
                         .Where(connectionFilter)
-                        .Count(inState));
+                        .Where(inState));
 
                 bool inState(TcpConnectionInformation connectionInformation) => connectionInformation.State == tcpState;
             }
@@ -55,17 +55,16 @@ namespace Http.Options
             async Task setCurrent()
             {
                 var fetcher = new TcpConnectionFetcher();
-                if (Interlocked.CompareExchange(ref _fetcher, fetcher, _fetcher) == fetcher)
-                {
-                    _current = await _fetcher.FetchAsync().ConfigureAwait(false);
-                }
+                Interlocked.CompareExchange(ref _fetcher, fetcher, _fetcher);
+                _current = await _fetcher.FetchAsync().ConfigureAwait(false);
+
             }
         }
 
         private class TcpConnectionFetcher
         {
             private Task<TcpConnectionInformation[]> _collection;
-            private DateTime _fetchTime;
+            private readonly DateTime _fetchTime;
 
             public TcpConnectionFetcher()
             {
@@ -81,6 +80,12 @@ namespace Http.Options
             {
                 return _collection ??= Task.Run(() =>
                     IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections());
+            }
+            
+            public  TcpConnectionInformation[]  Fetch ()
+            {
+                return
+                    IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections();
             }
         }
     }

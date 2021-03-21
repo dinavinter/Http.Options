@@ -2,7 +2,10 @@ namespace Http.Options
 {
    public static class OpenTelemetryConventions
   {
-    public const string AttributeNetTransport = "net.transport";
+      //https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/span-general.md#general-network-connection-attributes
+   
+      //https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#http-client
+      public const string AttributeNetTransport = "net.transport";
     public const string AttributeNetPeerIp = "net.peer.ip";
     public const string AttributeNetPeerPort = "net.peer.port";
     public const string AttributeNetPeerName = "net.peer.name";

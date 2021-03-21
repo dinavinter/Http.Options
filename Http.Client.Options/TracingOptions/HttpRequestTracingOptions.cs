@@ -47,8 +47,9 @@ namespace Http.Options
             public readonly HttpRequestMessageTracer Request = new HttpRequestMessageTracer();
             public readonly HttpResponseMessageTracer Response = new HttpResponseMessageTracer();
             public readonly HttpContextTracer Context = new HttpContextTracer();
-            public readonly HttpErrorTracer Error = new HttpErrorTracer(); 
-            public readonly TcpTracer Tcp = new TcpTracer(); 
+            public readonly HttpErrorTracer Error = new HttpErrorTracer();
+            public readonly TcpTracer Tcp = new TcpTracer();
+
         }
 
         public class TracingActivity
