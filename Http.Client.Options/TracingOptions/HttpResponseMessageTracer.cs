@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Net;
 using System.Net.Http;
 using OpenTelemetry.Trace;
 
@@ -18,8 +20,22 @@ namespace Http.Options
             context[HttpStatusCode] = (int) httpResponseMessage.StatusCode;
             context[ResponseTime] = context.ResponseEndTimestamp;
         }
+        public void TraceWebResponse(HttpRequestTracingContext context, HttpWebResponse httpResponseMessage)
+        {
+
+            var responseStream = new MemoryStream();
+            httpResponseMessage.GetResponseStream()?.CopyTo(responseStream);
+            
+            context[ContentLength] = responseStream.Length;
+            context[HttpStatusCode] = (int) httpResponseMessage.StatusCode;
+            context[ResponseTime] = context.ResponseEndTimestamp;
+        }
 
         public static implicit operator Action<HttpRequestTracingContext, HttpResponseMessage>(
             HttpResponseMessageTracer me) => me.Trace;
+        
+        public static implicit operator Action<HttpRequestTracingContext, HttpWebResponse>(
+            HttpResponseMessageTracer me) => me.TraceWebResponse;
+
     }
 }

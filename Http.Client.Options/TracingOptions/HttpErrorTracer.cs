@@ -13,14 +13,14 @@ namespace Http.Options
  
         public void Trace(HttpRequestTracingContext context, Exception exception)
         { 
-            context.Tags[Type] = exception.GetType();
-            context.Tags[Error] = exception.Message;
-            context.Tags[StackTrace] = exception.StackTrace;
+            context[Type] = exception.GetType();
+            context[Error] = exception.Message;
+            context[StackTrace] = exception.StackTrace;
             if (exception.InnerException != null)
             {
-                context.Tags[InnerError] = exception.InnerException.Message;
-                context.Tags[InnerType] = exception.InnerException.GetType();
-                context.Tags[InnerStackTrace] = exception.InnerException.StackTrace;
+                context[InnerError] = exception.InnerException.Message;
+                context[InnerType] = exception.InnerException.GetType();
+                context[InnerStackTrace] = exception.InnerException.StackTrace;
 
             }
         }

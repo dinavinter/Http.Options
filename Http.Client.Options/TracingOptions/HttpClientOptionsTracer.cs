@@ -16,14 +16,14 @@ namespace Http.Options
 
 
         public void Trace(HttpRequestTracingContext tracing, HttpClientOptions options)
-        { 
-            Server.Tag(tracing.Tags , options.Connection?.Server.NullOr(string.Intern));
-            Port.Tag(tracing.Tags, options.Connection?.Port.ToString().NullOr(string.Intern));
-            Schema.Tag(tracing.Tags , options.Connection?.Schema.NullOr(string.Intern));
-            Name.Tag(tracing.Tags, options.ServiceName.NullOr(string.Intern));
-            Timeout.Tag(tracing.Tags,options.Timeout?.Timeout.TotalMilliseconds); 
-            MaxConnection.Tag(tracing.Tags, options.Handler?.MaxConnection);
-            LifeTimeMinutes.Tag(tracing.Tags, options.Handler?.HandlerLifeTimeMinutes);
+        {
+            tracing[Server] = options.Connection?.Server.NullOr(string.Intern);
+            tracing[Port] = options.Connection?.Port.ToString().NullOr(string.Intern);
+            tracing[Schema] = options.Connection?.Schema.NullOr(string.Intern);
+            tracing[Name] = options.ServiceName.NullOr(string.Intern);
+            tracing[Timeout] = options.Timeout?.Timeout.TotalMilliseconds;
+            tracing[MaxConnection] = options.Handler?.MaxConnection;
+            tracing[LifeTimeMinutes] = options.Handler?.HandlerLifeTimeMinutes;
         }
 
         public static implicit operator

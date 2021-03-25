@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Http.Options
 {
@@ -9,7 +10,7 @@ namespace Http.Options
         public string Name;
         public bool Enabled;
 
-        protected TracingTag(string name, bool enabled =true)
+        protected TracingTag(string name, bool enabled = true)
         {
             Name = name;
             Enabled = enabled;
@@ -19,32 +20,27 @@ namespace Http.Options
         {
             Enabled = false;
         }
+
         public void Enable()
         {
-             Enabled = true;
+            Enabled = true;
         }
-        public void Tag(IDictionary<string, object> tags, object value)
+
+        public void Tag(Activity activity, object value)
         {
-            if (Enabled)
+            if (Enabled && value != null)
             {
-                tags[Name] = value;
+                activity.SetTag(Name, value);
             }
         }
-        public void Tag(IDictionary<string, object> tags, Func<object> valueFactory)
-        {
-            if (Enabled)
-            {
-                tags[Name] = valueFactory();
-            }
-        }
+
         public static implicit operator string(
             TracingTag me) => me.Name;
-        
+
         public static implicit operator TracingTag(
             string name) => new TracingTag(name);
-
     }
-    
+
     // public class TracingTagAction: TracingTagContextAction 
     // {
     //     public TracingTagAction(string name, Func<object> value = null, bool enabled = true) : base(name,_=> value, enabled )
@@ -65,47 +61,47 @@ namespace Http.Options
     //
     //
     // }
-    public class TracingTagAction :TracingTag
+    public class TracingTagAction : TracingTag
     {
- 
-        public TracingTagAction(string name, Func<HttpRequestTracingContext,object> value = null, bool enabled = true) : base(name, enabled)
+        public TracingTagAction(string name, Func<HttpRequestTracingContext, object> value = null, bool enabled = true)
+            : base(name, enabled)
         {
             Value = value;
         }
- 
-        public  Func<HttpRequestTracingContext,object>  Value;
-        public void Tag(HttpRequestTracingContext tags )
+
+        public Func<HttpRequestTracingContext, object> Value;
+
+        public void Tag(HttpRequestTracingContext tags)
         {
-            if (Enabled && Value!= null)
+            if (Enabled && Value != null)
             {
                 tags[Name] = Value.Invoke(tags);
             }
         }
+
         public static implicit operator TracingTagAction(
             string name) => new TracingTagAction(name);
-
-
-      
     }
 
     public class TracingTagGroup<TKey> : IEnumerable<TracingTagAction>
     {
         private readonly Func<TKey, string> _name;
-        private readonly bool  _enabledFields;
-        private readonly Dictionary<string, TracingTagAction>  _tags = new Dictionary<string, TracingTagAction>();
+        public bool Enabled;
+        private readonly Dictionary<string, TracingTagAction> _tags = new Dictionary<string, TracingTagAction>();
 
-        public TracingTagGroup(Func<TKey, string> name,  bool enabled = true,  bool enabledFields = true )  
+        public TracingTagGroup(Func<TKey, string> name = null, bool enabled = true)
         {
-            _name = name;
-            _enabledFields = enabledFields;
+            _name = name ?? (k => k.ToString());
+            Enabled = enabled;
         }
-         
-  
-        public void SetTagSource(TKey key, Func<HttpRequestTracingContext ,object> data)
+
+
+        public void SetTagSource(TKey key, Func<HttpRequestTracingContext, object> data)
         {
-            GetOrCreate(key, name => new TracingTagAction(name, data, _enabledFields))
-                .Value = data; 
+            GetOrCreate(key, name => new TracingTagAction(name, data, Enabled))
+                .Value = data;
         }
+
         public TracingTagAction GetOrCreate(TKey key, Func<string, TracingTagAction> create)
         {
             var name = _name(key);
@@ -116,12 +112,13 @@ namespace Http.Options
 
             return _tags[name];
         }
+
         public TracingTagAction this[TKey key]
         {
-            get =>   GetOrCreate(key, name => new TracingTagAction(name, null, _enabledFields));
+            get => GetOrCreate(key, name => new TracingTagAction(name, null, Enabled));
             set => _tags[_name(key)] = value;
         }
-        
+
         public TracingTagAction this[string keyString]
         {
             get => _tags[keyString];
@@ -135,7 +132,18 @@ namespace Http.Options
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _tags.Values.GetEnumerator(); 
+            return GetEnumerator();
+        }
+
+        public void Tag(HttpRequestTracingContext ctx)
+        {
+            if (Enabled)
+            {
+                foreach (var tag in this)
+                {
+                    tag.Tag(ctx);
+                }
+            }
         }
     }
 }

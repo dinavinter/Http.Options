@@ -9,12 +9,13 @@ namespace Http.Options
     public class TcpTracer
     {
         public TimeSpan Period = TimeSpan.FromMinutes(1);
+        public bool Enabled = false;
         private static readonly TcpConnectionsEnumerator ConnectionsEnumerator = new TcpConnectionsEnumerator();
 
         public TracingTagAction AllConnections = "tcp.connections.all";
         public TracingTagAction TotalConnection = "tcp.connections.total";
  
-        public readonly TracingTagGroup<TcpState?> ConnectionState = new TracingTagGroup<TcpState?>(TcpStateName, enabledFields: false);
+        public readonly TracingTagGroup<TcpState?> ConnectionState = new TracingTagGroup<TcpState?>(TcpStateName, enabled: false);
 
         private static string TcpStateName(TcpState? state)
         {
@@ -71,22 +72,19 @@ namespace Http.Options
        
         public void Trace(HttpRequestTracingContext context)
         {
-            foreach (var tracingTag in 
-                ConnectionState
-                .Append(AllConnections)
-                .Append(TotalConnection))
+            if (Enabled)
             {
-                tracingTag.Tag(context);
+                foreach (var tracingTag in 
+                    ConnectionState
+                        .Append(AllConnections)
+                        .Append(TotalConnection))
+                {
+                    tracingTag.Tag(context);
+                }
             }
+          
 
-            //  var connections = ConnectionsEnumerator.Get(TimeSpan.FromSeconds(1))
-            //     .Where(x => context.HttpClientOptions.Connection.Port == x.RemoteEndPoint.Port).ToArray();
-            // context.Tags["connections.total"] = connections.Count();
-            // context.Tags["connections.timeWait"] =
-            //     connections.Count(connection => connection.State == TcpState.TimeWait);
-            // context.Tags["connections.established"] =
-            //     connections.Count(connection => connection.State == TcpState.Established);
-            // context.Tags["connections.lastAck"] = connections.Count(connection => connection.State == TcpState.LastAck);
+           
         }
 
         public static implicit operator Action<HttpRequestTracingContext>(TcpTracer me) => me.Trace;

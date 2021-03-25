@@ -14,14 +14,14 @@ namespace Http.Options
 
         public void TraceStart(HttpRequestTracingContext context)
         {
-            CorrelationsId.Tag(context.Tags, context.CorrelationId);
-            RequestStart.Tag(context.Tags, context.RequestStartTimestamp);
-         }
+            context[CorrelationsId]= context.CorrelationId;
+            context[RequestStart] = context.RequestStartTimestamp;
+        }
 
         public void TraceEnd(HttpRequestTracingContext context)
         {
-            RequestEnd.Tag(context.Tags, context.ResponseEndTimestamp);
-            TotalTime.Tag(context.Tags, context.TotalTime);
+            context[RequestEnd]= context.ResponseEndTimestamp;
+            context[TotalTime] = context.TotalTime;
         }
 
     

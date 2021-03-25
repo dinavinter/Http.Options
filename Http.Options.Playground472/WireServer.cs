@@ -56,7 +56,7 @@ namespace Http.Options.UnitTests
         public void ConfigureWireMockServer(HttpClientOptions options)
         {
             options.Connection.Server = "localhost";
-            options.Connection.Schema = "https";
+            options.Connection.Schema = "http";
             options.Connection.Port = _server.Ports.First(); 
 
         }

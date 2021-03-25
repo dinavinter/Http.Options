@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using OpenTelemetry.Trace;
 
@@ -8,69 +10,61 @@ namespace Http.Options
 {
     public class HttpRequestTracingContext
     {
-        private readonly HttpRequestTracingOptions _tracingOptions;
-        public readonly HttpClientOptions HttpClientOptions;
+        public HttpClientOptions HttpClientOptions;
         public string CorrelationId = Guid.NewGuid().ToString("N");
-        public long? ResponseEndTimestamp;
-        public long? RequestStartTimestamp;
-        public long? TotalTime => ResponseEndTimestamp - RequestStartTimestamp;
-        public Dictionary<string, object> Tags { get; } = new Dictionary<string, object>();
-
-        public HttpRequestTracingContext(HttpRequestTracingOptions tracingOptions, HttpClientOptions options)
+        public long? ResponseEndTimestamp=> Activity?.StartTimeUtc.Add(Activity.Duration).Ticks;
+        public long? RequestStartTimestamp => Activity?.StartTimeUtc.Ticks;
+        public double? TotalTime => Activity?.Duration.TotalMilliseconds;
+        public Dictionary<string, object> Tags => Activity?.TagObjects.ToDictionary(x => x.Key, x => x.Value);
+        public Activity Activity;
+  
+         public static Activity Start(HttpClientOptions options)
         {
-            _tracingOptions = tracingOptions;
-            HttpClientOptions = options;
-             
-        }
-        
-        
-        public static HttpRequestTracingContext TraceRequest(HttpRequestMessage requestMessage, HttpClientOptions options)
-        {
-
-            requestMessage.Properties.TryGetValue(options.Tracing.ContextPropertyName, out var context);
-            if (context != null && context is HttpRequestTracingContext tracingContext)
-            { 
-                return tracingContext;
-
-            }
- 
-            tracingContext = new HttpRequestTracingContext(options) {RequestStartTimestamp = Stopwatch.GetTimestamp()};
-            requestMessage.Properties[options.Tracing.ContextPropertyName] = tracingContext; 
-            options.Tracing.TraceConfig(tracingContext, options);
-            options.Tracing.TraceRequest(tracingContext, requestMessage);
-            options.Tracing.TraceStart(tracingContext);
- 
-            
-            
-            return tracingContext;
-
+            return new HttpRequestTracingContext(options).Activity;
         }
 
         public HttpRequestTracingContext(HttpClientOptions options)
         {
             HttpClientOptions = options;
+             Activity = HttpClientOptions.Tracing.Activity.StartActivity();
+            Activity.SetCustomProperty(nameof(HttpRequestTracingContext), this);
         }
-
-
-        public void OnResponse(HttpResponseMessage responseMessage)
+        public void OnActivityStart()
         {
-            ResponseEndTimestamp = Stopwatch.GetTimestamp();
-            HttpClientOptions.Tracing.TraceResponse(this, responseMessage); 
-            HttpClientOptions.Tracing.TraceEnd(this);
-
-        }
-
-        public void OnError(Exception exception)
-        {
-            ResponseEndTimestamp = Stopwatch.GetTimestamp();
-            HttpClientOptions.Tracing.TraceError(this, exception); 
-            HttpClientOptions.Tracing.TraceEnd(this);
-
+            HttpClientOptions.Tracing.TraceStart(this);
         }
         
-        public object this[TracingTag  tag]
+        public void OnActivityStopped()
+        {
+            HttpClientOptions.Tracing.TraceEnd(this);
+        }
+        public void RecordRequest(HttpRequestMessage requestMessage)
         { 
-            set => tag.Tag(Tags, value);
+            Activity = HttpClientOptions.Tracing.Activity.StartActivity();
+            Activity.SetCustomProperty(nameof(HttpRequestTracingContext), this);
+            HttpClientOptions.Tracing.TraceConfig(this, HttpClientOptions);
+            HttpClientOptions.Tracing.TraceRequest(this, requestMessage);
+        }
+
+
+        public void RecordResponse(HttpResponseMessage responseMessage)
+        {
+            HttpClientOptions.Tracing.TraceResponse(this, responseMessage);
+            Activity.Stop();
+        }
+
+        public void RecordException(Exception exception)
+        {
+            HttpClientOptions.Tracing.TraceError(this, exception);
+            Activity?.RecordException(exception);
+            Activity?.Stop();
+        }
+        
+        
+
+        public object this[TracingTag tag]
+        {
+            set => tag.Tag(Activity, value);
         }
     }
 }

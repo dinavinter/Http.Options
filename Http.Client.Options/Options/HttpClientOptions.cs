@@ -95,6 +95,8 @@ namespace Http.Options
             options.Timeout = Timeout ?? options.Timeout;
             options.Handler = Handler ?? options.Handler; 
         }
+        
+        
 
     }
 }
