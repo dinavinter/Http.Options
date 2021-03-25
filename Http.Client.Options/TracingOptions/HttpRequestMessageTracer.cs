@@ -41,9 +41,10 @@ namespace Http.Options
         public static implicit operator Action<HttpRequestTracingContext, HttpRequestMessage>(
             HttpRequestMessageTracer me) => me.Trace;
         
+#if NETFRAMEWORK
         public static implicit operator Action<HttpRequestTracingContext, HttpWebRequest>(
             HttpRequestMessageTracer me) => me.TraceWebRequest;
-
+#endif
         
     }
 }

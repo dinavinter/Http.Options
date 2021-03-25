@@ -21,51 +21,57 @@ namespace Http.Options
 
             clientBuilder.Services.AddSingleton<HttpContextEnrichment>();
 
-            clientBuilder.ProcessActivityStart(sp => (ctx) =>
-                sp.GetTracingOptions(clientBuilder.Name).TraceConfig(ctx, sp.GetHttpOptions(clientBuilder.Name)));
+//
+//             clientBuilder.Services
+//                 .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+//                 .UseOptions((HttpTracingOptions options, HttpClientOptions clientOptions) =>
+//                 {
+//                     options.OnActivityStart(clientOptions.Tracing.TraceStart);
+//                     options.OnActivityStart(ctx=> clientOptions.Tracing.TraceConfig(ctx, clientOptions));
+//
+//                     options.OnActivityEnd(clientOptions.Tracing.TraceEnd);
+//                     options.OnRequest(clientOptions.Tracing.TraceRequest);
+//                     options.OnResponse(clientOptions.Tracing.TraceResponse);
+//                     options.OnError(clientOptions.Tracing.TraceError);
+//
+// #if NETFRAMEWORK
+//                     options.OnRequest(clientOptions.Tracing.TraceWebRequest);
+//                     options.OnResponse(clientOptions.Tracing.TraceWebResponse);
+// #endif
+//                 });
 
-            clientBuilder.ProcessActivityEnd(sp => sp.GetTracingOptions(clientBuilder.Name).TraceEnd);
 
-            clientBuilder.TraceHttpRequest(
-                onRequest: sp => sp.GetTracingOptions(clientBuilder.Name).TraceRequest,
-                onHttpWebRequest: sp => sp.GetTracingOptions(clientBuilder.Name).TraceWebRequest);
-
-            clientBuilder.TraceHttpResponse(
-                sp => sp.GetTracingOptions(clientBuilder.Name).TraceResponse,
-                sp => sp.GetTracingOptions(clientBuilder.Name).TraceWebResponse);
-
-            clientBuilder.TraceHttpError(sp => sp.GetTracingOptions(clientBuilder.Name).TraceError);
+            clientBuilder.Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .UseOptions((HttpTracingOptions options, HttpClientOptions clientOptions) =>
+                { 
+                    clientOptions.Tracing.Tags.ConfigureTracingOptions(options, clientOptions);
+                 });
+ 
 
             clientBuilder.Services
                 .AddOpenTelemetryTracing((sp, b) =>
                 {
+                    var tracingOptions = sp
+                        .GetRequiredService<IOptionsMonitor<HttpTracingOptions>>()
+                        .Get(clientBuilder.Name);
+                    
                     b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService($"http-{clientBuilder.Name}"));
 
                     b.AddSource(sp.GetTracingOptions(clientBuilder.Name).Activity.Source.Name);
-
-                    sp.GetServices<HttpActivityProcessor>()
+ 
+                    tracingOptions.Processors
                         .Aggregate(b, (builder, processor) => builder.AddProcessor(processor));
 #if NETFRAMEWORK
                     b.AddHttpClientInstrumentation(
-                        options => options.Enrich = sp.GetRequiredService<HttpContextEnrichment>().Enrich, 
-                        options => options.Enrich = sp.GetRequiredService<HttpContextEnrichment>().Enrich);
+                        options => options.Enrich = tracingOptions.Enrichment.Enrich, 
+                        options => options.Enrich = tracingOptions.Enrichment.Enrich);
 #else
-                    b.AddHttpClientInstrumentation(options =>
-                        options.Enrich = sp.GetRequiredService<HttpContextEnrichment>().Enrich);
+                    b.AddHttpClientInstrumentation(options => options.Enrich = tracingOptions.Enrichment.Enrich);
 #endif
                     configureBuilder?.Invoke(b);
                 });
             return clientBuilder;
-        }
-
-        public class HttpTracingOptions
-        {
-            public List<HttpActivityProcessor> Processors = new List<HttpActivityProcessor>();
-            public readonly List< HttpRequestEnrichment> RequestEnrichment = new List<HttpRequestEnrichment>();
-            public readonly List< HttpResponseEnrichment> ResponseEnrichment= new List<HttpResponseEnrichment>();
-            public readonly List<HttpErrorEnrichment> ErrorEnrichment= new List<HttpErrorEnrichment>(); 
-            public HttpContextEnrichment Enrichment =>
-                new HttpContextEnrichment(RequestEnrichment, ResponseEnrichment, ErrorEnrichment);
         }
 
         private static HttpRequestTracingOptions GetTracingOptions(this IServiceProvider sp, string name)
@@ -116,6 +122,123 @@ namespace Http.Options
 
         }
 
+        public static OptionsBuilder<TOptions> UseOptions<TOptions, TOptionsDep>(this OptionsBuilder<TOptions> optionsBuilder,Action<TOptions, TOptionsDep> configureOptions) where TOptionsDep : class where TOptions : class
+        {
+         return    optionsBuilder
+                .Configure<IOptionsMonitor<TOptionsDep>>((options, dependency) =>
+                    configureOptions(options, dependency.Get(optionsBuilder.Name)));
+        }
+        public static void OnActivityStart<TOptions>(this IHttpClientBuilder clientBuilder,
+            Func<TOptions, Action<HttpRequestTracingContext>> onStart)
+        {
+
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<IOptionsMonitor<TOptions>>((options, dependency) =>
+                    options.Processors.Add(new HttpActivityProcessor( onStart: onStart?.Invoke(dependency.Get(clientBuilder.Name)))));
+        }
+
+        public static void ProcessActivityStart<TDependency>(this IHttpClientBuilder clientBuilder,
+            Func<TDependency, Action<HttpRequestTracingContext>> onStart) where TDependency : class
+        {
+
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<TDependency>((options, dependency) =>
+                    options.Processors.Add(new HttpActivityProcessor( onStart: onStart?.Invoke(dependency))));
+        }
+
+        public static void ProcessActivityEnd<TDependency>(this IHttpClientBuilder clientBuilder,
+            Func<TDependency, Action<HttpRequestTracingContext>> onEnd) where TDependency : class
+        {
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<TDependency>((options, dependency) =>
+                    options.Processors.Add(new HttpActivityProcessor( onEnd: onEnd?.Invoke(dependency))));
+
+         }
+        
+        public static void TraceHttpRequest<TDependency>(this IHttpClientBuilder clientBuilder, 
+            Func<TDependency, Action<HttpRequestTracingContext, Exception>> onException ) 
+            where TDependency : class
+        {
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<TDependency>((options, dependency) =>
+                    options.ErrorEnrichment.Add(new HttpErrorEnrichment(onException: onException?.Invoke(dependency))));
+
+
+        }
+        
+        public static void TraceHttpRequest<TDependency>(this IHttpClientBuilder clientBuilder, 
+            Func<TDependency, Action<HttpRequestTracingContext, HttpWebRequest>> onRequest ) 
+            where TDependency : class
+        {
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<TDependency>((options, dependency) =>
+                    options.RequestEnrichment.Add(new HttpRequestEnrichment(onWebRequest: onRequest?.Invoke(dependency))));
+
+
+        }
+
+        public static void TraceHttpRequest<TDependency>(this IHttpClientBuilder clientBuilder,
+            Func<TDependency, Action<HttpRequestTracingContext, HttpRequestMessage>> onRequest = null ) 
+            where TDependency : class
+        {
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<TDependency>((options, dependency) =>
+                    options.RequestEnrichment.Add(new HttpRequestEnrichment(onRequest: onRequest?.Invoke(dependency) )));
+
+
+        }
+        public static void TraceHttpResponse<TDependency>(this IHttpClientBuilder clientBuilder,
+            Func<TDependency, Action<HttpRequestTracingContext, HttpResponseMessage>> onResponse = null,
+            Func<TDependency, Action<HttpRequestTracingContext, HttpWebResponse>> onHttpWebRequest = null) 
+            where TDependency : class
+        {
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<TDependency>((options, dependency) =>
+                    options.ResponseEnrichment.Add(new HttpResponseEnrichment(onResponse: onResponse?.Invoke(dependency),
+                        onHttpWebRequest?.Invoke(dependency))));
+
+
+        }
+
+        public static void TraceHttpResponse<TDependency>(this IHttpClientBuilder clientBuilder,
+            Func<TDependency, Action<HttpRequestTracingContext, HttpResponseMessage>> onResponse  ) 
+            where TDependency : class
+        {
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<TDependency>((options, dependency) =>
+                    options.ResponseEnrichment.Add(new HttpResponseEnrichment(onResponse: onResponse?.Invoke(dependency) )));
+
+
+        }   
+        public static void TraceHttpResponse<TDependency>(this IHttpClientBuilder clientBuilder, 
+            Func<TDependency, Action<HttpRequestTracingContext, HttpWebResponse>> onResponse ) 
+            where TDependency : class
+        {
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<TDependency>((options, dependency) =>
+                    options.ResponseEnrichment.Add(new HttpResponseEnrichment( onWebResponse:
+                        onResponse?.Invoke(dependency))));
+
+
+        }
         public static void TraceHttpRequest(this IHttpClientBuilder clientBuilder,
             Func<IServiceProvider, Action<HttpRequestTracingContext, HttpRequestMessage>> onRequest = null,
             Func<IServiceProvider, Action<HttpRequestTracingContext, HttpWebRequest>> onHttpWebRequest = null)
@@ -279,6 +402,48 @@ namespace Http.Options
         }
     }
 
+    public class HttpTracingOptions
+    {
+        public readonly List<HttpActivityProcessor> Processors = new List<HttpActivityProcessor>();
+        public readonly List<HttpRequestEnrichment> RequestEnrichment = new List<HttpRequestEnrichment>();
+        public readonly List<HttpResponseEnrichment> ResponseEnrichment= new List<HttpResponseEnrichment>();
+        public readonly List<OpenTelemetryExtensions.HttpErrorEnrichment> ErrorEnrichment= new List<OpenTelemetryExtensions.HttpErrorEnrichment>(); 
+        public OpenTelemetryExtensions.HttpContextEnrichment Enrichment =>
+            new OpenTelemetryExtensions.HttpContextEnrichment(RequestEnrichment, ResponseEnrichment, ErrorEnrichment);
+
+        public void OnActivityStart(Action<HttpRequestTracingContext> onStart)
+        {
+            Processors.Add(new HttpActivityProcessor(onStart: onStart));
+        } 
+        public void OnActivityEnd(Action<HttpRequestTracingContext> onEnd)
+        {
+            Processors.Add(new HttpActivityProcessor(onEnd: onEnd));
+        }
+             
+        public void OnResponse(Action<HttpRequestTracingContext, HttpResponseMessage> onResponse)
+        {
+            ResponseEnrichment.Add(onResponse);
+        }
+
+        public void OnResponse(Action<HttpRequestTracingContext, HttpWebResponse> onResponse)
+        {
+            ResponseEnrichment.Add(onResponse);
+        }
+        public void OnRequest(Action<HttpRequestTracingContext, HttpRequestMessage> onResponse)
+        {
+            RequestEnrichment.Add(onResponse);
+        }
+
+        public void OnRequest(Action<HttpRequestTracingContext, HttpWebRequest> onResponse)
+        {
+            RequestEnrichment.Add(onResponse);
+        }
+        public void OnError(Action<HttpRequestTracingContext, Exception> onError)
+        {
+            ErrorEnrichment.Add(new OpenTelemetryExtensions.HttpErrorEnrichment(onError));
+        }
+    }
+
     public class HttpRequestEnrichment
     {
         private Action<HttpRequestTracingContext, HttpRequestMessage> _onRequest;
@@ -300,6 +465,15 @@ namespace Http.Options
         {
             _onWebRequest?.Invoke(activity, request);
         }
+        
+        public static implicit operator HttpRequestEnrichment(
+             Action<HttpRequestTracingContext, HttpRequestMessage>  onRequest) =>
+            new HttpRequestEnrichment(onRequest);
+
+        public static implicit operator HttpRequestEnrichment(
+            Action<HttpRequestTracingContext, HttpWebRequest> onRequest) =>
+            new HttpRequestEnrichment(onWebRequest: onRequest);
+
     }
 
     public class HttpResponseEnrichment
@@ -323,5 +497,13 @@ namespace Http.Options
         {
             _onWebResponse?.Invoke(activity, response);
         }
+
+        public static implicit operator HttpResponseEnrichment(
+            Action<HttpRequestTracingContext, HttpResponseMessage> onResponse) =>
+            new HttpResponseEnrichment(onResponse);
+
+        public static implicit operator HttpResponseEnrichment(
+            Action<HttpRequestTracingContext, HttpWebResponse> onResponse) =>
+            new HttpResponseEnrichment(onWebResponse: onResponse);
     }
 }

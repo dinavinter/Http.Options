@@ -26,19 +26,19 @@ namespace Http.Options
 
         public HttpRequestTracingOptions()
         {
-            TraceConfig = Tags.Config;
-            TraceRequest = Tags.Request;
-            TraceResponse = Tags.Response;
-            TraceEnd = Tags.Context.TraceEnd;
-            TraceError = Tags.Error;
-            TraceStart = Tags.Context.TraceStart;
-            TraceStart += Tags.Tcp;
-            TraceWebRequest = Tags.Request;
-            TraceWebRequest += Tags.Connection;
-            TraceWebResponse = Tags.Response;
+            // TraceConfig = Tags.Config;
+            // TraceRequest = Tags.Request;
+            // TraceResponse = Tags.Response;
+            // TraceEnd = Tags.Context.TraceEnd;
+            // TraceError = Tags.Error;
+            // TraceStart = Tags.Context.TraceStart;
+            // TraceStart += Tags.Tcp;
+            // TraceWebRequest = Tags.Request;
+            // TraceWebRequest += Tags.Connection;
+            // TraceWebResponse = Tags.Response;
         }
 
-
+ 
         public class TracingTags
         {
             public readonly HttpClientOptionsTracer Config = new HttpClientOptionsTracer();
@@ -48,6 +48,21 @@ namespace Http.Options
             public readonly HttpErrorTracer Error = new HttpErrorTracer();
             public readonly ConnectionTracer Connection = new ConnectionTracer();
             public readonly TcpTracer Tcp = new TcpTracer();
+            
+            public void ConfigureTracingOptions(HttpTracingOptions options,
+                HttpClientOptions clientOptions)
+            {
+                options.OnActivityStart(Context.TraceStart);
+                options.OnActivityStart(ctx => Config.Trace(ctx, clientOptions)); 
+                options.OnActivityEnd(Context.TraceEnd);
+                options.OnRequest(Request);
+                options.OnRequest(Connection);
+                options.OnResponse(Response);
+                options.OnError(Error);
+                
+
+ 
+            }
         }
 
         public class TracingActivity
@@ -65,6 +80,23 @@ namespace Http.Options
         public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder builder, HttpClientOptions options)
         {
             builder.AdditionalHandlers.Add(new HttpTracingContextHandler(options));
+        }
+
+        public void ConfigureTracingOptions(HttpTracingOptions options,
+            HttpClientOptions clientOptions)
+        {
+            options.OnActivityStart(TraceStart);
+            options.OnActivityStart(ctx => TraceConfig(ctx, clientOptions));
+
+            options.OnActivityEnd(TraceEnd);
+            options.OnRequest(TraceRequest);
+            options.OnResponse(TraceResponse);
+            options.OnError(TraceError);
+
+#if NETFRAMEWORK
+                    options.OnRequest( TraceWebRequest);
+                    options.OnResponse(TraceWebResponse);
+#endif
         }
     }
 }

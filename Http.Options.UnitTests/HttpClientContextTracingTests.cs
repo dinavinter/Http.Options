@@ -48,13 +48,16 @@ namespace Http.Options.UnitTests
                     options.Tracing.Tags.Request.RequestLength = "size";
                     options.Tracing.Tags.Request.RequestPath = "path";
                     options.Tracing.Tags.Request.Host = "host";
-                    options.Tracing.TraceEnd += context => tracingCtx = context;
+                    // options.Tracing.TraceEnd += context => tracingCtx = context;
                     _server.ConfigureWireMockServer(options);
                 })
                 .AddOpenTelemetry(builder => builder
-                    .AddConsoleExporter());
+                    .AddConsoleExporter())
+                ;
             //  .ProcessActivityEnd(context => tracingCtx = context);
-
+            serviceCollection.ConfigureAll<HttpTracingOptions>(o =>
+                o.OnActivityEnd(context => tracingCtx = context));
+            
             var services = serviceCollection.BuildServiceProvider();
             await Task.WhenAll(services.GetServices<IHostedService>()
                 .Select(e => e.StartAsync(CancellationToken.None)));
@@ -65,6 +68,7 @@ namespace Http.Options.UnitTests
             var startTime = Stopwatch.GetTimestamp();
 
             var result = await client.GetAsync("/delay/1s");
+            Assert.NotNull(tracingCtx );
 
             Assert.Multiple(() =>
             {
@@ -109,6 +113,8 @@ namespace Http.Options.UnitTests
             }).AddOpenTelemetry(builder => builder
                 .AddConsoleExporter());
             ;
+            serviceCollection.ConfigureAll<HttpTracingOptions>(o =>
+                o.OnActivityEnd(context => tracingCtx = context));
 
             var services = serviceCollection.BuildServiceProvider();
             await Task.WhenAll(services.GetServices<IHostedService>()
@@ -123,6 +129,7 @@ namespace Http.Options.UnitTests
 
             var result = await client.GetAsync("/error/5ms");
             Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
+            Assert.NotNull(tracingCtx );
 
             Assert.Multiple(() =>
             {
@@ -167,6 +174,8 @@ namespace Http.Options.UnitTests
             }).AddOpenTelemetry(builder => builder
                 .AddConsoleExporter());
             ;
+            serviceCollection.ConfigureAll<HttpTracingOptions>(o =>
+                o.OnActivityEnd(context => tracingCtx = context));
 
             var services = serviceCollection.BuildServiceProvider();
             await Task.WhenAll(services.GetServices<IHostedService>()
