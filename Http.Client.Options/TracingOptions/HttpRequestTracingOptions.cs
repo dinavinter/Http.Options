@@ -15,55 +15,7 @@ namespace Http.Options
     {
         public readonly TracingTags Tags = new TracingTags();
         public readonly TracingActivity Activity = new TracingActivity();
-        public Action<HttpRequestTracingContext, HttpClientOptions> TraceConfig;
-        public Action<HttpRequestTracingContext> TraceStart;
-        public Action<HttpRequestTracingContext> TraceEnd; 
-        public Action<HttpRequestTracingContext, HttpRequestMessage> TraceRequest;
-        public Action<HttpRequestTracingContext, HttpResponseMessage> TraceResponse;
-        public Action<HttpRequestTracingContext, HttpWebRequest> TraceWebRequest;
-        public Action<HttpRequestTracingContext, HttpWebResponse> TraceWebResponse; 
-        public Action<HttpRequestTracingContext, Exception> TraceError;
 
-        public HttpRequestTracingOptions()
-        {
-            // TraceConfig = Tags.Config;
-            // TraceRequest = Tags.Request;
-            // TraceResponse = Tags.Response;
-            // TraceEnd = Tags.Context.TraceEnd;
-            // TraceError = Tags.Error;
-            // TraceStart = Tags.Context.TraceStart;
-            // TraceStart += Tags.Tcp;
-            // TraceWebRequest = Tags.Request;
-            // TraceWebRequest += Tags.Connection;
-            // TraceWebResponse = Tags.Response;
-        }
-
- 
-        public class TracingTags
-        {
-            public readonly HttpClientOptionsTracer Config = new HttpClientOptionsTracer();
-            public readonly HttpRequestMessageTracer Request = new HttpRequestMessageTracer();
-            public readonly HttpResponseMessageTracer Response = new HttpResponseMessageTracer();
-            public readonly HttpContextTracer Context = new HttpContextTracer();
-            public readonly HttpErrorTracer Error = new HttpErrorTracer();
-            public readonly ConnectionTracer Connection = new ConnectionTracer();
-            public readonly TcpTracer Tcp = new TcpTracer();
-            
-            public void ConfigureTracingOptions(HttpTracingOptions options,
-                HttpClientOptions clientOptions)
-            {
-                options.OnActivityStart(Context.TraceStart);
-                options.OnActivityStart(ctx => Config.Trace(ctx, clientOptions)); 
-                options.OnActivityEnd(Context.TraceEnd);
-                options.OnRequest(Request);
-                options.OnRequest(Connection);
-                options.OnResponse(Response);
-                options.OnError(Error);
-                
-
- 
-            }
-        }
 
         public class TracingActivity
         {
@@ -82,21 +34,32 @@ namespace Http.Options
             builder.AdditionalHandlers.Add(new HttpTracingContextHandler(options));
         }
 
+        
+    }
+
+    public class TracingTags
+    {
+        public readonly HttpClientOptionsTracer Config = new HttpClientOptionsTracer();
+        public readonly HttpRequestMessageTracer Request = new HttpRequestMessageTracer();
+        public readonly HttpResponseMessageTracer Response = new HttpResponseMessageTracer();
+        public readonly HttpContextTracer Context = new HttpContextTracer();
+        public readonly HttpErrorTracer Error = new HttpErrorTracer();
+        public readonly ConnectionTracer Connection = new ConnectionTracer();
+        public readonly TcpTracer Tcp = new TcpTracer();
+            
         public void ConfigureTracingOptions(HttpTracingOptions options,
             HttpClientOptions clientOptions)
         {
-            options.OnActivityStart(TraceStart);
-            options.OnActivityStart(ctx => TraceConfig(ctx, clientOptions));
+            options.OnActivityStart(Context.TraceStart);
+            options.OnActivityStart(ctx => Config.Trace(ctx, clientOptions)); 
+            options.OnActivityEnd(Context.TraceEnd);
+            options.OnRequest(Request);
+            options.OnRequest(Connection);
+            options.OnResponse(Response);
+            options.OnError(Error);
+                
 
-            options.OnActivityEnd(TraceEnd);
-            options.OnRequest(TraceRequest);
-            options.OnResponse(TraceResponse);
-            options.OnError(TraceError);
-
-#if NETFRAMEWORK
-                    options.OnRequest( TraceWebRequest);
-                    options.OnResponse(TraceWebResponse);
-#endif
+ 
         }
     }
 }

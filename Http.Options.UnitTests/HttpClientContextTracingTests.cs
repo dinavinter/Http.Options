@@ -51,12 +51,14 @@ namespace Http.Options.UnitTests
                     // options.Tracing.TraceEnd += context => tracingCtx = context;
                     _server.ConfigureWireMockServer(options);
                 })
-                .AddOpenTelemetry(builder => builder
-                    .AddConsoleExporter())
+                .AddOpenTelemetry(builder => builder.AddConsoleExporter())
+              
+                .Configure<HttpTracingOptions>(o =>
+                    o.OnActivityEnd(context => tracingCtx = context));
                 ;
             //  .ProcessActivityEnd(context => tracingCtx = context);
-            serviceCollection.ConfigureAll<HttpTracingOptions>(o =>
-                o.OnActivityEnd(context => tracingCtx = context));
+            // serviceCollection.ConfigureAll<HttpTracingOptions>(o =>
+            //     o.OnActivityEnd(context => tracingCtx = context));
             
             var services = serviceCollection.BuildServiceProvider();
             await Task.WhenAll(services.GetServices<IHostedService>()
@@ -108,8 +110,7 @@ namespace Http.Options.UnitTests
                 options.Tracing.Tags.Request.RequestLength = "size";
                 options.Tracing.Tags.Request.RequestPath = "path";
                 options.Tracing.Tags.Request.Host = "host";
-                options.Tracing.TraceEnd += context => tracingCtx = context;
-                _server.ConfigureWireMockServer(options);
+                 _server.ConfigureWireMockServer(options);
             }).AddOpenTelemetry(builder => builder
                 .AddConsoleExporter());
             ;
@@ -169,8 +170,7 @@ namespace Http.Options.UnitTests
                 options.Tracing.Tags.Request.RequestLength = "size";
                 options.Tracing.Tags.Request.RequestPath = "path";
                 options.Tracing.Tags.Request.Host = "host";
-                options.Tracing.TraceEnd += context => tracingCtx = context;
-                _server.ConfigureWireMockServer(options);
+                 _server.ConfigureWireMockServer(options);
             }).AddOpenTelemetry(builder => builder
                 .AddConsoleExporter());
             ;
