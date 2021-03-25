@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 
 namespace Http.Options
@@ -23,7 +24,7 @@ namespace Http.Options
         }
 
 
-        public TcpTracer()
+        public TcpTracer( )
         { 
             AllConnections.Value = Count(NoFilter(FetchConnections));
             TotalConnection.Value = Count(FilterToTarget(FetchConnections));
@@ -54,7 +55,7 @@ namespace Http.Options
               return context=> connections( ).Where(filter(context)) ;
               Func<TcpConnectionInformation, bool> filter (HttpRequestTracingContext context)
               {
-                  return c => c.RemoteEndPoint.Port == context.HttpClientOptions.Connection.Port;
+                  return c => c.RemoteEndPoint.Port == c.RemoteEndPoint.Port;// context.HttpClientOptions.Connection.Port;
               }
         }
         private static Func< IEnumerable<TcpConnectionInformation>> FilterState(Func<  IEnumerable<TcpConnectionInformation> > connections, TcpState state)

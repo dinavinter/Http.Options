@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -16,10 +17,9 @@ namespace Http.Options
             this IHttpClientBuilder clientBuilder,
             Action<TracerProviderBuilder> configureBuilder = null)
         {
-            // clientBuilder.Services.AddTransient(sp => sp.GetTracingOptions(clientBuilder.Name).ContextEnrichment);
-
-
             clientBuilder.ProcessActivityStart(sp => sp.GetTracingOptions(clientBuilder.Name).TraceStart);
+
+            clientBuilder.Services.AddSingleton<HttpContextEnrichment>();
 
             clientBuilder.ProcessActivityStart(sp => (ctx) =>
                 sp.GetTracingOptions(clientBuilder.Name).TraceConfig(ctx, sp.GetHttpOptions(clientBuilder.Name)));
@@ -46,14 +46,26 @@ namespace Http.Options
                     sp.GetServices<HttpActivityProcessor>()
                         .Aggregate(b, (builder, processor) => builder.AddProcessor(processor));
 #if NETFRAMEWORK
-                    b.AddHttpClientInstrumentation(options => options.Enrich = Enrich(sp), options => options.Enrich =
- EnrichNetFramework(sp));
+                    b.AddHttpClientInstrumentation(
+                        options => options.Enrich = sp.GetRequiredService<HttpContextEnrichment>().Enrich, 
+                        options => options.Enrich = sp.GetRequiredService<HttpContextEnrichment>().Enrich);
 #else
-                    b.AddHttpClientInstrumentation(options => options.Enrich = Enrich(sp));
+                    b.AddHttpClientInstrumentation(options =>
+                        options.Enrich = sp.GetRequiredService<HttpContextEnrichment>().Enrich);
 #endif
                     configureBuilder?.Invoke(b);
                 });
             return clientBuilder;
+        }
+
+        public class HttpTracingOptions
+        {
+            public List<HttpActivityProcessor> Processors = new List<HttpActivityProcessor>();
+            public readonly List< HttpRequestEnrichment> RequestEnrichment = new List<HttpRequestEnrichment>();
+            public readonly List< HttpResponseEnrichment> ResponseEnrichment= new List<HttpResponseEnrichment>();
+            public readonly List<HttpErrorEnrichment> ErrorEnrichment= new List<HttpErrorEnrichment>(); 
+            public HttpContextEnrichment Enrichment =>
+                new HttpContextEnrichment(RequestEnrichment, ResponseEnrichment, ErrorEnrichment);
         }
 
         private static HttpRequestTracingOptions GetTracingOptions(this IServiceProvider sp, string name)
@@ -67,27 +79,41 @@ namespace Http.Options
         }
 
         public static void ProcessActivityStart(this IHttpClientBuilder clientBuilder,
-            Func<IServiceProvider, Action<HttpRequestTracingContext>> actionFactory)
+            Func<IServiceProvider, Action<HttpRequestTracingContext>> onStart)
         {
-            clientBuilder.Services.AddSingleton(sp => new HttpActivityProcessor(onStart: actionFactory(sp)));
+            clientBuilder.Services.AddSingleton(sp => new HttpActivityProcessor(onStart: onStart(sp)));
         }
 
         public static void ProcessActivityEnd(this IHttpClientBuilder clientBuilder,
-            Func<IServiceProvider, Action<HttpRequestTracingContext>> actionFactory)
+            Func<IServiceProvider, Action<HttpRequestTracingContext>> onEnd)
         {
-            clientBuilder.Services.AddSingleton(sp => new HttpActivityProcessor(onEnd: actionFactory(sp)));
+            clientBuilder.Services.AddSingleton(sp => new HttpActivityProcessor(onEnd: onEnd(sp)));
         }
 
         public static void ProcessActivityStart(this IHttpClientBuilder clientBuilder,
-            Action<HttpRequestTracingContext> ctx)
+            Action<HttpRequestTracingContext> onStart)
         {
-            clientBuilder.Services.AddSingleton(new HttpActivityProcessor(onStart: ctx));
+            clientBuilder.ProcessActivityEnd(_ => onStart);
         }
 
         public static void ProcessActivityEnd(this IHttpClientBuilder clientBuilder,
-            Action<HttpRequestTracingContext> ctx)
+            Action<HttpRequestTracingContext> onEnd)
         {
-            clientBuilder.Services.AddSingleton(new HttpActivityProcessor(onEnd: ctx));
+            clientBuilder.ProcessActivityEnd(_ => onEnd);
+        }
+        public static void TraceHttpRequest<TDependency>(this IHttpClientBuilder clientBuilder,
+            Func<TDependency, Action<HttpRequestTracingContext, HttpRequestMessage>> onRequest = null,
+            Func<TDependency, Action<HttpRequestTracingContext, HttpWebRequest>> onHttpWebRequest = null) 
+            where TDependency : class
+        {
+            clientBuilder
+                .Services
+                .AddOptions<HttpTracingOptions>(clientBuilder.Name)
+                .Configure<TDependency>((options, dependency) =>
+                    options.RequestEnrichment.Add(new HttpRequestEnrichment(onRequest: onRequest?.Invoke(dependency),
+                        onHttpWebRequest?.Invoke(dependency))));
+
+
         }
 
         public static void TraceHttpRequest(this IHttpClientBuilder clientBuilder,
@@ -96,7 +122,7 @@ namespace Http.Options
         {
             clientBuilder.Services.AddSingleton(sp =>
                 new HttpRequestEnrichment(onRequest: onRequest?.Invoke(sp), onHttpWebRequest?.Invoke(sp)));
-        }
+         }
 
         public static void TraceHttpResponse(this IHttpClientBuilder clientBuilder,
             Func<IServiceProvider, Action<HttpRequestTracingContext, HttpResponseMessage>> onHttpResponse = null,
@@ -113,273 +139,127 @@ namespace Http.Options
         }
 
         public static void TraceHttpWebRequest(this IHttpClientBuilder clientBuilder,
-            Func<IServiceProvider, Action<HttpRequestTracingContext, HttpWebRequest>> actionFactory)
+            Action<HttpRequestTracingContext, HttpWebRequest> trace)
         {
-            clientBuilder.Services.AddSingleton<IHttpContextEnrichment_NetFramework>(sp =>
-                new HttpContextEnrichmentNetFramework(onRequest: actionFactory(sp)));
+            clientBuilder.TraceHttpRequest(onHttpWebRequest: _ => trace);
         }
 
         public static void TraceHttpWebResponse(this IHttpClientBuilder clientBuilder,
-            Func<IServiceProvider, Action<HttpRequestTracingContext, HttpWebResponse>> actionFactory)
+            Action<HttpRequestTracingContext, HttpWebResponse> trace)
         {
-            clientBuilder.Services.AddSingleton(sp =>
-                new HttpContextEnrichmentNetFramework(onResponse: actionFactory(sp)));
+            clientBuilder.TraceHttpResponse(onHttpWebResponse: _ => trace);
         }
 
-        public static void TraceHttpError(this IHttpClientBuilder clientBuilder,
-            Func<IServiceProvider, Action<HttpRequestTracingContext, HttpWebResponse>> actionFactory)
-        {
-            clientBuilder.Services.AddSingleton(sp =>
-                new HttpContextEnrichmentNetFramework(onResponse: actionFactory(sp)));
-        }
 
         public static void TraceHttpRequest(this IHttpClientBuilder clientBuilder,
             Action<HttpRequestTracingContext, HttpRequestMessage> trace)
         {
-            clientBuilder.Services.AddSingleton(new HttpContextEnrichment(onRequest: trace));
+            clientBuilder.TraceHttpRequest(_ => trace);
         }
 
         public static void TraceHttpResponse(this IHttpClientBuilder clientBuilder,
             Action<HttpRequestTracingContext, HttpResponseMessage> trace)
         {
-            clientBuilder.Services.AddSingleton(new HttpContextEnrichment(onResponse: trace));
+            clientBuilder.TraceHttpResponse(_ => trace);
         }
 
         public static void TraceHttpError(this IHttpClientBuilder clientBuilder,
             Action<HttpRequestTracingContext, Exception> trace)
         {
-            clientBuilder.Services.AddSingleton(new HttpContextEnrichment(onException: trace));
-        }
-
-        private static Action<Activity, string, object> Enrich(IServiceProvider sp)
-        {
-            return (activity, eventName, rawObject) =>
-            {
-                if (eventName.Equals("OnStartActivity"))
-                {
-                    if (rawObject is HttpRequestMessage request)
-                    {
-                        if (activity.Parent?.GetCustomProperty(nameof(HttpRequestTracingContext)) is
-                            HttpRequestTracingContext ctx)
-                        {
-                            foreach (var enrichment in sp.GetServices<IHttpContextEnrichment>())
-                            {
-                                enrichment.OnHttpRequest(ctx, request);
-                            }
-
-                            foreach (var enrichment in sp.GetServices<HttpRequestEnrichment>())
-                            {
-                                enrichment.OnHttpRequest(ctx, request);
-                            }
-                        }
-                    }
-                }
-                else if (eventName.Equals("OnStopActivity"))
-                {
-                    if (rawObject is HttpResponseMessage response)
-                    {
-                        if (activity.Parent?.GetCustomProperty(nameof(HttpRequestTracingContext)) is
-                            HttpRequestTracingContext ctx)
-                        {
-                            foreach (var enrichment in sp.GetServices<IHttpContextEnrichment>())
-                            {
-                                enrichment.OnHttpResponse(ctx, response);
-                            }
-                        }
-                    }
-                }
-                else if (eventName.Equals("OnException"))
-                {
-                    if (rawObject is Exception exception)
-                    {
-                        if (activity.Parent?.GetCustomProperty(nameof(HttpRequestTracingContext)) is
-                            HttpRequestTracingContext ctx)
-                        {
-                            foreach (var enrichment in sp.GetServices<IHttpContextEnrichment>())
-                            {
-                                enrichment.OnException(ctx, exception);
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
-        private static Action<Activity, string, object> EnrichNetFramework(IServiceProvider sp)
-        {
-            return (activity, eventName, rawObject) =>
-            {
-                if (eventName.Equals("OnStartActivity"))
-                {
-                    if (activity.Parent?.GetCustomProperty(nameof(HttpRequestTracingContext)) is
-                        HttpRequestTracingContext ctx)
-                    { 
-                        foreach (var enrichment in sp.GetServices<HttpRequestEnrichment>())
-                        {
-                            switch (rawObject)
-                            {
-                                case HttpRequestMessage requestMessage:
-                                    enrichment.OnHttpRequest(ctx, requestMessage);
-                                    break;
-                                case HttpWebRequest webRequest:
-                                    enrichment.OnHttpRequest(ctx, webRequest);
-                                    break;
-                            }
-                        }
-                    }
-                }
-                else if (eventName.Equals("OnStopActivity"))
-                {
-                    if (activity.Parent?.GetCustomProperty(nameof(HttpRequestTracingContext)) is
-                        HttpRequestTracingContext ctx)
-                    { 
-                            foreach (var enrichment in sp.GetServices<HttpResponseEnrichment>())
-                            {
-                                switch (rawObject)
-                                {
-                                    case HttpResponseMessage  responseMessage:
-                                        enrichment.OnHttpResponse(ctx, responseMessage);
-                                        break;
-                                    case HttpWebResponse webResponse:
-                                        enrichment.OnHttpResponse(ctx, webResponse);
-                                        break;
-                                }
-                            }
-                        
-                    }
-                }
-                else if (eventName.Equals("OnException"))
-                {
-                    if (activity.Parent?.GetCustomProperty(nameof(HttpRequestTracingContext)) is
-                        HttpRequestTracingContext ctx)
-                    { 
-                        if (rawObject is Exception exception)
-                        {  
-                            foreach (var enrichment in sp.GetServices<HttpErrorEnrichment>())
-                            {
-                                enrichment.OnException(ctx, exception);
-                            }
-                        }
-                    }
-                }
-            };
+            clientBuilder.TraceHttpError(_ => trace);
         }
 
 
-        public class HttpDefaultContextEnrichment
+        public class HttpContextEnrichment
         {
-            private readonly string _name;
-            private readonly IOptionsMonitor<HttpClientOptions> _optionsMonitor;
+            private readonly IEnumerable<HttpRequestEnrichment> _onRequest;
+            private readonly IEnumerable<HttpResponseEnrichment> _onResponse;
+            private readonly IEnumerable<HttpErrorEnrichment> _onException;
 
-            public HttpDefaultContextEnrichment(string name, IOptionsMonitor<HttpClientOptions> optionsMonitor)
-
-            {
-                _name = name;
-                _optionsMonitor = optionsMonitor;
-            }
-
-            public IHttpContextEnrichment Enrichment() =>
-                new HttpContextEnrichment(OnHttpRequest, OnHttpResponse, OnException);
-
-            public IHttpContextEnrichment_NetFramework Enrichment_NetFramework() =>
-                new HttpContextEnrichmentNetFramework(OnHttpWebRequest, OnHttpWebResponse, OnException);
-
-            private void OnHttpWebResponse(HttpRequestTracingContext activity, HttpWebResponse request)
-            {
-            }
-
-            private void OnHttpWebRequest(HttpRequestTracingContext activity, HttpWebRequest request)
-            {
-                var options = _optionsMonitor.Get(_name);
-                options.Tracing.TraceStart(activity);
-                options.Tracing.TraceConfig(activity, options);
-                options.Tracing.TraceWebRequest(activity, request);
-            }
-
-            public void OnHttpRequest(HttpRequestTracingContext activity, HttpRequestMessage request)
-            {
-                var options = _optionsMonitor.Get(_name);
-                options.Tracing.TraceStart(activity);
-                options.Tracing.TraceConfig(activity, options);
-                options.Tracing.TraceRequest(activity, request);
-            }
-
-            public void OnHttpResponse(HttpRequestTracingContext activity, HttpResponseMessage response)
-            {
-                var options = _optionsMonitor.Get(_name);
-                options.Tracing.TraceResponse(activity, response);
-            }
-
-            public void OnException(HttpRequestTracingContext activity, Exception exception)
-            {
-                var options = _optionsMonitor.Get(_name);
-                options.Tracing.TraceError(activity, exception);
-            }
-        }
-
-        public class HttpContextEnrichment : IHttpContextEnrichment
-        {
-            private readonly Action<HttpRequestTracingContext, HttpRequestMessage> _onRequest;
-            private readonly Action<HttpRequestTracingContext, HttpResponseMessage> _onResponse;
-            private readonly Action<HttpRequestTracingContext, Exception> _onException;
-
-            public HttpContextEnrichment(Action<HttpRequestTracingContext, HttpRequestMessage> onRequest = null,
-                Action<HttpRequestTracingContext, HttpResponseMessage> onResponse = null,
-                Action<HttpRequestTracingContext, Exception> onException = null)
+            public HttpContextEnrichment(IEnumerable<HttpRequestEnrichment> onRequest,
+                IEnumerable<HttpResponseEnrichment> onResponse,
+                IEnumerable<HttpErrorEnrichment> onException)
             {
                 _onRequest = onRequest;
                 _onResponse = onResponse;
                 _onException = onException;
             }
 
-            public void OnHttpRequest(HttpRequestTracingContext activity, HttpRequestMessage request)
+            public void Enrich(Activity activity, string eventName, object rawObject)
             {
-                _onRequest?.Invoke(activity, request);
+                if (!(activity.Parent?.GetCustomProperty(nameof(HttpRequestTracingContext)) is
+                    HttpRequestTracingContext ctx)) return;
+
+                switch (eventName)
+                {
+                    case "OnStartActivity" when rawObject is HttpRequestMessage request:
+                        OnHttpRequest(ctx, request); 
+                        break;
+                    
+                    case "OnStartActivity" when rawObject is HttpWebRequest request:
+                        OnHttpRequest(ctx, request);
+                        break;
+                    
+                    case "OnStopActivity" when rawObject is HttpResponseMessage response:
+                        OnHttpResponse(ctx, response);
+                        break;
+
+                    case "OnStopActivity" when rawObject is HttpWebResponse response:
+                        OnHttpResponse(ctx, response);
+                        break;
+                    
+                    case "OnException" when rawObject is Exception exception:
+                        OnException(ctx, exception);
+                        break;
+                }
             }
 
-            public void OnHttpResponse(HttpRequestTracingContext activity, HttpResponseMessage response)
+            private void OnException(HttpRequestTracingContext ctx,
+                Exception requestMessage)
             {
-                _onResponse?.Invoke(activity, response);
+                foreach (var enrichment in _onException)
+                {
+                    enrichment.OnException(ctx, requestMessage);
+                }
             }
 
-
-            public void OnException(HttpRequestTracingContext activity, Exception exception)
+            private void OnHttpRequest(HttpRequestTracingContext ctx,
+                HttpRequestMessage requestMessage)
             {
-                _onException?.Invoke(activity, exception);
+                foreach (var enrichment in _onRequest)
+                {
+                    enrichment.OnHttpRequest(ctx, requestMessage);
+                }
+            }
+
+            private void OnHttpRequest(HttpRequestTracingContext ctx,
+                HttpWebRequest requestMessage)
+            {
+                foreach (var enrichment in _onRequest)
+                {
+                    enrichment.OnHttpRequest(ctx, requestMessage);
+                }
+            }
+
+            private void OnHttpResponse(HttpRequestTracingContext ctx,
+                HttpResponseMessage responseMessage)
+            {
+                foreach (var enrichment in _onResponse)
+                {
+                    enrichment.OnHttpResponse(ctx, responseMessage);
+                }
+            }
+
+            private void OnHttpResponse(HttpRequestTracingContext ctx,
+                HttpWebResponse responseMessage)
+            {
+                foreach (var enrichment in _onResponse)
+                {
+                    enrichment.OnHttpResponse(ctx, responseMessage);
+                }
             }
         }
 
-
-        public class HttpContextEnrichmentNetFramework : IHttpContextEnrichment_NetFramework
-        {
-            private readonly Action<HttpRequestTracingContext, HttpWebRequest> _onRequest;
-            private readonly Action<HttpRequestTracingContext, HttpWebResponse> _onResponse;
-            private readonly Action<HttpRequestTracingContext, Exception> _onException;
-
-            public HttpContextEnrichmentNetFramework(Action<HttpRequestTracingContext, HttpWebRequest> onRequest = null,
-                Action<HttpRequestTracingContext, HttpWebResponse> onResponse = null,
-                Action<HttpRequestTracingContext, Exception> onException = null)
-            {
-                _onRequest = onRequest;
-                _onResponse = onResponse;
-                _onException = onException;
-            }
-
-            public void OnHttpRequest(HttpRequestTracingContext activity, HttpWebRequest request)
-            {
-                _onRequest?.Invoke(activity, request);
-            }
-
-            public void OnHttpResponse(HttpRequestTracingContext activity, HttpWebResponse response)
-            {
-                _onResponse?.Invoke(activity, response);
-            }
-
-            public void OnException(HttpRequestTracingContext activity, Exception exception)
-            {
-                _onException?.Invoke(activity, exception);
-            }
-        }
 
         public class HttpErrorEnrichment
         {
@@ -443,19 +323,5 @@ namespace Http.Options
         {
             _onWebResponse?.Invoke(activity, response);
         }
-    }
-
-    public interface IHttpContextEnrichment
-    {
-        void OnHttpRequest(HttpRequestTracingContext activity, HttpRequestMessage request);
-        void OnHttpResponse(HttpRequestTracingContext activity, HttpResponseMessage response);
-        void OnException(HttpRequestTracingContext activity, Exception exception);
-    }
-
-    public interface IHttpContextEnrichment_NetFramework
-    {
-        void OnHttpRequest(HttpRequestTracingContext activity, HttpWebRequest request);
-        void OnHttpResponse(HttpRequestTracingContext activity, HttpWebResponse response);
-        void OnException(HttpRequestTracingContext activity, Exception exception);
     }
 }

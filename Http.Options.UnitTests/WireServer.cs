@@ -20,8 +20,8 @@ namespace Http.Options.UnitTests
                 ("/delay/5s", 0.1, TimeSpan.FromSeconds(5), 200),
                 ("/delay/10ms", 0.4, TimeSpan.FromMilliseconds(10), 200),
                 ("/delay/5ms", 0.2, TimeSpan.FromMilliseconds(5), 200),
-                ("/delay/200ms", 0.6, TimeSpan.FromMilliseconds(5), 200),
-                ("/delay/300ms", 0.4, TimeSpan.FromMilliseconds(5), 200),
+                ("/delay/200ms", 0.6, TimeSpan.FromMilliseconds(200), 200),
+                ("/delay/300ms", 0.4, TimeSpan.FromMilliseconds(300), 200),
                 ("/error/5ms", 0.01, TimeSpan.FromMilliseconds(5), 500),
                 ("/error/5s", 0.01, TimeSpan.FromSeconds(5), 500),
 

@@ -19,7 +19,7 @@ namespace Http.Options
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            using (HttpRequestTracingContext.Start(_options))
+            using (HttpRequestTracingContext.Start(_options.Tracing.Activity.StartActivity()))
             { 
                return await base.SendAsync(request, cancellationToken);
             }
