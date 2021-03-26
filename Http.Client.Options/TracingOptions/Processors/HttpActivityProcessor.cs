@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using OpenTelemetry;
 
 namespace Http.Options
 {
-   
     public class HttpActivityProcessor : BaseProcessor<Activity>
     {
         private readonly Action<HttpRequestTracingContext> _onStart;

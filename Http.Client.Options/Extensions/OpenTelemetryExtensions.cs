@@ -1,11 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
+using OpenTelemetry;
+using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -18,6 +20,9 @@ namespace Http.Options
             Action<TracerProviderBuilder> configureBuilder = null)
         {
             clientBuilder.Services.AddSingleton<HttpContextEnrichment>();
+
+            clientBuilder.Services
+                .AddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientTracingConfigure>();
 
 //
 //             clientBuilder.Services
@@ -39,42 +44,49 @@ namespace Http.Options
 //                 });
 
 
-            clientBuilder.Services
+            clientBuilder
+                .Services
                 .AddOptions<HttpTracingOptions>(clientBuilder.Name)
-                .UseOptions((HttpTracingOptions options, HttpClientOptions clientOptions) =>
+                .Configure(o => o.ActivityOptions.Source = new ActivitySource(clientBuilder.Name))
+                .PostConfigure((options ) =>
                 {
-                    clientOptions.Tracing.Tags.ConfigureTracingOptions(options, clientOptions);
+                    options.TagsOptions.ConfigureTracingOptions(options);
                 });
 
 
             clientBuilder.Services
-                .AddOpenTelemetryTracing((sp, b) =>
+                .AddOpenTelemetryTracing((sp, builder) =>
                 {
                     var tracingOptions = sp
                         .GetRequiredService<IOptionsMonitor<HttpTracingOptions>>()
                         .Get(clientBuilder.Name);
 
-                    b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService($"http-{clientBuilder.Name}"));
+                    builder.SetResourceBuilder(ResourceBuilder.CreateDefault()
+                        .AddService($"http-{clientBuilder.Name}"));
+                        // .AddAttributes(new[]{new KeyValuePair<string, object>(  nameof(HttpActivityCompositeProcessor),  sp
+                        //     .GetRequiredService<IOptionsMonitor<HttpTracingOptions>>()
+                        //     .Get(clientBuilder.Name)
+                        //     .Processor )}));
 
-                    b.AddSource(sp.GetTracingOptions(clientBuilder.Name).Activity.Source.Name);
+                    builder.AddSource(tracingOptions.ActivityOptions.Source.Name);
+                    builder.AddProcessor(tracingOptions.Processor);
+                    tracingOptions.Enrichment.ConfigureTraceProvider(builder);
 
-                    tracingOptions.Processors
-                        .Aggregate(b, (builder, processor) => builder.AddProcessor(processor));
-#if NETFRAMEWORK
-                    b.AddHttpClientInstrumentation(
-                        options => options.Enrich = tracingOptions.Enrichment.Enrich, 
-                        options => options.Enrich = tracingOptions.Enrichment.Enrich);
-#else
-                    b.AddHttpClientInstrumentation(options => options.Enrich = tracingOptions.Enrichment.Enrich);
-#endif
-                    configureBuilder?.Invoke(b);
+                    // clientBuilder.ConfigureHttpMessageHandlerBuilder(tracingOptions.ConfigureHttpClientBuilder);
+                    // clientBuilder.AddHttpMessageHandler(sp =>
+                    //     new HttpTracingContextHandler(sp
+                    //         .GetRequiredService<IOptionsMonitor<HttpTracingOptions>>()
+                    //         .Get(clientBuilder.Name)));
+
+                    // clientOptions.HttpMessageHandlerBuilderConfiguration += tracingOptions.ConfigureHttpClientBuilder;
+                    configureBuilder?.Invoke(builder);
                 });
             return clientBuilder;
         }
 
-        private static HttpRequestTracingOptions GetTracingOptions(this IServiceProvider sp, string name)
+        private static HttpTracingOptions GetTracingOptions(this IServiceProvider sp, string name)
         {
-            return sp.GetRequiredService<IOptionsMonitor<HttpClientOptions>>().Get(name).Tracing;
+            return sp.GetRequiredService<IOptionsMonitor<HttpTracingOptions>>().Get(name);
         }
 
         private static HttpClientOptions GetHttpOptions(this IServiceProvider sp, string name)
@@ -82,12 +94,14 @@ namespace Http.Options
             return sp.GetRequiredService<IOptionsMonitor<HttpClientOptions>>().Get(name);
         }
 
-        public static void Configure<TOptions>(this IHttpClientBuilder clientBuilder, Action<TOptions> configure) where TOptions : class
+        public static IHttpClientBuilder Configure<TOptions>(this IHttpClientBuilder clientBuilder,
+            Action<TOptions> configure) where TOptions : class
         {
             clientBuilder.Services.Configure(clientBuilder.Name, configure);
+            return clientBuilder;
         }
-        
-        
+
+
         public static OptionsBuilder<TOptions> UseOptions<TOptions, TOptionsDep>(
             this OptionsBuilder<TOptions> optionsBuilder, Action<TOptions, TOptionsDep> configureOptions)
             where TOptionsDep : class where TOptions : class
@@ -97,231 +111,29 @@ namespace Http.Options
                     configureOptions(options, dependency.Get(optionsBuilder.Name)));
         }
 
-        public static void TraceHttpRequest(this IHttpClientBuilder clientBuilder,
-            Func<IServiceProvider, Action<HttpRequestTracingContext, HttpRequestMessage>> onRequest = null,
-            Func<IServiceProvider, Action<HttpRequestTracingContext, HttpWebRequest>> onHttpWebRequest = null)
-        {
-            clientBuilder.Services.AddSingleton(sp =>
-                new HttpRequestEnrichment(onRequest: onRequest?.Invoke(sp), onHttpWebRequest?.Invoke(sp)));
-        }
-
-
-        public class HttpContextEnrichment
-        {
-            private readonly IEnumerable<HttpRequestEnrichment> _onRequest;
-            private readonly IEnumerable<HttpResponseEnrichment> _onResponse;
-            private readonly IEnumerable<HttpErrorEnrichment> _onException;
-
-            public HttpContextEnrichment(IEnumerable<HttpRequestEnrichment> onRequest,
-                IEnumerable<HttpResponseEnrichment> onResponse,
-                IEnumerable<HttpErrorEnrichment> onException)
-            {
-                _onRequest = onRequest;
-                _onResponse = onResponse;
-                _onException = onException;
-            }
-
-            public void Enrich(Activity activity, string eventName, object rawObject)
-            {
-                if (!(activity.Parent?.GetCustomProperty(nameof(HttpRequestTracingContext)) is
-                    HttpRequestTracingContext ctx)) return;
-
-                switch (eventName)
-                {
-                    case "OnStartActivity" when rawObject is HttpRequestMessage request:
-                        OnHttpRequest(ctx, request);
-                        break;
-
-                    case "OnStartActivity" when rawObject is HttpWebRequest request:
-                        OnHttpRequest(ctx, request);
-                        break;
-
-                    case "OnStopActivity" when rawObject is HttpResponseMessage response:
-                        OnHttpResponse(ctx, response);
-                        break;
-
-                    case "OnStopActivity" when rawObject is HttpWebResponse response:
-                        OnHttpResponse(ctx, response);
-                        break;
-
-                    case "OnException" when rawObject is Exception exception:
-                        OnException(ctx, exception);
-                        break;
-                }
-            }
-
-            private void OnException(HttpRequestTracingContext ctx,
-                Exception requestMessage)
-            {
-                foreach (var enrichment in _onException)
-                {
-                    enrichment.OnException(ctx, requestMessage);
-                }
-            }
-
-            private void OnHttpRequest(HttpRequestTracingContext ctx,
-                HttpRequestMessage requestMessage)
-            {
-                foreach (var enrichment in _onRequest)
-                {
-                    enrichment.OnHttpRequest(ctx, requestMessage);
-                }
-            }
-
-            private void OnHttpRequest(HttpRequestTracingContext ctx,
-                HttpWebRequest requestMessage)
-            {
-                foreach (var enrichment in _onRequest)
-                {
-                    enrichment.OnHttpRequest(ctx, requestMessage);
-                }
-            }
-
-            private void OnHttpResponse(HttpRequestTracingContext ctx,
-                HttpResponseMessage responseMessage)
-            {
-                foreach (var enrichment in _onResponse)
-                {
-                    enrichment.OnHttpResponse(ctx, responseMessage);
-                }
-            }
-
-            private void OnHttpResponse(HttpRequestTracingContext ctx,
-                HttpWebResponse responseMessage)
-            {
-                foreach (var enrichment in _onResponse)
-                {
-                    enrichment.OnHttpResponse(ctx, responseMessage);
-                }
-            }
-        }
-
-
-        public class HttpErrorEnrichment
-        {
-            private readonly Action<HttpRequestTracingContext, Exception> _onException;
-
-            public HttpErrorEnrichment(
-                Action<HttpRequestTracingContext, Exception> onException = null)
-            {
-                _onException = onException;
-            }
-
-
-            public void OnException(HttpRequestTracingContext activity, Exception exception)
-            {
-                _onException?.Invoke(activity, exception);
-            }
-        }
+        
     }
 
-    public class HttpTracingOptions
+    public class ProcessorResources : BaseProcessor<Activity>
     {
-        public readonly List<HttpActivityProcessor> Processors = new List<HttpActivityProcessor>();
-        public readonly List<HttpRequestEnrichment> RequestEnrichment = new List<HttpRequestEnrichment>();
-        public readonly List<HttpResponseEnrichment> ResponseEnrichment = new List<HttpResponseEnrichment>();
+        private readonly HttpActivityCompositeProcessor _processor;
 
-        public readonly List<OpenTelemetryExtensions.HttpErrorEnrichment> ErrorEnrichment =
-            new List<OpenTelemetryExtensions.HttpErrorEnrichment>();
-
-        public OpenTelemetryExtensions.HttpContextEnrichment Enrichment =>
-            new OpenTelemetryExtensions.HttpContextEnrichment(RequestEnrichment, ResponseEnrichment, ErrorEnrichment);
-
-        public void OnActivityStart(Action<HttpRequestTracingContext> onStart)
+        public ProcessorResources()
         {
-            Processors.Add(new HttpActivityProcessor(onStart: onStart));
+            _processor = this.ParentProvider
+                .GetResource().Attributes
+                .FirstOrDefault(kvp => kvp.Key.Equals(nameof(HttpActivityCompositeProcessor)))
+                .Value as HttpActivityCompositeProcessor;
         }
 
-        public void OnActivityEnd(Action<HttpRequestTracingContext> onEnd)
+        public override void OnStart(Activity data)
         {
-            Processors.Add(new HttpActivityProcessor(onEnd: onEnd));
+            _processor.OnStart(data);
         }
 
-        public void OnResponse(Action<HttpRequestTracingContext, HttpResponseMessage> onResponse)
+        public override void OnEnd(Activity data)
         {
-            ResponseEnrichment.Add(onResponse);
+            _processor.OnEnd(data);
         }
-
-        public void OnResponse(Action<HttpRequestTracingContext, HttpWebResponse> onResponse)
-        {
-            ResponseEnrichment.Add(onResponse);
-        }
-
-        public void OnRequest(Action<HttpRequestTracingContext, HttpRequestMessage> onResponse)
-        {
-            RequestEnrichment.Add(onResponse);
-        }
-
-        public void OnRequest(Action<HttpRequestTracingContext, HttpWebRequest> onResponse)
-        {
-            RequestEnrichment.Add(onResponse);
-        }
-
-        public void OnError(Action<HttpRequestTracingContext, Exception> onError)
-        {
-            ErrorEnrichment.Add(new OpenTelemetryExtensions.HttpErrorEnrichment(onError));
-        }
-    }
-
-    public class HttpRequestEnrichment
-    {
-        private readonly Action<HttpRequestTracingContext, HttpRequestMessage> _onRequest;
-        private readonly Action<HttpRequestTracingContext, HttpWebRequest> _onWebRequest;
-
-        public HttpRequestEnrichment(Action<HttpRequestTracingContext, HttpRequestMessage> onRequest = null,
-            Action<HttpRequestTracingContext, HttpWebRequest> onWebRequest = null)
-        {
-            _onRequest = onRequest;
-            _onWebRequest = onWebRequest;
-        }
-
-        public void OnHttpRequest(HttpRequestTracingContext activity, HttpRequestMessage request)
-        {
-            _onRequest?.Invoke(activity, request);
-        }
-
-        public void OnHttpRequest(HttpRequestTracingContext activity, HttpWebRequest request)
-        {
-            _onWebRequest?.Invoke(activity, request);
-        }
-
-        public static implicit operator HttpRequestEnrichment(
-            Action<HttpRequestTracingContext, HttpRequestMessage> onRequest) =>
-            new HttpRequestEnrichment(onRequest);
-
-        public static implicit operator HttpRequestEnrichment(
-            Action<HttpRequestTracingContext, HttpWebRequest> onRequest) =>
-            new HttpRequestEnrichment(onWebRequest: onRequest);
-    }
-
-    public class HttpResponseEnrichment
-    {
-        private readonly Action<HttpRequestTracingContext, HttpResponseMessage> _onResponse;
-        private readonly Action<HttpRequestTracingContext, HttpWebResponse> _onWebResponse;
-
-        public HttpResponseEnrichment(Action<HttpRequestTracingContext, HttpResponseMessage> onResponse = null,
-            Action<HttpRequestTracingContext, HttpWebResponse> onWebResponse = null)
-        {
-            _onResponse = onResponse;
-            _onWebResponse = onWebResponse;
-        }
-
-        public void OnHttpResponse(HttpRequestTracingContext activity, HttpResponseMessage response)
-        {
-            _onResponse?.Invoke(activity, response);
-        }
-
-        public void OnHttpResponse(HttpRequestTracingContext activity, HttpWebResponse response)
-        {
-            _onWebResponse?.Invoke(activity, response);
-        }
-
-        public static implicit operator HttpResponseEnrichment(
-            Action<HttpRequestTracingContext, HttpResponseMessage> onResponse) =>
-            new HttpResponseEnrichment(onResponse);
-
-        public static implicit operator HttpResponseEnrichment(
-            Action<HttpRequestTracingContext, HttpWebResponse> onResponse) =>
-            new HttpResponseEnrichment(onWebResponse: onResponse);
     }
 }

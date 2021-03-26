@@ -15,8 +15,7 @@ namespace Http.Options
         public HttpClientHandlerOptions Handler = new HttpClientHandlerOptions();
         public HttpConnectionOptions Connection = new HttpConnectionOptions();
         public HttpTelemetryOptions Telemetry = new HttpTelemetryOptions();
-        public HttpRequestTracingOptions Tracing = new HttpRequestTracingOptions();
-
+ 
         public HttpClientOptions()
         { 
             HttpMessageHandlerBuilderConfiguration += ConfigureHttpMessageHandlerBuilder;
@@ -47,13 +46,11 @@ namespace Http.Options
         /// </summary>
         protected virtual void ConfigureHttpMessageHandlerBuilder(HttpMessageHandlerBuilder builder)
         {
-            Tracing.ConfigureHttpClientBuilder(builder, this);
-            Handler.ConfigureHttpClientBuilder(builder);
+           Handler.ConfigureHttpClientBuilder(builder);
             Timeout.ConfigureHttpClientBuilder(builder);
             Telemetry.ConfigureHttpClientBuilder(builder);
             Polly.ConfigureHttpClientBuilder(builder);
-            Handler.ConfigureHttpClientBuilder(builder);
-            // builder.AdditionalHandlers.Insert(0, new HttpClientScopeHandler(builder, this));
+             // builder.AdditionalHandlers.Insert(0, new HttpClientScopeHandler(builder, this));
 
         }
 

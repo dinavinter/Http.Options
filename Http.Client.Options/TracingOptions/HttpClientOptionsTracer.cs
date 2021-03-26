@@ -15,18 +15,18 @@ namespace Http.Options
         public TracingTag LifeTimeMinutes = "config.handler.lifeTimeMinutes";
 
 
-        public void Trace(HttpRequestTracingContext tracing, HttpClientOptions options)
+        public void Trace(HttpRequestTracingContext tracing )
         {
-            tracing[Server] = options.Connection?.Server.NullOr(string.Intern);
-            tracing[Port] = options.Connection?.Port.ToString().NullOr(string.Intern);
-            tracing[Schema] = options.Connection?.Schema.NullOr(string.Intern);
-            tracing[Name] = options.ServiceName.NullOr(string.Intern);
-            tracing[Timeout] = options.Timeout?.Timeout.TotalMilliseconds;
-            tracing[MaxConnection] = options.Handler?.MaxConnection;
-            tracing[LifeTimeMinutes] = options.Handler?.HandlerLifeTimeMinutes;
+            tracing[Server] = tracing.ClientOptions.Connection?.Server.NullOr(string.Intern);
+            tracing[Port] = tracing.ClientOptions.Connection?.Port.ToString().NullOr(string.Intern);
+            tracing[Schema] = tracing.ClientOptions.Connection?.Schema.NullOr(string.Intern);
+            tracing[Name] = tracing.ClientOptions.ServiceName.NullOr(string.Intern);
+            tracing[Timeout] = tracing.ClientOptions.Timeout?.Timeout.TotalMilliseconds;
+            tracing[MaxConnection] = tracing.ClientOptions.Handler?.MaxConnection;
+            tracing[LifeTimeMinutes] = tracing.ClientOptions.Handler?.HandlerLifeTimeMinutes;
         }
 
         public static implicit operator
-            Action<HttpRequestTracingContext, HttpClientOptions>(HttpClientOptionsTracer me) => me.Trace;
+            Action<HttpRequestTracingContext>(HttpClientOptionsTracer me) => me.Trace;
     }
 }

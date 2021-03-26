@@ -32,42 +32,38 @@ namespace Http.Options.UnitTests
         {
             var serviceCollection = new ServiceCollection();
             HttpRequestTracingContext tracingCtx = null;
-            var source = new ActivitySource("http-client-test");
 
-            // var startTime = Stopwatch.GetTimestamp();
             serviceCollection.AddHttpClientOptions(options =>
                 {
                     options.ServiceName = "service";
                     options.Handler.MaxConnection = 100;
-                    // options.Tracing.Activity.Source = source;
-                    options.Tracing.Tags.Config.Name = "name";
-                    options.Tracing.Tags.Config.Port = "port";
-                    options.Tracing.Tags.Config.Schema = "schema";
-                    options.Tracing.Tags.Config.MaxConnection = "maxConnection";
-                    options.Tracing.Tags.Request.Schema = "r.schema";
-                    options.Tracing.Tags.Request.RequestLength = "size";
-                    options.Tracing.Tags.Request.RequestPath = "path";
-                    options.Tracing.Tags.Request.Host = "host";
-                    // options.Tracing.TraceEnd += context => tracingCtx = context;
-                    _server.ConfigureWireMockServer(options);
+                     _server.ConfigureWireMockServer(options);
+                })
+                .Configure<HttpTracingOptions>(options =>
+                {
+                    options.TagsOptions.Config.Name = "name";
+                    options.TagsOptions.Config.Port = "port";
+                    options.TagsOptions.Config.Schema = "schema";
+                    options.TagsOptions.Config.MaxConnection = "maxConnection";
+                    options.TagsOptions.Request.Schema = "r.schema";
+                    options.TagsOptions.Request.RequestLength = "size";
+                    options.TagsOptions.Request.RequestPath = "path";
+                    options.TagsOptions.Request.Host = "host";
+                    options.OnActivityEnd(context => tracingCtx = context);
                 })
                 .AddOpenTelemetry(builder => builder.AddConsoleExporter())
-              
-                .Configure<HttpTracingOptions>(o =>
-                    o.OnActivityEnd(context => tracingCtx = context));
-                ;
-            //  .ProcessActivityEnd(context => tracingCtx = context);
-            // serviceCollection.ConfigureAll<HttpTracingOptions>(o =>
-            //     o.OnActivityEnd(context => tracingCtx = context));
+               ;
+          
             
             var services = serviceCollection.BuildServiceProvider();
             await Task.WhenAll(services.GetServices<IHostedService>()
                 .Select(e => e.StartAsync(CancellationToken.None)));
             var factory = services.GetRequiredService<IHttpClientFactory>();
 
-            var client = factory.CreateClient("service");
-            await client.GetAsync("/delay/5ms");
+            // var client = factory.CreateClient("service3");
+            // await client.GetAsync("/delay/5ms");
             var startTime = Stopwatch.GetTimestamp();
+            var  client = factory.CreateClient("service");
 
             var result = await client.GetAsync("/delay/1s");
             Assert.NotNull(tracingCtx );
@@ -96,23 +92,27 @@ namespace Http.Options.UnitTests
         {
             var serviceCollection = new ServiceCollection();
             HttpRequestTracingContext tracingCtx = null;
-            var source = new ActivitySource("http-client-test");
-
+ 
             serviceCollection.AddHttpClientOptions(options =>
             {
-                options.ServiceName = "service";
-                options.Handler.MaxConnection = 100;
-                options.Tracing.Tags.Config.Name = "name";
-                options.Tracing.Tags.Config.Port = "port";
-                options.Tracing.Tags.Config.Schema = "schema";
-                options.Tracing.Tags.Config.MaxConnection = "maxConnection";
-                options.Tracing.Tags.Request.Schema = "r.schema";
-                options.Tracing.Tags.Request.RequestLength = "size";
-                options.Tracing.Tags.Request.RequestPath = "path";
-                options.Tracing.Tags.Request.Host = "host";
+                options.ServiceName = "service_failure";
+                options.Handler.MaxConnection = 100; 
                  _server.ConfigureWireMockServer(options);
-            }).AddOpenTelemetry(builder => builder
-                .AddConsoleExporter());
+            }) 
+                .Configure<HttpTracingOptions>(options =>
+                {
+                    options.TagsOptions.Config.Name = "name";
+                    options.TagsOptions.Config.Port = "port";
+                    options.TagsOptions.Config.Schema = "schema";
+                    options.TagsOptions.Config.MaxConnection = "maxConnection";
+                    options.TagsOptions.Request.Schema = "r.schema";
+                    options.TagsOptions.Request.RequestLength = "size";
+                    options.TagsOptions.Request.RequestPath = "path";
+                    options.TagsOptions.Request.Host = "host";
+                    options.OnActivityEnd(context => tracingCtx = context);
+                }) 
+                .AddOpenTelemetry(builder => builder.AddConsoleExporter());
+
             ;
             serviceCollection.ConfigureAll<HttpTracingOptions>(o =>
                 o.OnActivityEnd(context => tracingCtx = context));
@@ -122,7 +122,7 @@ namespace Http.Options.UnitTests
                 .Select(e => e.StartAsync(CancellationToken.None)));
 
             var factory = services.GetRequiredService<IHttpClientFactory>();
-            var client = factory.CreateClient("service");
+            var client = factory.CreateClient("service_failure");
 
             //worm up
             await client.GetAsync("/delay/5ms");
@@ -138,7 +138,7 @@ namespace Http.Options.UnitTests
                 // Assert.That(tracingCtx.ResponseEndTimestamp, Is.Not.Null.And.GreaterThan( tracingCtx.RequestStartTimestamp));
 
                 AssertTag(tracingCtx, "time.start", Is.EqualTo(tracingCtx.RequestStartTimestamp));
-                AssertTag(tracingCtx, "name", Is.EqualTo("service"));
+                AssertTag(tracingCtx, "name", Is.EqualTo("service_failure"));
                 AssertTag(tracingCtx, "maxConnection", Is.EqualTo(100));
                 AssertTag(tracingCtx, "schema", Is.EqualTo("http"));
                 AssertTag(tracingCtx, "r.schema", Is.EqualTo("http"));
@@ -154,25 +154,32 @@ namespace Http.Options.UnitTests
         [Test]
         public async Task HttpTracing_OnTimeout()
         {
+            var serviceName = "service_timeout";
             var serviceCollection = new ServiceCollection();
             HttpRequestTracingContext tracingCtx = null;
 
             serviceCollection.AddHttpClientOptions(options =>
-            {
-                options.ServiceName = "service";
-                options.Timeout.TimeoutMS = 5;
-                options.Handler.MaxConnection = 100;
-                options.Tracing.Tags.Config.Name = "name";
-                options.Tracing.Tags.Config.Port = "port";
-                options.Tracing.Tags.Config.Schema = "schema";
-                options.Tracing.Tags.Config.MaxConnection = "maxConnection";
-                options.Tracing.Tags.Request.Schema = "r.schema";
-                options.Tracing.Tags.Request.RequestLength = "size";
-                options.Tracing.Tags.Request.RequestPath = "path";
-                options.Tracing.Tags.Request.Host = "host";
-                 _server.ConfigureWireMockServer(options);
-            }).AddOpenTelemetry(builder => builder
-                .AddConsoleExporter());
+                {
+                    options.ServiceName = serviceName;
+                    options.Timeout.TimeoutMS = 5;
+                    options.Handler.MaxConnection = 100;
+                    _server.ConfigureWireMockServer(options);
+                })
+                .Configure<HttpTracingOptions>(options =>
+                {
+                    options.TagsOptions.Config.Name = "name";
+                    options.TagsOptions.Config.Port = "port";
+                    options.TagsOptions.Config.Schema = "schema";
+                    options.TagsOptions.Config.MaxConnection = "maxConnection";
+                    options.TagsOptions.Request.Schema = "r.schema";
+                    options.TagsOptions.Request.RequestLength = "size";
+                    options.TagsOptions.Request.RequestPath = "path";
+                    options.TagsOptions.Request.Host = "host";
+                    options.OnActivityEnd(context => tracingCtx = context);
+                })       
+                .AddOpenTelemetry(builder => builder.AddConsoleExporter())
+                ;
+
             ;
             serviceCollection.ConfigureAll<HttpTracingOptions>(o =>
                 o.OnActivityEnd(context => tracingCtx = context));
@@ -182,7 +189,7 @@ namespace Http.Options.UnitTests
                 .Select(e => e.StartAsync(CancellationToken.None)));
 
             var factory = services.GetRequiredService<IHttpClientFactory>();
-            var client = factory.CreateClient("service");
+            var client = factory.CreateClient(serviceName);
 
             // //worm up
             // await client.GetAsync("/delay/5ms");
@@ -199,7 +206,7 @@ namespace Http.Options.UnitTests
                 //     Is.Not.Null.And.GreaterThan(tracingCtx.RequestStartTimestamp));
 
                 AssertTag(tracingCtx, "time.start", Is.EqualTo(tracingCtx.RequestStartTimestamp));
-                AssertTag(tracingCtx, "name", Is.EqualTo("service"));
+                AssertTag(tracingCtx, "name", Is.EqualTo(serviceName));
                 AssertTag(tracingCtx, "maxConnection", Is.EqualTo(100));
                 AssertTag(tracingCtx, "config.timeout", Is.EqualTo(5));
                 AssertTag(tracingCtx, "schema", Is.EqualTo("http"));

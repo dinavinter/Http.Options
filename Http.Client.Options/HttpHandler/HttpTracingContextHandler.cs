@@ -9,20 +9,22 @@ namespace Http.Options
 {
     public class HttpTracingContextHandler : DelegatingHandler
     {
-        private readonly HttpClientOptions _options;
+         private readonly Func<Activity> _activityFactory;
 
-        public HttpTracingContextHandler(HttpClientOptions options)
+        public HttpTracingContextHandler(  Func<Activity> activityFactory)
         {
-            _options = options;
+            
+            _activityFactory = activityFactory;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            using (HttpRequestTracingContext.Start(_options.Tracing.Activity.StartActivity()))
-            { 
-               return await base.SendAsync(request, cancellationToken);
+            using (_activityFactory())
+            {
+                return await base.SendAsync(request, cancellationToken); 
             }
+ 
         }
     }
 }
