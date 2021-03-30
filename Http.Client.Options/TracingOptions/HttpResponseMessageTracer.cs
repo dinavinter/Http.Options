@@ -31,14 +31,14 @@ namespace Http.Options
             context[ResponseTime] = context.ResponseEndTimestamp;
         }
 
-        public static implicit operator Action<HttpRequestTracingContext, HttpResponseMessage>(
-            HttpResponseMessageTracer me) => me.Trace;
-        
 #if NETFRAMEWORK
                 public static implicit operator Action<HttpRequestTracingContext, HttpWebResponse>(
             HttpResponseMessageTracer me) => me.TraceWebResponse;
 
-#endif
+#else
+        public static implicit operator Action<HttpRequestTracingContext, HttpResponseMessage>(
+            HttpResponseMessageTracer me) => me.Trace;
 
+#endif
     }
 }

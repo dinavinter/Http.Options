@@ -16,7 +16,7 @@ namespace Http.Options
         public void ConfigureTraceProvider(TracerProviderBuilder builder)
         {
 #if NETFRAMEWORK
-                    b.AddHttpClientInstrumentation(
+                    builder.AddHttpClientInstrumentation(
                         options => options.Enrich = Enrich, 
                         options => options.Enrich = Enrich);
 #else
@@ -53,7 +53,7 @@ namespace Http.Options
             }
         }
 
-        private void OnException(HttpRequestTracingContext ctx,
+        public void OnException(HttpRequestTracingContext ctx,
             Exception requestMessage)
         {
             foreach (var enrichment in ctx.TracingOptions.ErrorEnrichment)
@@ -62,7 +62,7 @@ namespace Http.Options
             }
         }
 
-        private void OnHttpRequest(HttpRequestTracingContext ctx,
+        public void OnHttpRequest(HttpRequestTracingContext ctx,
             HttpRequestMessage requestMessage)
         {
             foreach (var enrichment in ctx.TracingOptions.RequestEnrichment)
@@ -80,7 +80,7 @@ namespace Http.Options
             }
         }
 
-        private void OnHttpResponse(HttpRequestTracingContext ctx,
+        public void OnHttpResponse(HttpRequestTracingContext ctx,
             HttpResponseMessage responseMessage)
         {
             foreach (var enrichment in ctx.TracingOptions.ResponseEnrichment)
