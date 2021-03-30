@@ -29,7 +29,7 @@ namespace Http.Options
                 catch (OperationCanceledException e)
                     when (!cancellationToken.IsCancellationRequested)
                 { 
-                    throw new TimeoutException() {Data = {["timeout"] = _timeout}};
+                    throw new TimeoutException("Http Operation canceled", innerException: e) {Data = {["timeout"] = _timeout,}};
                 }
             }
         }
