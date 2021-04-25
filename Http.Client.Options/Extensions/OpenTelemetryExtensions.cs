@@ -17,14 +17,15 @@ namespace Http.Options
     public static class OpenTelemetryExtensions
     {
         public static void AddHttpOptionsTelemetry(
-            this ServiceCollection servicesCollection,
+            this IServiceCollection servicesCollection,
             Action<TracerProviderBuilder> configureBuilder = null,
-            Action<OptionsBuilder<HttpTracingOptions>> configureTracing= null)
+            Action<OptionsBuilder<HttpTracingOptions>> configureTracing = null)
         {
             configureTracing?.Invoke(servicesCollection.AddOptions<HttpTracingOptions>());
             
             servicesCollection.TryAddSingleton<HttpContextEnrichment>();
             servicesCollection.TryAddSingleton<HttpActivityContextProcessor>();
+            servicesCollection.TryAddSingleton<HttpTracingActivityExporter>();
             servicesCollection.TryAddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientTracingConfigure>();
 
 
@@ -41,10 +42,11 @@ namespace Http.Options
 
             servicesCollection
                 .AddOptions<OpenTelemetryOptions>()
-                .Configure<HttpActivityContextProcessor, IOptions<HttpTracingOptions>>(
-                    (options, processor, tracingOptions) =>
+                .Configure<HttpActivityContextProcessor, HttpTracingActivityExporter, IOptions<HttpTracingOptions>>(
+                    (options, processor,exporter, tracingOptions) =>
                     {
                         options.Processors.Add(processor);
+                        options.Exporters.Add(exporter);
                         options.Sources.Add(tracingOptions.Value.Activity.Source.Name);
                         options.Services.Add(tracingOptions.Value.Activity.ActivityService);
                     });
@@ -63,7 +65,7 @@ namespace Http.Options
                     sp
                         .GetRequiredService<IOptionsMonitor<OpenTelemetryOptions>>()
                         .Get(Microsoft.Extensions.Options.Options.DefaultName)
-                        .ConfiguredOpenTelemetry(builder);
+                        .ConfigureBuilder(builder);
 
 
                     sp.GetRequiredService<HttpContextEnrichment>().ConfigureTraceProvider(builder);

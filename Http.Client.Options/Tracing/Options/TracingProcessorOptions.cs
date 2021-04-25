@@ -9,7 +9,7 @@ namespace Http.Options
 {
     public class TracingProcessorOptions : CompositeProcessor<Activity>
     {
-        public TracingProcessorOptions() : base(new[] {new BasicHttpActivityProcessor()})
+        public TracingProcessorOptions() : base(new[] {new NopProcessor()})
         {
         }
 
@@ -22,8 +22,7 @@ namespace Http.Options
         {
             AddProcessor(new HttpActivityProcessor(onEnd: onEnd));
         }
-
-
+         
         public override void OnEnd(Activity activity)
         {
             base.OnEnd(activity);

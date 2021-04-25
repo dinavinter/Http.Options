@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
+using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -48,9 +49,17 @@ namespace Http.Options.UnitTests
                 options.TagsOptions.Request.RequestPath = "path";
                 options.TagsOptions.Request.Host = "host";
                 options.OnActivityEnd(context => _activities.Add(context));
+                options.Exporter.OnExport((Activity a)=> Console.WriteLine(a.DisplayName));
+               
             });
 
-            serviceCollection.AddHttpOptionsTelemetry(builder => builder.AddConsoleExporter());
+            serviceCollection
+                .ConfigureAll<OpenTelemetryOptions>(options =>
+                { 
+                   // options.ConfigureBuilder += builder => builder.AddConsoleExporter();
+                });
+                
+            serviceCollection.AddHttpOptionsTelemetry();
 
             serviceCollection.AddHttpClientOptions(options =>
             {

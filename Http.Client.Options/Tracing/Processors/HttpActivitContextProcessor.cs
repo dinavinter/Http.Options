@@ -18,8 +18,9 @@ namespace Http.Options.Tracing.Processors
             if (activity.Parent?.GetCustomProperty(nameof(HttpTracingActivity)) is
                 HttpTracingActivity ctx)
             {
+                ctx.HttpActivity = activity; 
                 activity.SetCustomProperty(nameof(HttpTracingActivity), ctx);
-                
+
                 ctx.TracingOptions.Processor.OnStart(activity);
                 
                 foreach (var processor in _processors)

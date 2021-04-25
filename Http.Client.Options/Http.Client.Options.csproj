@@ -5,13 +5,13 @@
         <TargetFrameworks>net5.0;net472;netstandard2.0;netstandard2.1</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IncludeSymbols>true</IncludeSymbols>
-        <AssemblyVersion>4.0.8.0</AssemblyVersion>
-        <FileVersion>4.0.8.0</FileVersion>
-        <Version>4.0.8.0</Version>
+        <AssemblyVersion>4.0.11.0</AssemblyVersion>
+        <FileVersion>4.0.11.0</FileVersion>
+        <Version>4.0.11.0</Version>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
          <LangVersion>8</LangVersion>
-        <PackageVersion>4.0.8-preview</PackageVersion>
+        <PackageVersion>4.0.11-preview</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>

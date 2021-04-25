@@ -11,6 +11,7 @@ namespace Http.Client.Options.Tracing
         public readonly TracingTagsOptions TagsOptions = new TracingTagsOptions();
         public readonly TracingEnrichmentOptions Enrichment = new TracingEnrichmentOptions();
         public readonly TracingProcessorOptions Processor = new TracingProcessorOptions();
+        public readonly TracingExporterOptions Exporter = new TracingExporterOptions();
         public Func<string> CorrelationIdProvider = ()=> Guid.NewGuid().ToString("N");
 
         public void OnActivityStart(Action<HttpTracingActivity> onStart)

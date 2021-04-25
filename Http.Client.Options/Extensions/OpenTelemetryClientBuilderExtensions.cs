@@ -42,7 +42,7 @@ namespace Http.Options
                 .Configure<IOptionsMonitor<TOptionsDep>>((options, dependency) =>
                     configureOptions(options, dependency.Get(optionsBuilder.Name)));
         }
-        public static IHttpClientBuilder AddOpenTelemetry(
+        internal static IHttpClientBuilder AddOpenTelemetry(
             this IHttpClientBuilder clientBuilder,
             Action<TracerProviderBuilder> configureBuilder = null)
         {
@@ -78,7 +78,7 @@ namespace Http.Options
                 .AddOptions<HttpTracingOptions>(clientBuilder.Name)
                 .Configure(o => o.Activity.Source = new ActivitySource(clientBuilder.Name))
                 .PostConfigure((options) => { options.TagsOptions.ConfigureTracingOptions(options); })
-                .PostConfigure<IEnumerable<HttpActivityProcessor>, IEnumerable<HttpActivityExporter>>(
+                .PostConfigure<IEnumerable<HttpActivityProcessor>, IEnumerable<HttpTracingActivityExporter>>(
                     (options, processors, exporters) =>
                     {
                         foreach (var processor in processors)

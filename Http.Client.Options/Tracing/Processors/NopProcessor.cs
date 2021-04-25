@@ -1,12 +1,11 @@
 using System.Diagnostics;
+using Http.Client.Options.Tracing;
 using OpenTelemetry;
 
 namespace Http.Options.Tracing.Processors
 {
-    public abstract class HttpActivityExporter : BaseExporter<Activity>
+    public class NopProcessor : BaseProcessor<Activity>
     {
- 
-       
+        
     }
-
 }

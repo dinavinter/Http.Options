@@ -8,7 +8,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Options.UnitTests", "H
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{BCF1A367-D38D-4699-89FD-32E9F9D9E887}"
 ProjectSection(SolutionItems) = preProject
-	nuget_push.bat = nuget_push.bat
 	.gitignore = .gitignore
 	Directory.Build.targets = Directory.Build.targets
 EndProjectSection
@@ -18,6 +17,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Options.Playground472", ".playground\Http.Options.Playground472\Http.Options.Playground472.csproj", "{2AAA9B6F-A455-4409-B1D4-BD7A3A0C2A69}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Options.PlaygroundCore", ".playground\Http.Options.PlaygroundCore\Http.Options.PlaygroundCore.csproj", "{11FF6998-A3EF-46CE-85FB-64624DEB49A4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{30F2E8E3-9847-4B77-BD02-ED61AFA73244}"
+ProjectSection(SolutionItems) = preProject
+	nuget_push_gigya.bat = nuget_push_gigya.bat
+	nuget_push.bat = nuget_push.bat
+	nuget_push_local.bat = nuget_push_local.bat
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
