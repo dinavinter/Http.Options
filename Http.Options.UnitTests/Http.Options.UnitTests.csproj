@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net472</TargetFramework>
 
         <IsPackable>false</IsPackable>
 
         <LangVersion>latest</LangVersion>
+
+        <TargetFrameworks>net472;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -35,22 +36,6 @@
       <ProjectReference Include="..\Http.Client.Options\Http.Client.Options.csproj" />
     </ItemGroup>
 
-
-<!--    <ItemGroup Condition="$(TargetFramework)== 'net472'">-->
-<!--        <Version>1.0.0</Version>-->
-<!--    </ItemGroup>-->
-
-<!--    <ItemGroup Condition="$(TargetFramework)== 'net48'">-->
-<!--        <Version>2.0.0</Version>-->
-<!--    </ItemGroup>-->
-
-<!--    <ItemGroup Condition="$(TargetFramework)== 'netcoreapp3.1'">-->
-<!--        <Version>3.0.0</Version>-->
-<!--        <ProjectReference Include="..\Gigya.Http.Client\Gigya.Http.Client.csproj" />-->
-<!--    </ItemGroup>-->
-
-<!--    <ItemGroup>-->
-<!--      <ProjectReference Include="..\Gigya.Http.Client\Gigya.Http.Client.csproj" />-->
-<!--    </ItemGroup>-->
+ 
 
 </Project>
