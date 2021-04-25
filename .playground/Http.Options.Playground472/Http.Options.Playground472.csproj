@@ -30,6 +30,6 @@
 
 <ItemGroup>
 <!--      <ProjectReference Include="..\Http.Client.Options.Caching\Http.Client.Options.Caching.csproj" />-->
-<ProjectReference Include="..\Http.Client.Options\Http.Client.Options.csproj" />
+<ProjectReference Include="..\..\Http.Client.Options\Http.Client.Options.csproj" />
 </ItemGroup>
 </Project>
