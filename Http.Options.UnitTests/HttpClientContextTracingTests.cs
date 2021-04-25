@@ -6,6 +6,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Http.Client.Options.Tracing;
+using Http.Options.Tracing.OpenTelemetry;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
@@ -24,10 +26,10 @@ namespace Http.Options.UnitTests
         private WireMockServer _wireServer;
         private readonly ServiceProvider _services;
 
-        private readonly Dictionary<string, HttpRequestTracingContext> _activityMap =
-            new Dictionary<string, HttpRequestTracingContext>();
+        private readonly Dictionary<string, HttpTracingActivity> _activityMap =
+            new Dictionary<string, HttpTracingActivity>();
 
-        private readonly List<HttpRequestTracingContext> _activities = new List<HttpRequestTracingContext>();
+        private readonly List<HttpTracingActivity> _activities = new List<HttpTracingActivity>();
         private IHttpClientFactory _factory;
 
         public HttpClientContextTracingTests()
@@ -109,7 +111,7 @@ namespace Http.Options.UnitTests
 
             var timing = await Time(() => client.GetAsync("/delay/1s"));
 
-            HttpRequestTracingContext tracingCtx = LastActivity(serviceName);
+            HttpTracingActivity tracingCtx = LastActivity(serviceName);
 
             Assert.NotNull(tracingCtx);
             Assert.Multiple(() =>
@@ -145,7 +147,7 @@ namespace Http.Options.UnitTests
             });
         }
 
-        private void AssertConnection(HttpRequestTracingContext httpActivity)
+        private void AssertConnection(HttpTracingActivity httpActivity)
         {
 #if NETFRAMEWORK
             AssertTag(httpActivity, "connection.count", Is.GreaterThanOrEqualTo(1));
@@ -182,7 +184,7 @@ namespace Http.Options.UnitTests
             });
         }
 
-        private static void AssertConfig(HttpRequestTracingContext httpActivity, string serviceName)
+        private static void AssertConfig(HttpTracingActivity httpActivity, string serviceName)
         {
             AssertTag(httpActivity, "name", Is.EqualTo(serviceName));
 
@@ -190,7 +192,7 @@ namespace Http.Options.UnitTests
             AssertTag(httpActivity, "schema", Is.EqualTo("http"));
         }
 
-        private void AssertRequest(HttpRequestTracingContext httpActivity, string path)
+        private void AssertRequest(HttpTracingActivity httpActivity, string path)
         {
             AssertTag(httpActivity, "r.schema", Is.EqualTo("http"));
             AssertTag(httpActivity, "host", Is.EqualTo("127.0.0.1"));
@@ -199,18 +201,18 @@ namespace Http.Options.UnitTests
             AssertTag(httpActivity, OpenTelemetryConventions.AttributeHttpUrl, Is.EqualTo(_server.Url(path)));
         }
 
-        private static void AssertResponse(HttpRequestTracingContext httpActivity, int statusCode)
+        private static void AssertResponse(HttpTracingActivity httpActivity, int statusCode)
         {
             AssertTag(httpActivity, OpenTelemetryConventions.AttributeHttpStatusCode, Is.EqualTo(statusCode));
         }
 
-        private static void AssertTag(HttpRequestTracingContext context, string name, IConstraint constraint)
+        private static void AssertTag(HttpTracingActivity activity, string name, IConstraint constraint)
         {
-            context.Tags.TryGetValue(name, out var tag);
+            activity.Tags.TryGetValue(name, out var tag);
             Assert.That(tag, constraint, name);
         }
 
-        private HttpRequestTracingContext LastActivity(string service)
+        private HttpTracingActivity LastActivity(string service)
         {
             return _activities.LastOrDefault(x => x.ClientOptions.ServiceName == service);
         }
@@ -244,7 +246,7 @@ namespace Http.Options.UnitTests
             }
 
 
-            public void AssertTime(HttpRequestTracingContext httpActivity)
+            public void AssertTime(HttpTracingActivity httpActivity)
             {
                 Assert.That(httpActivity.Timestamp, Is.EqualTo(Timestamp).Within(20000),
                     $"timestamp differ by {Timestamp - httpActivity.Timestamp}");

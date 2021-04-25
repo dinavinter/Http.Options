@@ -1,7 +1,12 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using Http.Client.Options.Tracing;
+using Http.Options.Tracing.HttpEnrichment;
+using Http.Options.Tracing.OpenTelemetry;
+using Http.Options.Tracing.Processors;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
@@ -13,11 +18,14 @@ namespace Http.Options
     {
         public static void AddHttpOptionsTelemetry(
             this ServiceCollection servicesCollection,
-            Action<TracerProviderBuilder> configureBuilder = null)
+            Action<TracerProviderBuilder> configureBuilder = null,
+            Action<OptionsBuilder<HttpTracingOptions>> configureTracing= null)
         {
-            servicesCollection.AddSingleton<HttpContextEnrichment>();
-            servicesCollection.AddSingleton<HttpActivityContextProcessor>();
-            servicesCollection.AddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientTracingConfigure>();
+            configureTracing?.Invoke(servicesCollection.AddOptions<HttpTracingOptions>());
+            
+            servicesCollection.TryAddSingleton<HttpContextEnrichment>();
+            servicesCollection.TryAddSingleton<HttpActivityContextProcessor>();
+            servicesCollection.TryAddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientTracingConfigure>();
 
 
             // var openTelemetryOptions = new OpenTelemetryOptions();
@@ -37,8 +45,8 @@ namespace Http.Options
                     (options, processor, tracingOptions) =>
                     {
                         options.Processors.Add(processor);
-                        options.Sources.Add(tracingOptions.Value.ActivityOptions.Source.Name);
-                        options.Services.Add(tracingOptions.Value.ActivityOptions.ActivityService);
+                        options.Sources.Add(tracingOptions.Value.Activity.Source.Name);
+                        options.Services.Add(tracingOptions.Value.Activity.ActivityService);
                     });
 
 

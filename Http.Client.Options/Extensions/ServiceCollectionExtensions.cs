@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using Http.Options.Tracing.Tcp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
