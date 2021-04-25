@@ -8,7 +8,7 @@ namespace Http.Options
         public int MaxParallelization { get; set; } = 500;
         private IAsyncPolicy<T> _policy;
 
-        public IAsyncPolicy<T> Polly() => _policy  = _policy ?? PolicyOrNoOP(
+        public IAsyncPolicy<T> Polly() => _policy ??= PolicyOrNoOP(
             Policy.BulkheadAsync<T>(maxParallelization: MaxParallelization, maxQueuingActions: MaxQueuingActions));
     }
 }

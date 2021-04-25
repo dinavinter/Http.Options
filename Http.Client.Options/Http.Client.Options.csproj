@@ -5,26 +5,26 @@
         <TargetFrameworks>net472;netstandard2.0;netstandard2.1</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IncludeSymbols>true</IncludeSymbols>
-        <AssemblyVersion>4.0.0.0</AssemblyVersion>
-        <FileVersion>4.0.0.0</FileVersion>
-        <Version>4.0.0.0</Version>
+        <AssemblyVersion>4.0.8.0</AssemblyVersion>
+        <FileVersion>4.0.8.0</FileVersion>
+        <Version>4.0.8.0</Version>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
          <LangVersion>8</LangVersion>
-        <PackageVersion>4.0.4-preview</PackageVersion>
+        <PackageVersion>4.0.8-preview</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Metrics" />
-      <PackageReference Include="Microsoft.Extensions.Http"  />
-      <PackageReference Include="Microsoft.Extensions.Http.Polly"   />
-      <PackageReference Include="OpenTelemetry.Extensions.Hosting"   />
-      <PackageReference Include="Polly"   />
-      <PackageReference Include="Polly.Extensions.Http"   />
-      <PackageReference Include="Microsoft.Extensions.Http.Polly"  />
-      <PackageReference Include="System.ComponentModel.Annotations"  />
-      <PackageReference Include="OpenTelemetry.Instrumentation.Http"   />
-      <PackageReference Include="OpenTelemetry"   />
+      <PackageReference Include="Microsoft.Extensions.Http" />
+      <PackageReference Include="Microsoft.Extensions.Http.Polly" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+      <PackageReference Include="Polly" />
+      <PackageReference Include="Polly.Extensions.Http" />
+      <PackageReference Include="Microsoft.Extensions.Http.Polly" />
+      <PackageReference Include="System.ComponentModel.Annotations" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+      <PackageReference Include="OpenTelemetry" />
 
     </ItemGroup>
 

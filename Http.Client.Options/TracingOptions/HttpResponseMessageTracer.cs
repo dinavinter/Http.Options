@@ -18,7 +18,6 @@ namespace Http.Options
  
             context[ContentLength] = httpResponseMessage.Content.Headers.ContentLength;
             context[HttpStatusCode] = (int) httpResponseMessage.StatusCode;
-            context[ResponseTime] = context.ResponseEndTimestamp;
         }
         public void TraceWebResponse(HttpRequestTracingContext context, HttpWebResponse httpResponseMessage)
         {
@@ -28,7 +27,6 @@ namespace Http.Options
             
             context[ContentLength] = responseStream.Length;
             context[HttpStatusCode] = (int) httpResponseMessage.StatusCode;
-            context[ResponseTime] = context.ResponseEndTimestamp;
         }
 
 #if NETFRAMEWORK

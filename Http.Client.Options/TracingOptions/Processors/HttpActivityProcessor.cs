@@ -19,7 +19,7 @@ namespace Http.Options
         public override void OnStart(Activity activity)
         {
             base.OnStart(activity);
-            if (activity?.Parent?.GetCustomProperty(nameof(HttpRequestTracingContext)) is HttpRequestTracingContext ctx)
+            if (activity?.GetCustomProperty(nameof(HttpRequestTracingContext)) is HttpRequestTracingContext ctx)
                 _onStart?.Invoke(ctx);
         }
 

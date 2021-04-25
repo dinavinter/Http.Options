@@ -21,15 +21,27 @@ namespace Http.Options
         public readonly TcpTracer Tcp = new TcpTracer();
             
         public void ConfigureTracingOptions(HttpTracingOptions options )
+        {
+            ConfigureProcessor(options.Processor);
+            ConfigureEnrichment(options.Enrichment);
+
+        }
+        
+        public void ConfigureProcessor(HttpActivityCompositeProcessor options )
         { 
             options.OnActivityStart(Context.TraceStart);
             options.OnActivityStart(Config); 
             options.OnActivityEnd(Context.TraceEnd);
-            options.OnRequest(Request);
-            options.OnRequest(Connection);
-            options.OnResponse(Response);
-            options.OnError(Error); 
  
+        }
+
+        public void ConfigureEnrichment(HttpEnrichmentOptions enrichmentOptions)
+        {
+            enrichmentOptions.OnRequest(Request);
+            enrichmentOptions.OnRequest(Connection);
+            enrichmentOptions.OnResponse(Response);
+            enrichmentOptions.OnError(Error); 
+
         }
     }
 }

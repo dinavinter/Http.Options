@@ -6,16 +6,12 @@ namespace Http.Options
     {
         public ActivitySource Source = new ActivitySource("http-options-activity-source");
         public string ActivityName = "http-options-activity";
+        public string ActivityService= "http-options-service";
 
-        public Activity StartActivity()
+        public Activity StartActivity( )
         {
-            return Source.StartActivity(ActivityName,
-                ActivityKind.Client) ?? new Activity(ActivityName);
+            return Source.StartActivity(ActivityName, ActivityKind.Client) ?? new Activity(ActivityName);
         }
-
-        public bool Match(Activity activity)
-        {
-            return Source?.Name == activity?.Source?.Name;
-        }
+ 
     }
 }

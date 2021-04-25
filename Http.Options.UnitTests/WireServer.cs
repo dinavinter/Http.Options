@@ -62,7 +62,7 @@ namespace Http.Options.UnitTests
 
         public string  Url(string path)
         {
-            return $"http://127.0.0.1:{_server.Ports.First()}/{path}";
+            return $"http://127.0.0.1:{_server.Ports.First()}{path}";
         }
     }
 }
