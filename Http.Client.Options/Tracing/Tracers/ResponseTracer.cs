@@ -21,11 +21,8 @@ namespace Http.Options.Tracing
         }
         public void TraceWebResponse(HttpTracingActivity activity, HttpWebResponse httpResponseMessage)
         {
-
-            var responseStream = new MemoryStream();
-            httpResponseMessage.GetResponseStream()?.CopyTo(responseStream);
-            
-            activity[ContentLength] = responseStream.Length;
+ 
+            activity[ContentLength] = httpResponseMessage.ContentLength;
             activity[HttpStatusCode] = (int) httpResponseMessage.StatusCode;
         }
 

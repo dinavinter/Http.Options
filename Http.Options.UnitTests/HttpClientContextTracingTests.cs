@@ -48,15 +48,15 @@ namespace Http.Options.UnitTests
                 options.TagsOptions.Request.RequestLength = "size";
                 options.TagsOptions.Request.RequestPath = "path";
                 options.TagsOptions.Request.Host = "host";
-                options.OnActivityEnd(context => _activities.Add(context));
-                options.Exporter.OnExport((Activity a)=> Console.WriteLine(a.DisplayName));
+                // options.OnActivityEnd(context => _activities.Add(context));
+                options.Exporter.OnExport((HttpTracingActivity a)=> _activities.Add(a));
                
             });
 
             serviceCollection
                 .ConfigureAll<OpenTelemetryOptions>(options =>
                 { 
-                   // options.ConfigureBuilder += builder => builder.AddConsoleExporter();
+                    options.ConfigureBuilder += builder => builder.AddConsoleExporter();
                 });
                 
             serviceCollection.AddHttpOptionsTelemetry();
