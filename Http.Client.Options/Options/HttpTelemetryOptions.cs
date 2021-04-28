@@ -29,11 +29,7 @@ namespace Http.Options
             if (Counter)
                 yield return serviceProvider.GetRequiredService<HttpCounterHandler>();
                
-
-           if(Timing)
-               yield return serviceProvider.GetRequiredService<HttpTimingHandler>();
-
- 
+  
         }
     }
 }

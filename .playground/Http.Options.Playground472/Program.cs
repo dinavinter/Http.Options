@@ -8,6 +8,7 @@ using System.Net.NetworkInformation;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Http.Options.Counters;
 using Http.Options.Tracing;
 using Http.Options.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,45 @@ namespace Http.Options.Playground472
         private static ActivitySource source;
 
         static void Main(string[] args)
+        {
+            var e = new HttpEventListener();
+            
+             var arguments = new Dictionary<string, string>
+            {
+                {"EventCounterIntervalSec", "1"}
+            }; 
+            _ =Go();
+
+            Console.ReadKey();
+        }
+
+        private static async Task Go()
+        {
+            var c = new MetricsCollectionService();
+            await c.StartAsync(CancellationToken.None);
+
+            
+            var random = new Random();
+            for (int i = 0; i <= 1000; i++)
+            {
+                var clientEvent = HttpClientEventSource.Instance.StartEvent("service");
+
+                await SleepingBeauty(random.Next(10, 200));
+                clientEvent.Stop();
+            }
+        }
+
+        static async Task SleepingBeauty(int sleepTimeInMs)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            await Task.Delay(sleepTimeInMs).ConfigureAwait(false);
+
+            stopwatch.Stop();
+
+         }
+
+        static void Main_(string[] args)
         {
             _server = new WireServer(WireMockServer.Start());
 

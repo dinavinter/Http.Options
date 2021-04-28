@@ -12,7 +12,8 @@ namespace Http.Options.Tracing
         public readonly ErrorTracer Error = new ErrorTracer();
         public readonly ConnectionTracer Connection = new ConnectionTracer();
         public readonly TcpTracer Tcp = new TcpTracer();
-            
+        public readonly CountersTracer Counter = new CountersTracer();
+
         public void ConfigureTracingOptions(HttpTracingOptions options )
         {
             ConfigureProcessor(options.Processor);
@@ -22,10 +23,13 @@ namespace Http.Options.Tracing
         
         public void ConfigureProcessor(TracingProcessorOptions options )
         { 
-            options.OnActivityStart(Context.TraceStart);
             options.OnActivityStart(Config); 
-            options.OnActivityEnd(Context.TraceEnd);
- 
+
+            options.OnActivityStart(Context.TraceStart);
+            options.OnActivityEnd(Context.TraceEnd); 
+            options.OnActivityStart(Counter.TraceStart); 
+            options.OnActivityEnd(Counter.TraceEnd);
+
         }
 
         public void ConfigureEnrichment(TracingEnrichmentOptions enrichmentOptions)
@@ -34,6 +38,7 @@ namespace Http.Options.Tracing
             enrichmentOptions.OnRequest(Connection);
             enrichmentOptions.OnResponse(Response);
             enrichmentOptions.OnError(Error); 
+
 
         }
     }

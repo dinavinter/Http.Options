@@ -1,10 +1,11 @@
 using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using Http.Options.Counters;
 
 namespace Http.Options.Benchmarks
 {
-    public class TelemetrySamplerLogger:ITelemetryLogger
+    public class TelemetrySamplerLogger 
     {
         private Subject<(string metric, TimeSpan timeSpan)> _subject = new Subject<(string metric, TimeSpan timeSpan)>();
 

@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using Http.Options.Counters;
 using Http.Options.Tracing.Tcp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -30,10 +31,8 @@ namespace Http.Options
 
         public static IServiceCollection AddHttpClientOptions(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddMetricsTelemetry();
             serviceCollection.TryAddTransient<HttpCounterHandler>();
-            serviceCollection.TryAddTransient<HttpTimingHandler>();
-            serviceCollection.AddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientOptionsConfigure>();
+             serviceCollection.AddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientOptionsConfigure>();
             serviceCollection.AddOptions<HttpClientOptions>();
             serviceCollection.AddHttpClient();
             serviceCollection.AddScoped<HttpClientScope>();
@@ -71,10 +70,6 @@ namespace Http.Options
         }
  
 
-        public static IServiceCollection AddMetricsTelemetry(this IServiceCollection serviceCollection)
-        {
-            serviceCollection.TryAddSingleton<ITelemetryLogger, MetricsLogger>();
-            return serviceCollection;
-        }
+      
     }
 }

@@ -4,8 +4,7 @@
 <!--        <PackageReference Update="@(PackageReference)" PrivateAssets="All"/> -->
 <!--    </ItemGroup>-->
     <ItemGroup>
-        <PackageReference Update="Metrics" Version="3.2.2" PrivateAssets="true" />
-        <PackageReference Update="Microsoft.Extensions.Http" Version="3.*" />
+         <PackageReference Update="Microsoft.Extensions.Http" Version="3.*" />
         <PackageReference Update="Microsoft.Extensions.Http.Polly" Version="3.*" />
         <PackageReference Update="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc2" />
         <PackageReference Update="Polly" Version="7.*" />

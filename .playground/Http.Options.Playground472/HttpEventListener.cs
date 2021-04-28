@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Text;
+using Http.Options.Counters;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Newtonsoft.Json;
 
@@ -45,7 +46,7 @@ namespace Http.Options.Playground472
                 }).Contains(eventSource.Name))
             {
 
-                //nableEvents(eventSource, EventLevel.LogAlways);
+               EnableEvents( eventSource, EventLevel.LogAlways);
             }
             // Turn on ActivityId.
             // else if (eventSource.Name == "System.Threading.Tasks.TplEventSource")
@@ -63,13 +64,13 @@ namespace Http.Options.Playground472
             if (
                 ((IList) new[]
                 {
-                    "System.Net.Http", "System.Net.Sockets", "System.Net.Security", "System.Net.NameResolution",
-                    "Microsoft-System-Net-Http", "Microsoft-System-Net-Sockets", " System.Diagnostics.Eventing.FrameworkEventSource",
+                   HttpClientEventSource.EventSource
                  
                   
                 }).Contains(eventData.EventSource.Name))
             Console.Out.WriteLine(JsonConvert.SerializeObject(eventData, Formatting.Indented));
 
+            return;
             int poolId = 0;
             string payloadMessage = null;
             string counterId = $"{eventData.EventSource.Name}.{eventData.EventName}.{eventData.Message}";
@@ -101,6 +102,7 @@ namespace Http.Options.Playground472
                     //Console.WriteLine(payloadMessage);
                 }
             }
+           Console.WriteLine(sb.ToString());
 
             if (eventData.EventSource.Name == "Microsoft-System-Net-Http" ||
                 eventData.EventSource.Name == "Microsoft-Diagnostics-DiagnosticSource" ||
@@ -121,7 +123,6 @@ namespace Http.Options.Playground472
                 // }
 
                 sb.Append(")");
-                //  Console.WriteLine(sb.ToString());
             }
         }
     }

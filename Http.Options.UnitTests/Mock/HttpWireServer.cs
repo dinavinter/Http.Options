@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq; 
-using Metrics.Utils;
+using System.Linq;  
 using WireMock;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;

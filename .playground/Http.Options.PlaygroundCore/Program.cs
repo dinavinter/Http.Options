@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Http.Options.Counters;
 using Http.Options.UnitTests;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,8 +21,32 @@ namespace Http.Options.PlaygroundCore
   
         private static WireServer _server;
         private static ActivitySource source;
-
         static void Main(string[] args)
+        {
+              
+            _ =Go();
+
+            Console.ReadKey();
+        }
+
+        private static async Task Go()
+        {
+            var c = new MetricsCollectionService();
+            await c.StartAsync(CancellationToken.None);
+
+            
+            var random = new Random();
+            for (int i = 0; i <= 1000; i++)
+            {
+                var clientEvent = HttpClientEventSource.Instance.StartEvent("service");
+                await Task.Delay(random.Next(10, 200)).ConfigureAwait(false);
+
+                clientEvent.Stop();
+            }
+        }
+  
+
+        static void Main_(string[] args)
         {
             _server = new WireServer(WireMockServer.Start());
 
