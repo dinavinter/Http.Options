@@ -3,6 +3,18 @@
 <!--    <ItemGroup>-->
 <!--        <PackageReference Update="@(PackageReference)" PrivateAssets="All"/> -->
 <!--    </ItemGroup>-->
+    <PropertyGroup>
+        <AssemblyVersion>5.0.0.0</AssemblyVersion>
+        <FileVersion>5.0.0.0</FileVersion>
+        <Version>5.0.0.0</Version>
+        <PackageVersion>5.0.0.0-preview</PackageVersion>
+        <TargetFrameworks>net5.0;netstandard2.0;netstandard2.1</TargetFrameworks>
+
+        <IncludeSymbols>true</IncludeSymbols>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
+
+    </PropertyGroup>
     <ItemGroup>
          <PackageReference Update="Microsoft.Extensions.Http" Version="3.*" />
         <PackageReference Update="Microsoft.Extensions.Http.Polly" Version="3.*" />

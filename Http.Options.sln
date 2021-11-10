@@ -25,6 +25,8 @@ ProjectSection(SolutionItems) = preProject
 	nuget_push_local.bat = nuget_push_local.bat
 EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Client.Options.WireServer", "Http.Client.Options.WireServer\Http.Client.Options.WireServer.csproj", "{5177538B-BD6E-49A0-B4BA-7D3BACADDAE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{11FF6998-A3EF-46CE-85FB-64624DEB49A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11FF6998-A3EF-46CE-85FB-64624DEB49A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11FF6998-A3EF-46CE-85FB-64624DEB49A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5177538B-BD6E-49A0-B4BA-7D3BACADDAE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5177538B-BD6E-49A0-B4BA-7D3BACADDAE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5177538B-BD6E-49A0-B4BA-7D3BACADDAE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5177538B-BD6E-49A0-B4BA-7D3BACADDAE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2AAA9B6F-A455-4409-B1D4-BD7A3A0C2A69} = {5D491C0C-69AE-4B2F-8001-8F4E74D1C54B}
