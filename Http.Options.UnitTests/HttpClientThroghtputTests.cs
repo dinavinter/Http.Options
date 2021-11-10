@@ -55,7 +55,7 @@ namespace Http.Options.UnitTests
 
        
 
-        [Test]
+        [Test, Explicit]
         [TestCase("/delay/5ms", 1000, TestName = "5ms throughput test")]
         [TestCase("/delay/10ms", 1000, TestName = "10ms throughput test")]
         [TestCase("/delay/200ms", 1000, TestName = "200ms throughput test")]
