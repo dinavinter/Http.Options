@@ -7,7 +7,7 @@
         <AssemblyVersion>5.0.0.1</AssemblyVersion>
         <FileVersion>5.0.0.1</FileVersion>
         <Version>5.0.0.1</Version>
-        <PackageVersion>5.0.0.1-preview</PackageVersion>
+        <PackageVersion>5.0.0.1</PackageVersion>
         <TargetFrameworks>net5.0;netstandard2.0;netstandard2.1</TargetFrameworks>
 
         <IncludeSymbols>true</IncludeSymbols>
