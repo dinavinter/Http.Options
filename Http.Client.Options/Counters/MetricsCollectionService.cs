@@ -4,7 +4,6 @@ using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.Extensions.Hosting;
 
 namespace Http.Options.Counters
@@ -12,8 +11,8 @@ namespace Http.Options.Counters
     public sealed class MetricsCollectionService : EventListener, IHostedService
 {
     private readonly List<string> _registeredEventSources = new List<string>(); 
-    private Task _newDataSourceTask;
-
+    private Task _newDataSourceTask; 
+    public Dictionary<string,EventCounterData> LastCounterData = new Dictionary<string, EventCounterData>();
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _newDataSourceTask = Task.Run(async () =>
@@ -47,11 +46,11 @@ namespace Http.Options.Counters
         if (eventData.EventSource.Name == HttpClientEventSource.EventSource)
         {
             var counterData = eventData.ToEventCounterData();
-            Console.WriteLine("event arrived");
             // Only write to console if actual data has been reported
             if (counterData == null)
                 return;
 
+            LastCounterData[counterData.Name] = counterData;
             Console.WriteLine(
                 $"Counter {counterData.Name}:" +
                 $"Min: {counterData.Min}, " +
@@ -66,6 +65,7 @@ namespace Http.Options.Counters
 
 
     }
+
 
     private void GetNewSources()
     {

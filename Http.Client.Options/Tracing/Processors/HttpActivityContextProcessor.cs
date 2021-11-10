@@ -34,17 +34,15 @@ namespace Http.Options.Tracing.Processors
 
         public override void OnEnd(Activity activity)
         {
-            if (activity.Parent?.GetCustomProperty(nameof(HttpTracingActivity)) is
-                HttpTracingActivity ctx)
-            {
-                ctx.TracingOptions.Processor.OnEnd(activity);
-                
+            if (activity?.GetCustomProperty(nameof(HttpTracingActivity)) is
+                HttpTracingActivity ctx && activity.OperationName == ctx.TracingOptions.Activity.ActivityName)
+            { 
+                ctx.TracingOptions.Processor.OnEnd(activity); 
                 foreach (var processor in _processors)
                 {
                     processor.OnEnd(activity);
                 }
                 
-                ctx.Activity.Stop();
 
             }
             

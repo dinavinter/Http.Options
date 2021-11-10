@@ -10,6 +10,8 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Http.Client.Options.Tracing;
+using Http.Options.Tracing.OpenTelemetry;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.EventSource;
@@ -109,21 +111,33 @@ namespace Http.Options.UnitTests
         [TestCase("/error/5ms", 1000, TestName = "error throughput test")]
         public async Task HttpClient_DefaultConfigThroughputTests(string endpoint, int rate, int within = 10)
         {
-            using var listener = new HttpEventListener();
-
-            using var openTelemetry = Sdk.CreateTracerProviderBuilder()
-                .AddHttpClientInstrumentation(options => options.Filter = message => true)
-                .AddInstrumentation(() => new ConnectionInstrumaion())
-                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("http-service-example"))
-                .AddSource("http-client-test")
-                .AddProcessor(new HttpEventProcessor(listener))
-
-                .AddConsoleExporter()
-                .Build();
-
-            var source = new ActivitySource("http-client-test");
-
             var serviceCollection = new ServiceCollection();
+
+            serviceCollection.AddCountersTracing();
+            serviceCollection.ConfigureAll<HttpTracingOptions>(options =>
+            {
+                options.TagsOptions.Config.Name = "name";
+                options.TagsOptions.Config.Port = "port";
+                options.TagsOptions.Config.Schema = "schema";
+                options.TagsOptions.Config.MaxConnection = "maxConnection";
+                options.TagsOptions.Request.Schema = "r.schema";
+                options.TagsOptions.Request.RequestLength = "size";
+                options.TagsOptions.Request.RequestPath = "path";
+                options.TagsOptions.Request.Host = "host";
+               
+                // options.OnActivityEnd(context => _activities.Add(context));
+               
+            });
+
+            serviceCollection
+                .ConfigureAll<OpenTelemetryOptions>(options =>
+                { 
+                    options.ConfigureBuilder += builder => builder.AddConsoleExporter();
+                });
+                
+            serviceCollection.AddHttpOptionsTelemetry();
+
+
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "service";
@@ -135,30 +149,21 @@ namespace Http.Options.UnitTests
 
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
             var client = factory.CreateClient("service");
-
             var stopwatch = Stopwatch.StartNew();
-            source.StartActivity("Activ", ActivityKind.Client, "parent");
 
-            await client.GetAsync(endpoint);
-            
-            source.StartActivity("Activ-1", ActivityKind.Client, "parent");
-
-            await client.GetAsync(endpoint);
-
-            // var rateStats = await
-            //     TrafficGenerator
-            //         .GenerateTraffic(4, () => client.GetAsync(endpoint))
-            //         .RPS()
-            //         .Stats()
-            //         .TakeUntil(DateTimeOffset.Now.AddSeconds(1));
+            var rateStats = await
+                TrafficGenerator
+                    .GenerateTraffic(rate, () => client.GetAsync(endpoint))
+                    .RPS()
+                    .Stats()
+                    .TakeUntil(DateTimeOffset.Now.AddSeconds(20));
 
 
             stopwatch.Stop();
-            // Console.WriteLine(rateStats.Print());
-            // Console.WriteLine(JsonConvert.SerializeObject(  listener , Formatting.Indented));
-            // Console.WriteLine(JsonConvert.SerializeObject(listener.DiagnosticCounter, Formatting.Indented));
+            Console.WriteLine(rateStats.Print());
+ 
+            Assert.That(rateStats.Success.Median, Is.GreaterThanOrEqualTo(rate).Within(within));
 
-            // Assert.That(rateStats.Success.Median, Is.GreaterThanOrEqualTo(rate).Within(within));
         }
 
 

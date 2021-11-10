@@ -27,9 +27,7 @@ namespace Http.Options.Tracing
 
             options.OnActivityStart(Context.TraceStart);
             options.OnActivityEnd(Context.TraceEnd); 
-            options.OnActivityStart(Counter.TraceStart); 
-            options.OnActivityEnd(Counter.TraceEnd);
-
+ 
         }
 
         public void ConfigureEnrichment(TracingEnrichmentOptions enrichmentOptions)

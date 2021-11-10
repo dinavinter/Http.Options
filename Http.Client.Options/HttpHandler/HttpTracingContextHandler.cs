@@ -22,8 +22,9 @@ namespace Http.Options
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-              _activityFactory();
-              return await base.SendAsync(request, cancellationToken);
+            using var activity = _activityFactory();
+            return await base.SendAsync(request, cancellationToken);
+            ;
             // var response= await base.SendAsync(request, cancellationToken);
             // // _tracingOptions.Enrichment.Enrich(activity, "OnStartActivity", response);
             // return response;

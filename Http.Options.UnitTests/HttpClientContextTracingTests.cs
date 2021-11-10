@@ -38,6 +38,7 @@ namespace Http.Options.UnitTests
             _wireServer = WireMockServer.Start();
             _server = new WireServer(_wireServer);
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddCountersTracing();
             serviceCollection.ConfigureAll<HttpTracingOptions>(options =>
             {
                 options.TagsOptions.Config.Name = "name";
@@ -266,9 +267,14 @@ namespace Http.Options.UnitTests
 
 
                 AssertTag(httpActivity, "timestamp", Is.EqualTo(httpActivity.Timestamp));
-                AssertTag(httpActivity, "time.start", Is.EqualTo(httpActivity.StartTime));
-                AssertTag(httpActivity, "time.end", Is.EqualTo(httpActivity.EndTime));
-                AssertTag(httpActivity, "time.total", Is.EqualTo(httpActivity.TotalTime));
+                AssertTag(httpActivity, "time.start", Is.EqualTo(httpActivity.Activity.StartTimeUtc));
+                AssertTag(httpActivity, "time.end", Is.EqualTo(httpActivity.Activity.StartTimeUtc.Add(httpActivity.Activity.Duration)));
+                AssertTag(httpActivity, "time.duration", Is.EqualTo(httpActivity.Activity.Duration));
+                
+                AssertTag(httpActivity, "time.http.start", Is.EqualTo(httpActivity.HttpActivity.StartTimeUtc));
+                AssertTag(httpActivity, "time.http.end", Is.EqualTo(httpActivity.HttpActivity.StartTimeUtc.Add(httpActivity.HttpActivity.Duration)));
+                AssertTag(httpActivity, "time.http.duration", Is.EqualTo(httpActivity.HttpActivity.Duration));
+
             }
         }
     }

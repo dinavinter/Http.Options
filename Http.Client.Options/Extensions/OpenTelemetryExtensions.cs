@@ -2,11 +2,13 @@ using System;
 using System.Net;
 using System.Net.Http;
 using Http.Client.Options.Tracing;
+using Http.Options.Counters;
 using Http.Options.Tracing.HttpEnrichment;
 using Http.Options.Tracing.OpenTelemetry;
 using Http.Options.Tracing.Processors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
@@ -16,6 +18,19 @@ namespace Http.Options
 {
     public static class OpenTelemetryExtensions
     {
+
+        public static void AddCountersTracing( this IServiceCollection servicesCollection)
+        {
+            servicesCollection.TryAddSingleton<MetricsCollectionService>();
+            servicesCollection.AddSingleton<IHostedService>(sp=>sp.GetService<MetricsCollectionService>());
+            servicesCollection.TryAddSingleton<HttpCounterActivityProcessor>( );
+            // servicesCollection.Configure<HttpTracingOptions>(options =>
+            // {
+            //     options.Processor.OnActivityStart(ctx=>);
+            // } );
+
+            
+        }
         public static void AddHttpOptionsTelemetry(
             this IServiceCollection servicesCollection,
             Action<TracerProviderBuilder> configureBuilder = null,
