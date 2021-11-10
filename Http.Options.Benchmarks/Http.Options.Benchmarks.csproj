@@ -6,8 +6,9 @@
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <LangVersion>preview</LangVersion>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
-    <RootNamespace>Http.Options.Benchmarks</RootNamespace> 
+    <RootNamespace>Http.Options.Benchmarks</RootNamespace>
+    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworks /> 
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />

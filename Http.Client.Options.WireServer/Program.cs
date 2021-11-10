@@ -57,9 +57,9 @@ namespace Http.Client.Options.WireServer
 
         public void ConfigureWireMockServer(HttpClientOptions options, WireMockServer server)
         {
-            options.ConnectionOptions.Server = "127.0.0.1";
-            options.ConnectionOptions.Schema = "http";
-            options.ConnectionOptions.Port = _server.Ports.First();
+            options.Connection.Server = "127.0.0.1";
+            options.Connection.Schema = "http";
+            options.Connection.Port = _server.Ports.First();
         }
 
     }

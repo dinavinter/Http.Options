@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Http.Client.Options.Tracing;
 using Http.Options.Tracing.OpenTelemetry;
+using Http.Options.Tracing.Processors;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.EventSource;
@@ -52,56 +53,7 @@ namespace Http.Options.UnitTests
             Console.WriteLine($"test total time:{_testStopwatch.Elapsed}");
         }
 
-        private static DiagnosticListener httpLogger = new DiagnosticListener("System.Net.Http");
-
-        static IDisposable listenerSubscription = httpLogger.Subscribe(delegate(KeyValuePair<string, object?> evnt)
-        {
-            Console.WriteLine("From Listener {0} Received Event {1} with payload {2}",
-                httpLogger.Name, evnt.Key, evnt.Value);
-        });
-
-        // static Listner Listners = new Listner();
-
-        public class Listner
-        {
-            static IDisposable listenerSubscriptions = DiagnosticListener.AllListeners.Subscribe(
-                delegate(DiagnosticListener listener)
-                {
-                    // if (listener.Name == "System.Net.Http")
-                    // {
-                    lock (allListeners)
-                    {
-                        // if (networkSubscription != null)
-                        //     networkSubscription.Dispose();
-
-                        networkSubscription = listener.Subscribe((KeyValuePair<string, object> evnt) =>
-                            Console.WriteLine("From Listener {0} Received Event {1} with payload {2}",
-                                listener.Name, evnt.Key, evnt.Value.ToString()));
-                    }
-
-                    // }
-                });
-
-            public Listner()
-            {
-                // Create the callback delegate
-                // Action<KeyValuePair<string, object>> callback = (KeyValuePair<string, object> evnt) =>
-                //     Console.WriteLine("From Listener {0} Received Event {1} with payload {2}", networkListener.Name, evnt.Key, evnt.Value.ToString());
-                //
-                // // Turn it into an observer (using System.Reactive.Core's AnonymousObserver)
-                // IObserver<KeyValuePair<string, object>> observer = new AnonymousObserver<KeyValuePair<string, object>>(callback);
-                //
-                // // Create a predicate (asks only for one kind of event)
-                // Predicate<string> predicate = (string eventName) => eventName == "RequestStart";
-                //
-                // // Subscribe with a filter predicate
-                // IDisposable subscription = listener.Subscribe(observer, predicate);
-            }
-        }
-
-        private static object allListeners = new object();
-        private static IDisposable networkSubscription;
-
+       
 
         [Test]
         [TestCase("/delay/5ms", 1000, TestName = "5ms throughput test")]
@@ -131,8 +83,9 @@ namespace Http.Options.UnitTests
 
             serviceCollection
                 .ConfigureAll<OpenTelemetryOptions>(options =>
-                { 
-                    options.ConfigureBuilder += builder => builder.AddConsoleExporter();
+                {
+                    options.ConfigureBuilder += builder => builder.AddProcessor(new NopProcessor());
+                    // options.ConfigureBuilder += builder => builder.AddConsoleExporter();
                 });
                 
             serviceCollection.AddHttpOptionsTelemetry();
