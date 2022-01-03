@@ -4,10 +4,10 @@
         <RootNamespace>Http.Options</RootNamespace>
          <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
          <LangVersion>8</LangVersion>
-        <AssemblyVersion>6.0.0.2</AssemblyVersion>
-        <FileVersion>6.0.0.2</FileVersion>
-        <Version>6.0.0.2</Version>
-        <PackageVersion>6.0.0.2</PackageVersion>
+        <AssemblyVersion>6.0.0.3</AssemblyVersion>
+        <FileVersion>6.0.0.3</FileVersion>
+        <Version>6.0.0.3</Version>
+        <PackageVersion>6.0.0.3</PackageVersion>
         <TargetFrameworks>net5.0;netstandard2.0;netstandard2.1</TargetFrameworks>
 
         <IncludeSymbols>true</IncludeSymbols>

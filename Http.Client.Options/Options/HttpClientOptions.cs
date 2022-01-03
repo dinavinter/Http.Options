@@ -15,9 +15,9 @@ namespace Http.Options
         public HttpClientHandlerOptions Handler = new HttpClientHandlerOptions();
         public HttpConnectionOptions Connection = new HttpConnectionOptions();
         public HttpTelemetryOptions Telemetry = new HttpTelemetryOptions();
- 
+
         public HttpClientOptions()
-        { 
+        {
             HttpMessageHandlerBuilderConfiguration += ConfigureHttpMessageHandlerBuilder;
             HttpClientConfiguration += ConfigureHttpClient;
             HttpClientFactoryOptionConfiguration += ConfigureHttpClientFactoryOptions;
@@ -91,8 +91,13 @@ namespace Http.Options
             options.Connection = Connection ?? options.Connection;
             options.Timeout = Timeout ?? options.Timeout;
             options.Handler = Handler ?? options.Handler;
-            options.Polly = Polly ?? options.Polly; 
-            options.Telemetry = Telemetry ?? options.Telemetry; 
+            options.Polly = Polly ?? options.Polly;
+            options.Telemetry = Telemetry ?? options.Telemetry;
+        }
+
+        public void Configure(HttpClientOptions options)
+        {
+            Configure(options.ServiceName, options);
         }
     }
 }
