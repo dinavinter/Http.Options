@@ -11,6 +11,9 @@ namespace Http.Options
     public class HttpConnectionOptions 
     {
    
+        /// <summary>
+        /// TODO config!!!
+        /// </summary>
         private static readonly MediaTypeWithQualityHeaderValue ApplicationJsonHeader =
             new MediaTypeWithQualityHeaderValue("application/json");
 

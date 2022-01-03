@@ -8,7 +8,6 @@
         <FileVersion>5.0.0.1</FileVersion>
         <Version>5.0.0.1</Version>
         <PackageVersion>5.0.0.1-preview</PackageVersion>
-        <TargetFrameworks>net5.0;netstandard2.0;netstandard2.1</TargetFrameworks>
 
         <IncludeSymbols>true</IncludeSymbols>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

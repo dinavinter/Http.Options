@@ -57,6 +57,8 @@ namespace Http.Options.UnitTests
 
             }
         }
+        
+        
            
         [Test]
         public async Task HttpClient_ErrorCircuitBreakerTest()

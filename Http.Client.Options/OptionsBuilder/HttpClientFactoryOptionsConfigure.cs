@@ -4,11 +4,11 @@ using Microsoft.Extensions.Options;
 
 namespace Http.Options
 {
-    public class HttpClientOptionsConfigure : IConfigureNamedOptions<HttpClientFactoryOptions>
+    public class HttpClientFactoryOptionsConfigure : IConfigureNamedOptions<HttpClientFactoryOptions>
     {
         private readonly IOptionsMonitor<HttpClientOptions> _optionsSnapshot;
 
-        public HttpClientOptionsConfigure(IOptionsMonitor<HttpClientOptions> optionsSnapshot,
+        public HttpClientFactoryOptionsConfigure(IOptionsMonitor<HttpClientOptions> optionsSnapshot,
             IOptionsMonitorCache<HttpClientFactoryOptions> cache)
         {
             _optionsSnapshot = optionsSnapshot;

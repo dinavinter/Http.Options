@@ -7,7 +7,7 @@ using WireMock.Server;
 
 namespace Http.Options.UnitTests
 {
-    public class WireServer
+    public class WireServer:IDisposable
     {
         private readonly WireMockServer _server;
 
@@ -63,6 +63,11 @@ namespace Http.Options.UnitTests
         public string  Url(string path)
         {
             return $"http://127.0.0.1:{_server.Ports.First()}{path}";
+        }
+
+        public void Dispose()
+        {
+            _server?.Dispose();
         }
     }
 }
