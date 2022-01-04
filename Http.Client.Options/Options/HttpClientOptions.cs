@@ -46,10 +46,10 @@ namespace Http.Options
         /// </summary>
         protected virtual void ConfigureHttpMessageHandlerBuilder(HttpMessageHandlerBuilder builder)
         {
-            Handler.ConfigureHttpClientBuilder(builder);
-            Timeout.ConfigureHttpClientBuilder(builder);
-            Telemetry.ConfigureHttpClientBuilder(builder);
-            Polly.ConfigureHttpClientBuilder(builder);
+            Handler?.ConfigureHttpClientBuilder(builder);
+            Timeout?.ConfigureHttpClientBuilder(builder);
+            Telemetry?.ConfigureHttpClientBuilder(builder);
+            Polly?.ConfigureHttpClientBuilder(builder);
             // builder.AdditionalHandlers.Insert(0, new HttpClientScopeHandler(builder, this));
         }
 
@@ -58,7 +58,7 @@ namespace Http.Options
         /// </summary>
         protected virtual void ConfigureHttpClient(HttpClient httpClient)
         {
-            Connection.ConfigureHttpClient(httpClient);
+            Connection?.ConfigureHttpClient(httpClient);
         }
 
 
@@ -67,8 +67,9 @@ namespace Http.Options
         /// </summary> 
         protected virtual void ConfigureHttpClientFactoryOptions(HttpClientFactoryOptions options)
         {
-            options.HandlerLifetime =
-                TimeSpan.FromMinutes(Handler.HandlerLifeTimeMinutes);
+            if (Handler?.HandlerLifeTimeMinutes != null)
+                options.HandlerLifetime =
+                    TimeSpan.FromMinutes(Handler.HandlerLifeTimeMinutes);
         }
 
         public void AddHandler<THandler>(Func<HttpClientOptions, THandler> handler) where THandler : DelegatingHandler

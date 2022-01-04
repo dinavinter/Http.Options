@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using Polly;
+using Polly.CircuitBreaker;
 using WireMock.Server;
 
 namespace Http.Options.UnitTests
@@ -386,6 +388,54 @@ namespace Http.Options.UnitTests
             Assert.That(ex.Data.Keys, Has.One.Items.Contains("timeout"));
             Assert.That(ex.Data["timeout"], Is.EqualTo(TimeSpan.FromMilliseconds(1)));
         }
+        
+        
+        [Test]
+        public async Task HttpClient_ErrorCircuitBreakerTest()
+        {
+            using var server = new WireServer(WireMockServer.Start());
+
+
+             var httpClientCollection = HttpOptionsBuilder.Configure(builder   =>
+            {
+                 builder.Configure(options =>
+                    {
+                        options.AddClient("service", clientOptions =>
+                        {
+                            
+                            server.ConfigureWireMockServer(clientOptions);
+                            clientOptions.Polly.CircuitBreaker.SamplingDuration = 3000;
+                            clientOptions.Polly.CircuitBreaker.Enabled = true;  
+
+                        } );
+                   
+                        
+                      
+                      
+                    }
+                );
+            }).Build();
+
+
+             var factory = httpClientCollection.GetFactory();
+            var client = factory.CreateClient("service");
+        
+            await Observable
+                .FromAsync(ct =>
+                    client
+                        .GetAsync("/error/5ms", ct))
+                .Catch( Observable.Return( new HttpResponseMessage())) 
+                .Repeat(50) 
+                .RepeatWhen(c => c.DelaySubscription(TimeSpan.FromMilliseconds(10)))
+                .TakeUntil(DateTimeOffset.Now.AddSeconds(5));
+            
+            Assert.That(async ()=> await client.GetAsync("/error/5ms"), Throws.InstanceOf<BrokenCircuitException>());
+            Assert.That(async ()=> await client.GetAsync("/delay/5ms"), Throws.InstanceOf<BrokenCircuitException>());
+            Assert.That(async ()=> await client.GetAsync("/delay/1s"), Throws.InstanceOf<BrokenCircuitException>());
+
+
+        }
+
     }
 
    
