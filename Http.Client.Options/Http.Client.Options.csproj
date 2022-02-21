@@ -4,11 +4,11 @@
         <RootNamespace>Http.Options</RootNamespace>
          <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
          <LangVersion>8</LangVersion>
-        <AssemblyVersion>6.0.0.4</AssemblyVersion>
-        <FileVersion>6.0.0.4</FileVersion>
-        <Version>6.0.0.4</Version>
-        <PackageVersion>6.0.0.4</PackageVersion>
-        <TargetFrameworks>net5.0;netstandard2.0;netstandard2.1</TargetFrameworks>
+        <AssemblyVersion>6.0.1.0</AssemblyVersion>
+        <FileVersion>6.0.1.0</FileVersion>
+        <Version>6.0.1.0</Version>
+        <PackageVersion>6.0.1.0</PackageVersion>
+        <TargetFrameworks>net6.0;net5.0;netstandard2.0;netstandard2.1</TargetFrameworks>
 
         <IncludeSymbols>true</IncludeSymbols>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
