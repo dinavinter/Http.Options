@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Polly.Bulkhead;
 using Polly.CircuitBreaker;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -105,24 +106,26 @@ namespace Http.Options.UnitTests
             {
                 options.ServiceName = "service";
                 ConfigureWireMockServer(options);
+                options.Polly.Bulkhead.Enabled = true;
+                options.Polly.Bulkhead.MaxQueuingActions = 70;
             });
 
             var factory = serviceCollection.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
             var client = factory.CreateClient("service");
 
             var stopwatch = Stopwatch.StartNew();
-            var rate = await Observable
-                .FromAsync(ct =>
-                    client
-                        .GetAsync("/delay/5ms", ct))
-                .Repeat(400)
-                .Buffer(TimeSpan.FromSeconds(1))
-                .Select(x => x.Count)
-                .Scan(new List<int>(), (list, element) =>
-                {
-                     list.Add(element);
-                     return list;
-                });
+            // var rate = await Observable
+            //     .FromAsync(ct =>
+            //         client
+            //             .GetAsync("/delay/5ms", ct))
+            //     .Repeat(400)
+            //     .Buffer(TimeSpan.FromSeconds(1))
+            //     .Select(x => x.Count)
+            //     .Scan(new List<int>(), (list, element) =>
+            //     {
+            //          list.Add(element);
+            //          return list;
+            //     });
             
               
                 // =await Observable
@@ -134,10 +137,19 @@ namespace Http.Options.UnitTests
                 // .TimeInterval()
                 // .Select(x => x.Interval.Milliseconds)
                 // .Average();
+          
+            var rateStats = await
+                TrafficGenerator
+                    .GenerateTraffic(400, () => client.GetAsync("/delay/1s"))
+                    .RPS()
+                    .Stats()
+                    .TakeUntil(DateTimeOffset.Now.AddSeconds(5));
+
             stopwatch.Stop();
             Console.WriteLine(stopwatch.Elapsed);
+            Console.WriteLine(rateStats.Print());
 
-            Assert.That(rate.Average(), Is.EqualTo(70).Within(15));
+            Assert.That(rateStats.LastError, Is.TypeOf<BulkheadRejectedException>());
 
         }
         
