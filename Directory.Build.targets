@@ -1,5 +1,5 @@
 <Project >
- 
+    
     <PropertyGroup>
         <Microsoft_Extensions_Version>3.*</Microsoft_Extensions_Version>
         <Microsoft_Extensions_Http_Version>2.1.0</Microsoft_Extensions_Http_Version>
