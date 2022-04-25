@@ -1,9 +1,14 @@
 using System;
+using System.Linq;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Http.Options
 {
-    public class HttpClientCollection
+    public class HttpClientCollection: IHostedService
     { 
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _serviceProvider;
@@ -20,5 +25,17 @@ namespace Http.Options
         public IHttpClientFactory GetFactory() => _httpClientFactory;
         public IServiceProvider ServiceProvider() => _serviceProvider;
         public void InvokeChange() => _changeTokenSource.InvokeChange();
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            return Task.WhenAll(_serviceProvider.GetServices<IHostedService>()
+                .Select(e => e.StartAsync(cancellationToken)));
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.WhenAll(_serviceProvider.GetServices<IHostedService>()
+                .Select(e => e.StopAsync(cancellationToken)));
+
+        }
     }
 }
