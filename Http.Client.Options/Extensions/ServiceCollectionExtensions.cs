@@ -33,7 +33,7 @@ namespace Http.Options
             Action<string, HttpClientOptions>? configure = null)
         {
             serviceCollection.AddHttpClientOptions();
-
+  
             serviceCollection.AddSingleton<IConfigureOptions<HttpClientOptions>>(
                 new ConfigureHttpClientOptionsAction(configure));
 
@@ -42,8 +42,17 @@ namespace Http.Options
         public static IServiceCollection AddHttpClientOptions(this IServiceCollection serviceCollection)
         {
             serviceCollection.TryAddTransient<HttpCounterHandler>();
-            serviceCollection
-                .TryAddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientFactoryOptionsConfigure>();
+            serviceCollection.TryAddTransient<HttpClientFactoryOptionsConfigure>();
+            serviceCollection.AddTransient<IConfigureOptions<HttpClientFactoryOptions>>(sp=> sp.GetRequiredService<HttpClientFactoryOptionsConfigure>());
+
+            // serviceCollection
+            //     .TryAddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientFactoryOptionsConfigure>();
+            
+            // serviceCollection
+            //     .TryAddTransient<HttpClientFactoryOptionsConfigure>();
+            //
+            // serviceCollection.ConfigureOptions<HttpClientFactoryOptions>();
+
             serviceCollection.AddOptions<HttpClientOptions>();
             serviceCollection.AddHttpClient();
             serviceCollection.TryAddScoped<HttpClientScope>();

@@ -41,20 +41,9 @@ namespace Http.Options
             servicesCollection.TryAddSingleton<HttpContextEnrichment>();
             servicesCollection.TryAddSingleton<HttpActivityContextProcessor>();
             servicesCollection.TryAddSingleton<HttpTracingActivityExporter>();
-            servicesCollection.TryAddTransient<IConfigureOptions<HttpClientFactoryOptions>, HttpClientTracingConfigure>();
-
-
-            // var openTelemetryOptions = new OpenTelemetryOptions();
-            // servicesCollection.AddSingleton(openTelemetryOptions);
-            //
-            // servicesCollection
-            //     .PostConfigureAll<HttpTracingOptions>((options) =>
-            //     {
-            //         openTelemetryOptions.Services.Add(options.ActivityOptions.ActivityService);
-            //         openTelemetryOptions.Sources.Add(options.ActivityOptions.Source.Name);
-            //     });
-
-
+            servicesCollection.TryAddTransient<HttpClientTracingConfigure>();
+            servicesCollection.AddTransient<IConfigureOptions<HttpClientFactoryOptions>>(sp=> sp.GetRequiredService<HttpClientTracingConfigure>());
+ 
             servicesCollection
                 .AddOptions<OpenTelemetryOptions>()
                 .Configure<HttpActivityContextProcessor, HttpTracingActivityExporter, IOptions<HttpTracingOptions>>(
@@ -75,7 +64,7 @@ namespace Http.Options
 
 
             servicesCollection
-                .AddOpenTelemetryTracing((sp, builder) =>
+                .AddOpenTelemetryTracing(( options) => options.Configure((sp,builder)=>
                 {
                     sp
                         .GetRequiredService<IOptionsMonitor<OpenTelemetryOptions>>()
@@ -86,7 +75,7 @@ namespace Http.Options
                     sp.GetRequiredService<HttpContextEnrichment>().ConfigureTraceProvider(builder);
 
                     configureBuilder?.Invoke(builder);
-                });
+                }));
         }
     }
 }

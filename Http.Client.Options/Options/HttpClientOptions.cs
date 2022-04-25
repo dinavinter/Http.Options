@@ -27,21 +27,11 @@ namespace Http.Options
         /// used to configure http message build, called from options snapshot whenever new message handler is created
         /// </summary>
         public Action<HttpMessageHandlerBuilder, IServiceProvider> HttpMessageHandlerBuilderConfiguration;
-
-        private Action<HttpClientFactoryOptions, IServiceProvider> _httpClientFactoryOptionConfiguration;
-
-
-        /// <summary>
-        /// used to configure http message build, called from options snapshot whenever new message handler is created
-        /// </summary>
-        private Action<HttpMessageHandlerBuilder> HttpMessageHandlerBuilderConfigurations;
-
-
+  
         /// <summary>
         ///used to configure factory options, called once after http options is configured
         /// </summary> 
         public Action<HttpClient> HttpClientConfiguration;
-        private Action<HttpClient, IServiceProvider> _httpClientConfiguration; 
 
         /// <summary>
         ///used to configure factory options, called once after http options is configured

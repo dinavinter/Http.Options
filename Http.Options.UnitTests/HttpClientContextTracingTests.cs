@@ -24,8 +24,8 @@ namespace Http.Options.UnitTests
     public class HttpClientContextTracingTests
     {
         private readonly WireServer _server;
-        private WireMockServer _wireServer;
-        private readonly ServiceProvider _services;
+        private readonly WireMockServer _wireServer;
+        private ServiceProvider _services;
 
         private readonly Dictionary<string, HttpTracingActivity> _activityMap =
             new Dictionary<string, HttpTracingActivity>();
@@ -37,6 +37,10 @@ namespace Http.Options.UnitTests
         {
             _wireServer = WireMockServer.Start();
             _server = new WireServer(_wireServer);
+        }
+
+        private void BuildServices()
+        {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddCountersTracing();
             serviceCollection.ConfigureAll<HttpTracingOptions>(options =>
@@ -50,16 +54,15 @@ namespace Http.Options.UnitTests
                 options.TagsOptions.Request.RequestPath = "path";
                 options.TagsOptions.Request.Host = "host";
                 // options.OnActivityEnd(context => _activities.Add(context));
-                options.Exporter.OnExport((HttpTracingActivity a)=> _activities.Add(a));
-               
+                options.Exporter.OnExport((HttpTracingActivity a) => _activities.Add(a));
             });
 
             serviceCollection
                 .ConfigureAll<OpenTelemetryOptions>(options =>
-                { 
+                {
                     options.ConfigureBuilder += builder => builder.AddConsoleExporter();
                 });
-                
+
             serviceCollection.AddHttpOptionsTelemetry();
 
             serviceCollection.AddHttpClientOptions(options =>
@@ -68,13 +71,14 @@ namespace Http.Options.UnitTests
                 options.Handler.MaxConnection = 100;
                 _server.ConfigureWireMockServer(options);
             });
+
+
             serviceCollection.AddHttpClientOptions(options =>
             {
                 options.ServiceName = "service";
                 options.Handler.MaxConnection = 100;
                 _server.ConfigureWireMockServer(options);
             });
-
 
             serviceCollection.AddHttpClientOptions(options =>
             {
@@ -98,6 +102,8 @@ namespace Http.Options.UnitTests
         [OneTimeSetUp]
         public async Task OneTimeSetup()
         {
+            BuildServices();
+
             await Task.WhenAll(_services.GetServices<IHostedService>()
                 .Select(e => e.StartAsync(CancellationToken.None)));
 
@@ -261,7 +267,7 @@ namespace Http.Options.UnitTests
                 Assert.That(httpActivity.Timestamp, Is.EqualTo(Timestamp).Within(20000),
                     $"timestamp differ by {Timestamp - httpActivity.Timestamp}");
                 Assert.That(httpActivity.StartTime, Is.EqualTo(StartDate).Within(20).Milliseconds, "startTime");
-                Assert.That(httpActivity.EndTime, Is.EqualTo(EndTime).Within(20).Milliseconds, "endTime");
+                Assert.That(httpActivity.EndTime, Is.EqualTo(EndTime).Within(50).Milliseconds, "endTime");
                 Assert.That(httpActivity.TotalTime, Is.EqualTo(Stopwatch.Elapsed).Within(300).Milliseconds,
                     "totalTime");
 
