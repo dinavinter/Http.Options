@@ -1,2 +1,2 @@
-dotnet nuget push "**/*.6.0.0.4.nupkg.symbols.nuspec" --api-key "oy2pdvc65p5mjmm7hfiq2sp6ghaepvxu7ieicem5ollpjm" --source https://api.nuget.org/v3/index.json
-dotnet nuget push "**/*.6.0.0.4.nupkg" --api-key "oy2pdvc65p5mjmm7hfiq2sp6ghaepvxu7ieicem5ollpjm" --source https://api.nuget.org/v3/index.json
+dotnet nuget push "**/*.6.0.1.nupkg.symbols.nuspec" --api-key "oy2pdvc65p5mjmm7hfiq2sp6ghaepvxu7ieicem5ollpjm" --source https://api.nuget.org/v3/index.json
+dotnet nuget push "**/*.6.0.1.nupkg" --api-key "oy2pdvc65p5mjmm7hfiq2sp6ghaepvxu7ieicem5ollpjm" --source https://api.nuget.org/v3/index.json
