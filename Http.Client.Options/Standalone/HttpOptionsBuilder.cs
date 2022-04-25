@@ -26,7 +26,8 @@ namespace Http.Options.Standalone
 
             Services = new ServiceCollection();
             Services.AddHttpClientOptions();
-            Services.AddSingleton<IConfigureOptions<HttpClientOptions>, ConfigureHttpClientOptionsFromCollection>();
+            Services.TryAddSingleton<ConfigureHttpClientOptionsFromCollection>();
+            Services.AddTransient<IConfigureOptions<HttpClientOptions>>(sp=> sp.GetRequiredService<ConfigureHttpClientOptionsFromCollection>());
             Services.BindChangeToken(_changeTokenSource);
         }
 

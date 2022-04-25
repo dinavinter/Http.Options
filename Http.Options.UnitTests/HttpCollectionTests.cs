@@ -341,19 +341,16 @@ namespace Http.Options.UnitTests
         [Test]
         public async Task HttpConnectionChangesAfterTimeoutChange_RemoveFromCache()
         {
-         
-            var timeout = new HttpTimeoutOptions()
-            {
-                TimeoutMS = -1
-            };
             using var server = new WireServer(WireMockServer.Start());
 
-           
-            ChangeTokenSource<HttpClientCollectionOptions> changeToken = null;
-
-            var factory = HttpOptionsBuilder.Configure(builder   =>
+            var timeout = new HttpTimeoutOptions()
             {
-                changeToken = builder.Configure(options =>
+                TimeoutMS = 5000
+            };
+
+            var httpClientCollection = HttpOptionsBuilder.Configure(builder   =>
+            {
+                builder.Configure(options =>
                     {
                         options.AddClient("service", clientOptions   =>
                         {
@@ -367,13 +364,12 @@ namespace Http.Options.UnitTests
             }).Build();
  
 
-            var client = factory.CreateClient("service");
+            var client = httpClientCollection.CreateClient("service");
             await client.GetAsync("/delay/300ms");
 
-
             timeout.TimeoutMS = 1;
-            factory.ServiceProvider().GetRequiredService<IOptionsMonitorCache<HttpClientOptions>>().Clear();
-            factory.ServiceProvider().GetRequiredService<IOptionsMonitorCache<HttpClientCollectionOptions>>().TryRemove( HttpClientCollectionOptions.DefaultName);
+            httpClientCollection.ServiceProvider().GetRequiredService<IOptionsMonitorCache<HttpClientOptions>>().Clear();
+            httpClientCollection.ServiceProvider().GetRequiredService<IOptionsMonitorCache<HttpClientCollectionOptions>>().TryRemove( HttpClientCollectionOptions.DefaultName);
 
             await Task.Delay(TimeSpan.FromSeconds(10));
             var ex = Policy.Handle<AssertionException>().WaitAndRetry(new[]
@@ -381,10 +377,12 @@ namespace Http.Options.UnitTests
                 TimeSpan.FromSeconds(10),
                 TimeSpan.FromSeconds(10),
                 TimeSpan.FromSeconds(20),
-                TimeSpan.FromSeconds(20),
-            }).Execute(() => Assert.ThrowsAsync<TimeoutException>(() => factory.CreateClient("service").GetAsync("/")));
+            }).Execute(() =>
+                Assert.ThrowsAsync<TimeoutException>(() => httpClientCollection.CreateClient("service").GetAsync("/delay/300ms")));
 
-
+            // factory.ServiceProvider().GetRequiredService<IOptionsMonitorCache<HttpClientOptions>>().Clear();
+            // factory.ServiceProvider().GetRequiredService<IOptionsMonitorCache<HttpClientCollectionOptions>>().Clear();
+ 
             Assert.That(ex.Data.Keys, Has.One.Items.Contains("timeout"));
             Assert.That(ex.Data["timeout"], Is.EqualTo(TimeSpan.FromMilliseconds(1)));
         }

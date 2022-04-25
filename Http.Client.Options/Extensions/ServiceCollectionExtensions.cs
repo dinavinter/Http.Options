@@ -116,7 +116,7 @@ namespace Http.Options
 
         public static void BindChangeToken<T>(this IServiceCollection serviceCollection,T changeToken) where T: class, IOptionsChangeTokenSource<HttpClientCollectionOptions>
         { 
-            serviceCollection.AddSingleton(changeToken);
+            serviceCollection.TryAddSingleton(changeToken);
             serviceCollection.AddTransient<IOptionsChangeTokenSource<HttpClientCollectionOptions>>(sp =>
                 sp.GetService<T>());
 
