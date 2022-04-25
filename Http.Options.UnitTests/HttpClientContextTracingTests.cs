@@ -125,7 +125,7 @@ namespace Http.Options.UnitTests
             var serviceName = "service";
             var client = _factory.CreateClient(serviceName);
 
-            var timing = await Time(() => client.GetAsync("/delay/1s"));
+            var timing = await Time(() => client.GetAsync("/delay/200ms"));
 
             HttpTracingActivity tracingCtx = LastActivity(serviceName);
 
@@ -134,7 +134,7 @@ namespace Http.Options.UnitTests
             {
                 timing.AssertTime(tracingCtx);
                 AssertConfig(tracingCtx, serviceName);
-                AssertRequest(tracingCtx, "/delay/1s");
+                AssertRequest(tracingCtx, "/delay/200ms");
                 AssertResponse(tracingCtx, 200);
                 AssertConnection(tracingCtx);
 
