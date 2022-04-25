@@ -4,7 +4,7 @@
     <!--        <PackageReference Update="@(PackageReference)" PrivateAssets="All"/> -->
     <!--    </ItemGroup>-->
     <PropertyGroup>
-        <Version>6.0.2</Version>
+        <Version>7.0.1</Version>
 
         <IncludeSymbols>true</IncludeSymbols>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
