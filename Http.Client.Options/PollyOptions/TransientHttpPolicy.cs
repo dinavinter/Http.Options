@@ -21,21 +21,22 @@ namespace Http.Options
         public BulkheadPolicyOptions<HttpResponseMessage> Bulkhead = new BulkheadPolicyOptions<HttpResponseMessage>();
 
 
-        public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder httpClientBuilder)
+        public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder httpClientBuilder,
+            IServiceProvider services)
         {
-            foreach (var policy in policies().Where(x => x != PolicyNoOp<HttpResponseMessage>.AsyncPolicy))
+            foreach (var policy in policies(services).Where(x => x != PolicyNoOp<HttpResponseMessage>.AsyncPolicy))
             {
                 httpClientBuilder.AdditionalHandlers.Add(new PolicyHttpMessageHandler(policy));
             }
 
 
-            IEnumerable<IAsyncPolicy<HttpResponseMessage>> policies()
+            IEnumerable<IAsyncPolicy<HttpResponseMessage>> policies(IServiceProvider services)
             {
                 yield return Bulkhead.Polly();
                 yield return Timeout.Polly();
                 yield return Retry.Polly(HttpTransientError);
                 yield return CircuitBreaker.Polly(HttpTransientError,
-                    httpClientBuilder.Services
+                    services
                         .GetRequiredService<ILogger<CircuitBreakerOptions<HttpResponseMessage>>>());
             }
         }

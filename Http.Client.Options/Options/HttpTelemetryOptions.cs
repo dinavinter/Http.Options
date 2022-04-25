@@ -15,9 +15,9 @@ namespace Http.Options
         {
          }
  
-        public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder httpClientBuilder)
+        public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder httpClientBuilder, IServiceProvider services)
         {
-            foreach (var handler in Handlers(httpClientBuilder.Services))
+            foreach (var handler in Handlers(services))
             {
                 httpClientBuilder.AdditionalHandlers.Add(handler); 
             }

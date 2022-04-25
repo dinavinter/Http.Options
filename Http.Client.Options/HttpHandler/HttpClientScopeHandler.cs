@@ -13,19 +13,21 @@ namespace Http.Options
         private readonly HttpMessageHandlerBuilder _builder;
         private readonly string _serviceName;
         private readonly IOptionsMonitor<HttpClientOptions> _clientOptions;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public HttpClientScopeHandler(HttpMessageHandlerBuilder builder, IOptionsMonitor<HttpClientOptions> clientOptions)
+        public HttpClientScopeHandler(HttpMessageHandlerBuilder builder, IOptionsMonitor<HttpClientOptions> clientOptions, IServiceScopeFactory serviceScopeFactory)
         {
             _builder = builder;
             _clientOptions = clientOptions;
+            _serviceScopeFactory = serviceScopeFactory;
             _serviceName = builder.Name;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            using var scope = _builder.Services.CreateScope();
-            var clientScope = _builder.Services.GetRequiredService<HttpClientScope>();
+            using var scope = _serviceScopeFactory.CreateScope();
+            var clientScope = scope.ServiceProvider.GetRequiredService<HttpClientScope>();
             clientScope.ServiceName = _serviceName;
             clientScope.HttpClientOptions = _clientOptions.Get(_serviceName);
             return await base.SendAsync(request, cancellationToken);

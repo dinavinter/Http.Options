@@ -21,19 +21,27 @@ namespace Http.Options
             HttpMessageHandlerBuilderConfiguration += ConfigureHttpMessageHandlerBuilder;
             HttpClientConfiguration += ConfigureHttpClient;
             HttpClientFactoryOptionConfiguration += ConfigureHttpClientFactoryOptions;
+            
         }
+        /// <summary>
+        /// used to configure http message build, called from options snapshot whenever new message handler is created
+        /// </summary>
+        public Action<HttpMessageHandlerBuilder, IServiceProvider> HttpMessageHandlerBuilderConfiguration;
+
+        private Action<HttpClientFactoryOptions, IServiceProvider> _httpClientFactoryOptionConfiguration;
 
 
         /// <summary>
         /// used to configure http message build, called from options snapshot whenever new message handler is created
         /// </summary>
-        public Action<HttpMessageHandlerBuilder> HttpMessageHandlerBuilderConfiguration;
+        private Action<HttpMessageHandlerBuilder> HttpMessageHandlerBuilderConfigurations;
 
 
         /// <summary>
         ///used to configure factory options, called once after http options is configured
         /// </summary> 
         public Action<HttpClient> HttpClientConfiguration;
+        private Action<HttpClient, IServiceProvider> _httpClientConfiguration; 
 
         /// <summary>
         ///used to configure factory options, called once after http options is configured
@@ -44,12 +52,12 @@ namespace Http.Options
         /// <summary>
         /// used to configure http message build, called from default HttpMessageHandlerBuilderConfiguration delegate
         /// </summary>
-        protected virtual void ConfigureHttpMessageHandlerBuilder(HttpMessageHandlerBuilder builder)
+        protected virtual void ConfigureHttpMessageHandlerBuilder(HttpMessageHandlerBuilder builder, IServiceProvider services)
         {
             Handler?.ConfigureHttpClientBuilder(builder);
             Timeout?.ConfigureHttpClientBuilder(builder);
-            Telemetry?.ConfigureHttpClientBuilder(builder);
-            Polly?.ConfigureHttpClientBuilder(builder);
+            Telemetry?.ConfigureHttpClientBuilder(builder, services);
+            Polly?.ConfigureHttpClientBuilder(builder, services);
             // builder.AdditionalHandlers.Insert(0, new HttpClientScopeHandler(builder, this));
         }
 
@@ -74,15 +82,15 @@ namespace Http.Options
 
         public void AddHandler<THandler>(Func<HttpClientOptions, THandler> handler) where THandler : DelegatingHandler
         {
-            HttpMessageHandlerBuilderConfiguration += builder =>
+            HttpMessageHandlerBuilderConfiguration += (builder, services) =>
                 builder.AdditionalHandlers.Add(handler(this));
         }
 
         public void AddHandler<THandler>(Func<IServiceProvider, HttpClientOptions, THandler> handler)
             where THandler : DelegatingHandler
         {
-            HttpMessageHandlerBuilderConfiguration += builder =>
-                builder.AdditionalHandlers.Add(handler(builder.Services, this));
+            HttpMessageHandlerBuilderConfiguration += (builder, services) =>
+                builder.AdditionalHandlers.Add(handler(services, this));
         }
 
 

@@ -7,11 +7,13 @@ namespace Http.Options
     public class HttpClientFactoryOptionsConfigure : IConfigureNamedOptions<HttpClientFactoryOptions>
     {
         private readonly IOptionsMonitor<HttpClientOptions> _optionsSnapshot;
+        private readonly IServiceProvider _serviceProvider;
 
         public HttpClientFactoryOptionsConfigure(IOptionsMonitor<HttpClientOptions> optionsSnapshot,
-            IOptionsMonitorCache<HttpClientFactoryOptions> cache)
+            IOptionsMonitorCache<HttpClientFactoryOptions> cache, IServiceProvider serviceProvider)
         {
             _optionsSnapshot = optionsSnapshot;
+            _serviceProvider = serviceProvider;
             optionsSnapshot.OnChange((options, name) => { cache.TryRemove(name); });
         }
 
@@ -27,7 +29,7 @@ namespace Http.Options
 
             options.HttpMessageHandlerBuilderActions.Add(builder =>
             {
-                _optionsSnapshot.Get(name).HttpMessageHandlerBuilderConfiguration(builder);
+                _optionsSnapshot.Get(name).HttpMessageHandlerBuilderConfiguration(builder, _serviceProvider);
             });
         }
     }
