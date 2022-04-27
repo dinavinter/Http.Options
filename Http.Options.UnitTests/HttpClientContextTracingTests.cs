@@ -7,7 +7,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Http.Client.Options.Tracing;
+using Http.Options.Counters;
 using Http.Options.Tracing.OpenTelemetry;
+using Http.Options.Tracing.Processors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
@@ -43,27 +45,76 @@ namespace Http.Options.UnitTests
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddCountersTracing();
-            serviceCollection.ConfigureAll<HttpTracingOptions>(options =>
-            {
-                options.TagsOptions.Config.Name = "name";
-                options.TagsOptions.Config.Port = "port";
-                options.TagsOptions.Config.Schema = "schema";
-                options.TagsOptions.Config.MaxConnection = "maxConnection";
-                options.TagsOptions.Request.Schema = "r.schema";
-                options.TagsOptions.Request.RequestLength = "size";
-                options.TagsOptions.Request.RequestPath = "path";
-                options.TagsOptions.Request.Host = "host";
-                // options.OnActivityEnd(context => _activities.Add(context));
-                options.Exporter.OnExport((HttpTracingActivity a) => _activities.Add(a));
-            });
 
-            serviceCollection
-                .ConfigureAll<OpenTelemetryOptions>(options =>
+            serviceCollection.AddHttpOptionsTelemetry(optionsBuilder =>
                 {
-                    options.ConfigureBuilder += builder => builder.AddConsoleExporter();
-                });
+                    optionsBuilder.ConfigureExportAction(activity => _activities.Add(activity));
+                    optionsBuilder.ConfigureOpenTelemetryBuilder(builder => builder.AddConsoleExporter());
 
-            serviceCollection.AddHttpOptionsTelemetry();
+                  
+               
+                    optionsBuilder.ConfigureProcessor(builder =>
+                    {
+
+                        builder
+                            .OnActivityStart(activityContext =>
+                            {
+                                activityContext.Activity.SetTag("just-marker", "my-cool-service-did-it") ;
+
+                            });
+                        
+                        builder
+                            .OnActivityEnd(activityContext =>
+                            {
+                                activityContext.Activity.SetTag("is-long-request",  activityContext.Activity.Duration > TimeSpan.FromHours(1)) ;
+
+
+                            });
+                    });
+
+                    optionsBuilder.ConfigureTracing(options =>
+                    {
+                        options.Activity.Source = new ActivitySource("my-source");
+                        options.Activity.ActivityName = "http-clint-activity";
+                        options.Activity.ActivityService = "order-service";
+                    });
+                    
+                  
+
+                    optionsBuilder.ConfigureEnrichment(enrichmentOptions =>
+                        {
+                            enrichmentOptions.OnRequest((activity, message) =>
+                            {
+                                activity.Tags["auth-custom-tag"] = message.AuthenticationLevel;
+                            });
+
+
+                            enrichmentOptions.OnResponse((activity, message) =>
+                            {
+                                activity.Tags["response.cookies.count"] = message.Cookies.Count;
+                            });
+
+                            enrichmentOptions.OnError((activity, message) =>
+                            {
+                                activity.Tags["error.source"] = message.Source;
+                            });
+                        }
+                    );
+
+                    optionsBuilder.ConfigureTags(options =>
+                    {
+                        options.Config.Name = "name";
+                        options.Config.Port = "port";
+                        options.Config.Schema = "schema";
+                        options.Config.MaxConnection = "maxConnection";
+                        options.Request.Schema = "r.schema";
+                        options.Request.RequestLength = "size";
+                        options.Request.RequestPath = "path";
+                        options.Request.Host = "host";
+                    });
+                }
+            );
+
 
             serviceCollection.AddHttpClientOptions(options =>
             {
@@ -137,7 +188,6 @@ namespace Http.Options.UnitTests
                 AssertRequest(tracingCtx, "/delay/200ms");
                 AssertResponse(tracingCtx, 200);
                 AssertConnection(tracingCtx);
-
             });
         }
 
@@ -157,9 +207,8 @@ namespace Http.Options.UnitTests
                 // timing.AssertTime(tracingCtx); 
                 AssertConfig(tracingCtx, serviceName);
                 AssertRequest(tracingCtx, "/error/5ms");
-                AssertResponse(tracingCtx, 500); 
+                AssertResponse(tracingCtx, 500);
                 AssertConnection(tracingCtx);
-
             });
         }
 
@@ -174,7 +223,6 @@ namespace Http.Options.UnitTests
             AssertTag(httpActivity, "connection.useNagle", Is.True);
 
 #endif
-
         }
 
 
@@ -274,14 +322,17 @@ namespace Http.Options.UnitTests
 
                 AssertTag(httpActivity, "timestamp", Is.EqualTo(httpActivity.Timestamp));
                 AssertTag(httpActivity, "time.start", Is.EqualTo(httpActivity.Activity.StartTimeUtc));
-                AssertTag(httpActivity, "time.end", Is.EqualTo(httpActivity.Activity.StartTimeUtc.Add(httpActivity.Activity.Duration)));
+                AssertTag(httpActivity, "time.end",
+                    Is.EqualTo(httpActivity.Activity.StartTimeUtc.Add(httpActivity.Activity.Duration)));
                 AssertTag(httpActivity, "time.duration", Is.EqualTo(httpActivity.Activity.Duration));
-                
-                AssertTag(httpActivity, "time.http.start", Is.EqualTo(httpActivity.HttpActivity.StartTimeUtc));
-                AssertTag(httpActivity, "time.http.end", Is.EqualTo(httpActivity.HttpActivity.StartTimeUtc.Add(httpActivity.HttpActivity.Duration)));
-                AssertTag(httpActivity, "time.http.duration", Is.EqualTo(httpActivity.HttpActivity.Duration));
 
+                AssertTag(httpActivity, "time.http.start", Is.EqualTo(httpActivity.HttpActivity.StartTimeUtc));
+                AssertTag(httpActivity, "time.http.end",
+                    Is.EqualTo(httpActivity.HttpActivity.StartTimeUtc.Add(httpActivity.HttpActivity.Duration)));
+                AssertTag(httpActivity, "time.http.duration", Is.EqualTo(httpActivity.HttpActivity.Duration));
             }
         }
     }
+
+    
 }

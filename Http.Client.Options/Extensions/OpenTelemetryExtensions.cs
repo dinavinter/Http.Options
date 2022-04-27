@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Http.Client.Options.Tracing;
 using Http.Options.Counters;
 using Http.Options.Tracing.HttpEnrichment;
 using Http.Options.Tracing.OpenTelemetry;
+using Http.Options.Tracing.OptionsBuilder;
 using Http.Options.Tracing.Processors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -31,12 +34,15 @@ namespace Http.Options
 
             
         }
-        public static void AddHttpOptionsTelemetry(
+        
+          public static void AddHttpOptionsTelemetry(
             this IServiceCollection servicesCollection,
-            Action<TracerProviderBuilder> configureBuilder = null,
-            Action<OptionsBuilder<HttpTracingOptions>> configureTracing = null)
+            Action<OpenTelemetryOptionsBuilder> configureTracing)
         {
-            configureTracing?.Invoke(servicesCollection.AddOptions<HttpTracingOptions>());
+            servicesCollection.AddOptions<HttpTracingOptions>();
+            var optionsBuilder = new OpenTelemetryOptionsBuilder(servicesCollection);
+            servicesCollection.TryAddSingleton(optionsBuilder);
+            configureTracing?.Invoke(optionsBuilder);
             
             servicesCollection.TryAddSingleton<HttpContextEnrichment>();
             servicesCollection.TryAddSingleton<HttpActivityContextProcessor>();
@@ -55,7 +61,7 @@ namespace Http.Options
                         options.Services.Add(tracingOptions.Value.Activity.ActivityService);
                     });
 
-
+            
             servicesCollection
                 .PostConfigureAll<HttpTracingOptions>((options) =>
                 {
@@ -74,8 +80,23 @@ namespace Http.Options
 
                     sp.GetRequiredService<HttpContextEnrichment>().ConfigureTraceProvider(builder);
 
-                    configureBuilder?.Invoke(builder);
                 }));
+        }
+        public static void AddHttpOptionsTelemetry(
+            this IServiceCollection servicesCollection,
+            Action<TracerProviderBuilder> configureBuilder = null,
+            Action<OptionsBuilder<HttpTracingOptions>> configureTracing = null)
+        {
+            configureTracing?.Invoke(servicesCollection.AddOptions<HttpTracingOptions>());
+
+            servicesCollection.AddHttpOptionsTelemetry(optionsBuilder =>
+            {
+                if(configureBuilder!= null)
+                    optionsBuilder.ConfigureOpenTelemetryBuilder(configureBuilder);
+
+
+            });
+          
         }
     }
 }
