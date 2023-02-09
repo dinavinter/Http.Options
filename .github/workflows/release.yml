@@ -10,7 +10,8 @@ env:
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
   NUGET_PUSH_URL: ${{ secrets.NUGET_PUSH_URL }}
   NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-  DOTNET_VERSION: '6.0.x' 
+  DOTNET_VERSION: '6.0.x'
+  TARGET_FRAMEWORKS: 'net6.0'
 
 jobs:
   
@@ -35,8 +36,6 @@ jobs:
         id: release
         uses: cycjimmy/semantic-release-action@v3 
         with:
-          PROJECT_PATH: ${{ env.PROJECT_PATH }}
-          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
             @droidsolutions-oss/semantic-release-update-file
@@ -49,8 +48,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-     
-#      - name: Install dependencies
+          PROJECT_PATH: ${{ env.PROJECT_PATH }}
+          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+          TARGET_FRAMEWORKS: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+            
+            #      - name: Install dependencies
 #        run: dotnet restore
 #
 #      - name: Build
