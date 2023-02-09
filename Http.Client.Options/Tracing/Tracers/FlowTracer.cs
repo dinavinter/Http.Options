@@ -7,21 +7,21 @@ namespace Http.Options.Tracing
 {
     public class FlowTracer
     {
-        public TracingTag Timestamp = "timestamp";
-        public TracingTag RequestStart = "time.start";
-        public TracingTag RequestEnd = "time.end";
-        public TracingTag TotalTime = "time.duration";
+        public TracingTag Timestamp { get; set; } = "timestamp";
+        public TracingTag RequestStart { get; set; } = "time.start";
+        public TracingTag RequestEnd { get; set; } = "time.end";
+        public TracingTag TotalTime { get; set; } = "time.duration";
 
-        public TracingTag HttpRequestStart = "time.http.start";
-        public TracingTag HttpRequestEnd = "time.http.end";
-        public TracingTag HttpTotalTime = "time.http.duration";
+        public TracingTag HttpRequestStart { get; set; } = "time.http.start";
+        public TracingTag HttpRequestEnd { get; set; } = "time.http.end";
+        public TracingTag HttpTotalTime { get; set; } = "time.http.duration";
         
-        public TracingTag HandlerDelta = "time.delta.ms";
-        public TracingTag HandlerDeltaOnStart = "time.delta.start.ms";
-        public TracingTag HandlerDeltaOnEnd = "time.delta.end.ms";
+        public TracingTag HandlerDelta { get; set; } = "time.delta.ms";
+        public TracingTag HandlerDeltaOnStart { get; set; } = "time.delta.start.ms";
+        public TracingTag HandlerDeltaOnEnd { get; set; } = "time.delta.end.ms";
 
 
-        public TracingTag CorrelationsId = "correlation.id";
+        public TracingTag CorrelationsId { get; set; } = "correlation.id";
 
         public void TraceStart(HttpTracingActivity activity)
         {

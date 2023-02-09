@@ -37,7 +37,7 @@ namespace Http.Options.Tracing
             ErrorEnrichment.Add(new HttpErrorEnrichment(onError));
         }
         
-        public void EnrichException(HttpTracingActivity ctx,
+        internal void EnrichException(HttpTracingActivity ctx,
             Exception requestMessage)
         {
             foreach (var enrichment in ErrorEnrichment)
@@ -46,7 +46,7 @@ namespace Http.Options.Tracing
             }
         }
 
-        public void EnrichRequest(HttpTracingActivity ctx,
+        internal void EnrichRequest(HttpTracingActivity ctx,
             HttpRequestMessage requestMessage)
         {
             foreach (var enrichment in  RequestEnrichment)
@@ -55,7 +55,7 @@ namespace Http.Options.Tracing
             }
         }
 
-        public void EnrichRequest(HttpTracingActivity ctx,
+        internal void EnrichRequest(HttpTracingActivity ctx,
             HttpWebRequest requestMessage)
         {
             foreach (var enrichment in  RequestEnrichment)
@@ -64,7 +64,7 @@ namespace Http.Options.Tracing
             }
         }
 
-        public void EnrichResponse(HttpTracingActivity ctx,
+        internal void EnrichResponse(HttpTracingActivity ctx,
             HttpResponseMessage responseMessage)
         {
             foreach (var enrichment in  ResponseEnrichment)
@@ -73,7 +73,7 @@ namespace Http.Options.Tracing
             }
         }
 
-        public void EnrichResponse(HttpTracingActivity ctx, HttpWebResponse responseMessage)
+        internal void EnrichResponse(HttpTracingActivity ctx, HttpWebResponse responseMessage)
         {
             {
                 foreach (var enrichment in  ResponseEnrichment)

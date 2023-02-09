@@ -11,15 +11,15 @@ namespace Http.Options.Tracing
         {
         }
 
-        public TracingTag Count = "connection.count";
-        public TracingTag ConnectionsLimit = "connection.limit";
-        public TracingTag ConnectionsTimeout = "connection.timeout";
-        public TracingTag IdleSince = "connection.idleSince";
-        public TracingTag MaxIdleTime = "connection.maxIdleTime";
-        public TracingTag ReceiveBufferSize = "connection.receiveBufferSize";
-        public TracingTag UseNagleAlgorithm = "connection.useNagle";
-        public TracingTag ConnectionId = "connection.id";
-        public TracingTag ConnectionGroup= "connection.group";
+        public TracingTag Count { get; set; } = "connection.count";
+        public TracingTag ConnectionsLimit { get; set; } = "connection.limit";
+        public TracingTag ConnectionsTimeout { get; set; } = "connection.timeout";
+        public TracingTag IdleSince { get; set; } = "connection.idleSince";
+        public TracingTag MaxIdleTime { get; set; } = "connection.maxIdleTime";
+        public TracingTag ReceiveBufferSize { get; set; } = "connection.receiveBufferSize";
+        public TracingTag UseNagleAlgorithm{ get; set; }  = "connection.useNagle";
+        public TracingTag ConnectionId { get; set; } = "connection.id";
+        public TracingTag ConnectionGroup{ get; set; } = "connection.group";
 
         public void Trace(HttpTracingActivity tracing, HttpWebRequest request)
         {

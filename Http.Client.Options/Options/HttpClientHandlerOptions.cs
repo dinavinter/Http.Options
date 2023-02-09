@@ -7,12 +7,12 @@ namespace Http.Options
 {
     public class HttpClientHandlerOptions
     {
-        public int? MaxConnection = null;
+        public int? MaxConnection { get; set; } =  null;
         
         //the default is 2 min
         //this would consume a bit more memory but enable more efficient caching for http connections
         //(HttpMessageHandler can be reused as long as it is not expired)
-        public double HandlerLifeTimeMinutes = 10;
+        public double HandlerLifeTimeMinutes{ get; set; } = 10;
          
         public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder httpClientBuilder)
         {
