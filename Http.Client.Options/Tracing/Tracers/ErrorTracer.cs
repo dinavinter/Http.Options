@@ -7,12 +7,12 @@ namespace Http.Options.Tracing
 {
     public class ErrorTracer
     {
-        public TracingTag Error =OpenTelemetryConventions.AttributeExceptionMessage;
-        public TracingTag Type =OpenTelemetryConventions.AttributeExceptionType;
-        public TracingTag StackTrace = OpenTelemetryConventions.AttributeExceptionStacktrace ;
-        public TracingTag InnerError =  "exception.inner.message" ;
-        public TracingTag InnerType =  "exception.inner.type" ;
-        public TracingTag InnerStackTrace =  "exception.inner.stackTrace" ;
+        public TracingTag Error { get; set; } =OpenTelemetryConventions.AttributeExceptionMessage;
+        public TracingTag Type { get; set; } =OpenTelemetryConventions.AttributeExceptionType;
+        public TracingTag StackTrace { get; set; } = OpenTelemetryConventions.AttributeExceptionStacktrace ;
+        public TracingTag InnerError { get; set; } =  "exception.inner.message" ;
+        public TracingTag InnerType { get; set; } =  "exception.inner.type" ;
+        public TracingTag InnerStackTrace{ get; set; }  =  "exception.inner.stackTrace" ;
  
         public void Trace(HttpTracingActivity activity, Exception exception)
         { 

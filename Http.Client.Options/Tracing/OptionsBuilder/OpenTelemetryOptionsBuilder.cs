@@ -1,11 +1,12 @@
 using System;
 using Http.Client.Options.Tracing;
-using Http.Options.Tracing.HttpEnrichment;
+using Http.Options.Counters;
 using Http.Options.Tracing.OpenTelemetry;
+using Http.Options.Tracing.Processors;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using OpenTelemetry;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Http.Options.Tracing.OptionsBuilder

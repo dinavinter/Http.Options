@@ -21,8 +21,11 @@ namespace Http.Options
         public int Port { get; set; } = 80;
 
         public string Server { get; set; }
+        
+        public string Url { get; set; }
 
-        public Uri BaseUrl => new Uri($@"{Schema}://{Server}:{Port}/");
+
+        public Uri BaseUrl => new Uri(Url ?? $@"{Schema}://{Server}:{Port}/");
 
         public int? TimeoutMS
         {

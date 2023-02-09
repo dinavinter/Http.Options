@@ -9,13 +9,13 @@ namespace Http.Options.Tracing
 {
     public class RequestTracer
     {
-        public TracingTag Method = OpenTelemetryConventions.AttributeHttpMethod;
-        public TracingTag Url = OpenTelemetryConventions.AttributeHttpUrl;
-        public TracingTag Schema = OpenTelemetryConventions.AttributeHttpScheme;
-        public TracingTag Host = OpenTelemetryConventions.AttributeHttpTarget;
-        public TracingTag RequestPath = OpenTelemetryConventions.AttributeHttpRoute;
-        public TracingTag RequestLength = OpenTelemetryConventions.AttributeHttpRequestContentLength;
-        public TracingTag Port = OpenTelemetryConventions.AttributeHttpHostPort;
+        public TracingTag Method { get; set; } = OpenTelemetryConventions.AttributeHttpMethod;
+        public TracingTag Url { get; set; } = OpenTelemetryConventions.AttributeHttpUrl;
+        public TracingTag Schema { get; set; } = OpenTelemetryConventions.AttributeHttpScheme;
+        public TracingTag Host { get; set; } = OpenTelemetryConventions.AttributeHttpTarget;
+        public TracingTag RequestPath { get; set; } = OpenTelemetryConventions.AttributeHttpRoute;
+        public TracingTag RequestLength { get; set; } = OpenTelemetryConventions.AttributeHttpRequestContentLength;
+        public TracingTag Port { get; set; } = OpenTelemetryConventions.AttributeHttpHostPort;
 
         public void Trace(HttpTracingActivity tracing, HttpRequestMessage request)
         {

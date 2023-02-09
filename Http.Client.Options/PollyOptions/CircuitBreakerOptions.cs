@@ -18,19 +18,19 @@ namespace Http.Options
     public class CircuitBreakerOptions<T> : PolicyOptions<T>
     {
         /// The failure threshold at which the circuit will break (a number between 0 and 1; eg 0.5 represents breaking if 50% or more of actions result in a handled failure.
-        public double FailureThreshold = 0.8;
+        public double FailureThreshold { get; set; } = 0.8;
 
         ///The duration of the time slice over which failure ratios are assessed in MS.
-        public double SamplingDuration = 1000;
+        public double SamplingDuration { get; set; }= 1000;
 
         ///The minimum throughput: this many actions or more must pass through the circuit in the time-slice, for statistics to be considered significant and the circuit-breaker to come into action
-        public int MinimumThroughput = 10;
+        public int MinimumThroughput { get; set; }= 10;
 
         ///The duration the circuit will stay open before resetting in MS.
-        public double DurationOfBreak = 1000;
+        public double DurationOfBreak { get; set; }= 1000;
 
         /// fail, log, none 
-        public string FailPolicy = "fail";
+        public string FailPolicy{ get; set; } = "fail";
 
         private IAsyncPolicy<T> _policy;
  

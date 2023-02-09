@@ -6,8 +6,8 @@ namespace Http.Options.Tracing
     public class TracingActivityOptions
     {
         public ActivitySource Source = new ActivitySource("http-options-activity-source");
-        public string ActivityName = "http-options-activity";
-        public string ActivityService= "http-options-service";
+        public string ActivityName { get; set; } = "http-options-activity";
+        public string ActivityService { get; set; } = "http-options-service";
 
         public Activity StartActivity( )
         {
