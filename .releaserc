@@ -1,0 +1,58 @@
+{
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md",
+        "changelogTitle": "# Semantic Versioning Changelog"
+      }
+    ],
+    "@droidsolutions-oss/semantic-release-update-file",
+    "@droidsolutions-oss/semantic-release-nuget",
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "Directory.Build.props"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    "@semantic-release/github"
+  ],
+  "npmPublish": false,
+  "projectPath": "Http.Client.Options/Http.Client.Options.csproj",
+  "includeSymbols": true,
+  "files": [
+    {
+      "path": [
+        "Directory.Build.props"
+      ],
+      "type": "xml",
+      "replacements": [
+        {
+          "key": "VersionPrefix",
+          "value": "${nextRelease.version}"
+        },
+        {
+          "key": "RepositoryCommit",
+          "value": "${CI_COMMIT_SHA}"
+        }
+      ]
+    }
+  ],
+  "branches": [
+    "master",
+    {
+      "name": "beta",
+      "prerelease": true
+    },
+    {
+      "name": "prerelease",
+      "prerelease": true
+    }
+  ]
+}
