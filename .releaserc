@@ -1,0 +1,41 @@
+{
+  // order of plugins is important, because it is the execution order
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "@droidsolutions-oss/semantic-release-update-file", // update version in Directory.Build.props
+    "@semantic-release/npm",
+    "@droidsolutions-oss/semantic-release-nuget", // create nuget package
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "Directory.Build.props" // add updated file to the Semantic Release commit
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    "@semantic-release/gitlab"
+  ],
+  "npmPublish": false, // prevent creating NPM package
+  "projectPath": "Http.Client.Options/Http.Client.Options.csproj",  
+  "includeSymbols": true,
+  "files": [
+    {
+      "path": ["Directory.Build.props"], // configure update-file pluginn to update fields in Directory.Build.props
+      "type": "xml",
+      "replacements": [
+        {
+          "key": "VersionPrefix",
+          "value": "${nextRelease.version}"
+        },
+        {
+          "key": "RepositoryCommit",
+          "value": "${CI_COMMIT_SHA}"
+        }
+      ]
+    }
+  ]
+}
