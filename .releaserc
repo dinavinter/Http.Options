@@ -31,7 +31,7 @@
     [
       "@semantic-release/exec",
       {
-        "cmd": "dotnet build --configuration Release --framework net6.0"
+        "cmd": "dotnet pack $root_dir/${PROJECT_PATH} --configuration Release --framework net6.0 --include-symbols --include-source --output ${PACKAGE_OUTPUT_DIRECTORY} /p:ContinuousIntegrationBuild=true"
       }
     ],
     "@droidsolutions-oss/semantic-release-nuget",
@@ -40,7 +40,8 @@
       {
         "assets": [
           "CHANGELOG.md",
-          "Directory.Build.props"
+          "Directory.Build.props",
+          "${PACKAGE_OUTPUT_DIRECTORY}"
         ],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
@@ -48,7 +49,7 @@
     "@semantic-release/github"
   ],
   "npmPublish": false,
-  "projectPath": "Http.Client.Options/Http.Client.Options.csproj",
+  "projectPath": "${PROJECT_PATH}",
   "includeSymbols": true,
   "files": [
     {
