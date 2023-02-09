@@ -20,22 +20,10 @@ jobs:
           dotnet-version: 6.0.x
       - name: Semantic Release
         id: release
-        uses: cycjimmy/semantic-release-action@v3
-        with:
-          cmd: dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ env.NUGET_PUSH_URL }}
-          assets: 'artifacts/**/*.nupkg'
-          working_directory: ./Http.Client.Options
-          extra_plugins: |
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @droidsolutions-oss/semantic-release-update-file
-            @droidsolutions-oss/semantic-release-nuget
-            @semantic-release/github
-            @semantic-release/git
-
-           
+        uses: cycjimmy/semantic-release-action@v3 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
           
       - name: 'Pack & Publish project'
         if: ${{ steps.release.outputs.new_release_version }}
