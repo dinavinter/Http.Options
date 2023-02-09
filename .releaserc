@@ -14,11 +14,24 @@
       {
         "files": [
           {
-            "path": ["Directory.Build.props"],
+            "path": [
+              "Directory.Build.props"
+            ],
             "type": "xml",
-            "replacements": [{ "key": "Version", "value": "${nextRelease.version}" }]
+            "replacements": [
+              {
+                "key": "Version",
+                "value": "${nextRelease.version}"
+              }
+            ]
           }
         ]
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "dotnet build --configuration Release --no-restore --framework net6.0"
       }
     ],
     "@droidsolutions-oss/semantic-release-nuget",
