@@ -31,7 +31,7 @@
     [
       "@semantic-release/exec",
       {
-        "cmd": "dotnet pack $root_dir/${PROJECT_PATH} --configuration Release --framework net6.0 --include-symbols --include-source --output ${PACKAGE_OUTPUT_DIRECTORY} /p:ContinuousIntegrationBuild=true"
+        "cmd": "dotnet pack $root_dir/${process.env.PROJECT_PATH} --configuration Release --framework net6.0 --include-symbols --include-source --output ${process.env.PACKAGE_OUTPUT_DIRECTORY} /p:ContinuousIntegrationBuild=true"
       }
     ],
     "@droidsolutions-oss/semantic-release-nuget",
@@ -49,7 +49,7 @@
     "@semantic-release/github"
   ],
   "npmPublish": false,
-  "projectPath": "${PROJECT_PATH}",
+  "projectPath": "${process.env.PROJECT_PATH}",
   "includeSymbols": true,
   "files": [
     {
