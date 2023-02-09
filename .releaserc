@@ -31,7 +31,8 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "dotnet build --configuration Release --no-restore --framework net6.0"
+        "prepareCmd": "dotnet restore",
+        "cmd": "dotnet build --configuration Release --no-restore --framework net6.0"
       }
     ],
     "@droidsolutions-oss/semantic-release-nuget",
