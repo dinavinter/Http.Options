@@ -23,7 +23,7 @@ namespace Http.Options
             }
         }
 
-        private IEnumerable<DelegatingHandler> Handlers(IServiceProvider serviceProvider)
+        protected IEnumerable<DelegatingHandler> Handlers(IServiceProvider serviceProvider)
         {
 
             if (Counter)
