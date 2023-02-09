@@ -13,12 +13,12 @@ namespace Http.Options
 {
     public class HttpPollyOptions
     {
-        public CircuitBreakerOptions<HttpResponseMessage> CircuitBreaker =
+        public CircuitBreakerOptions<HttpResponseMessage> CircuitBreaker { get; set; }=
             new CircuitBreakerOptions<HttpResponseMessage>();
 
-        public RetryPolicyOptions<HttpResponseMessage> Retry = new RetryPolicyOptions<HttpResponseMessage>();
-        public TimeoutPolicyOptions<HttpResponseMessage> Timeout = new TimeoutPolicyOptions<HttpResponseMessage>();
-        public BulkheadPolicyOptions<HttpResponseMessage> Bulkhead = new BulkheadPolicyOptions<HttpResponseMessage>();
+        public RetryPolicyOptions<HttpResponseMessage> Retry { get; set; }= new RetryPolicyOptions<HttpResponseMessage>();
+        public TimeoutPolicyOptions<HttpResponseMessage> Timeout { get; set; }= new TimeoutPolicyOptions<HttpResponseMessage>();
+        public BulkheadPolicyOptions<HttpResponseMessage> Bulkhead { get; set; }= new BulkheadPolicyOptions<HttpResponseMessage>();
 
 
         public void ConfigureHttpClientBuilder(HttpMessageHandlerBuilder httpClientBuilder,

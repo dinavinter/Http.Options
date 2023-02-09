@@ -10,8 +10,8 @@ namespace Http.Options.Tracing
 {
     public class ResponseTracer
     {
-        public TracingTag ContentLength = OpenTelemetryConventions.AttributeHttpResponseContentLength;
-        public TracingTag HttpStatusCode = OpenTelemetryConventions.AttributeHttpStatusCode;
+        public TracingTag ContentLength { get; set; } = OpenTelemetryConventions.AttributeHttpResponseContentLength;
+        public TracingTag HttpStatusCode { get; set; } = OpenTelemetryConventions.AttributeHttpStatusCode;
 
         public void Trace(HttpTracingActivity activity, HttpResponseMessage httpResponseMessage)
         { 

@@ -10,11 +10,11 @@ namespace Http.Options
     {
         public string ServiceName;
 
-        public HttpPollyOptions Polly = new HttpPollyOptions();
-        public HttpTimeoutOptions Timeout = new HttpTimeoutOptions();
-        public HttpClientHandlerOptions Handler = new HttpClientHandlerOptions();
-        public HttpConnectionOptions Connection = new HttpConnectionOptions();
-        public HttpTelemetryOptions Telemetry = new HttpTelemetryOptions();
+        public HttpPollyOptions Polly { get; set; }= new HttpPollyOptions();
+        public HttpTimeoutOptions Timeout { get; set; }= new HttpTimeoutOptions();
+        public HttpClientHandlerOptions Handler { get; set; }= new HttpClientHandlerOptions();
+        public HttpConnectionOptions Connection { get; set; }= new HttpConnectionOptions();
+        public HttpTelemetryOptions Telemetry { get; set; }= new HttpTelemetryOptions();
 
         public HttpClientOptions()
         {
