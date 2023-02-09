@@ -4,8 +4,8 @@
     <!--        <PackageReference Update="@(PackageReference)" PrivateAssets="All"/> -->
     <!--    </ItemGroup>-->
     <PropertyGroup>
-        <Version>7.2.1</Version>
-<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <Version>7.2.0</Version>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <IncludeSymbols>true</IncludeSymbols>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
