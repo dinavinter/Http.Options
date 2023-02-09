@@ -31,7 +31,7 @@
     [
       "@semantic-release/exec",
       {
-        "cmd": "dotnet pack {process.env.PROJECT_PATH} --configuration Release --include-symbols --include-source --output ${process.env.PACKAGE_OUTPUT_DIRECTORY} /p:ContinuousIntegrationBuild=true"
+        "cmd": "dotnet pack ${process.env.PROJECT_PATH} --configuration Release --include-symbols --include-source --output ${process.env.PACKAGE_OUTPUT_DIRECTORY} /p:ContinuousIntegrationBuild=true"
       }
     ],
     "@droidsolutions-oss/semantic-release-nuget",
@@ -41,7 +41,7 @@
         "assets": [
           "CHANGELOG.md",
           "Directory.Build.props",
-          "${PACKAGE_OUTPUT_DIRECTORY}"
+          "${process.env.PACKAGE_OUTPUT_DIRECTORY}"
         ],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
