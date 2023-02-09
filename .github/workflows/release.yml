@@ -25,7 +25,7 @@ jobs:
           cmd: dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ env.NUGET_PUSH_URL }}
           assets: 'artifacts/**/*.nupkg'
           working_directory: ./Http.Client.Options
-          extra_plugins: 
+          extra_plugins: |
             @semantic-release/commit-analyzer
             @semantic-release/release-notes-generator
             @droidsolutions-oss/semantic-release-update-file
