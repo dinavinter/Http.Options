@@ -50,7 +50,7 @@ jobs:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
           PROJECT_PATH: ${{ env.PROJECT_PATH }}
           PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-          TARGET_FRAMEWORKS: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
             
             #      - name: Install dependencies
 #        run: dotnet restore
