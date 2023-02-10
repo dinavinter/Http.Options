@@ -9,12 +9,12 @@ namespace Http.Options.Tracing.Tcp
 {
     public class TcpTracer
     {
-        public TimeSpan Period = TimeSpan.FromMinutes(1);
-        public bool Enabled = false;
+        public TimeSpan Period { get; set; } = TimeSpan.FromMinutes(1);
+        public bool Enabled{ get; set; }  = false;
         private static readonly TcpConnectionsEnumerator ConnectionsEnumerator = new TcpConnectionsEnumerator();
 
-        public TracingTagAction AllConnections = "tcp.connections.all";
-        public TracingTagAction TotalConnection = "tcp.connections.total";
+        public TracingTagAction AllConnections { get; set; } = "tcp.connections.all";
+        public TracingTagAction TotalConnection { get; set; } = "tcp.connections.total";
  
         public readonly TracingTagGroup<TcpState?> ConnectionState = new TracingTagGroup<TcpState?>(TcpStateName, enabled: false);
 

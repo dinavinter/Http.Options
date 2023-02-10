@@ -5,14 +5,14 @@ namespace Http.Options.Tracing
 {
     public class TracingTagsOptions
     {
-        public readonly ConfigTracer Config = new ConfigTracer();
-        public readonly RequestTracer Request = new RequestTracer();
-        public readonly ResponseTracer Response = new ResponseTracer();
-        public readonly FlowTracer Context = new FlowTracer();
-        public readonly ErrorTracer Error = new ErrorTracer();
-        public readonly ConnectionTracer Connection = new ConnectionTracer();
-        public readonly TcpTracer Tcp = new TcpTracer();
-        public readonly CountersTracer Counter = new CountersTracer();
+        public  ConfigTracer Config { get; set; } = new ConfigTracer();
+        public  RequestTracer Request  { get; set; } = new RequestTracer();
+        public  ResponseTracer Response  { get; set; } = new ResponseTracer();
+        public  FlowTracer Context  { get; set; } = new FlowTracer();
+        public  ErrorTracer Error  { get; set; } = new ErrorTracer();
+        public  ConnectionTracer Connection { get; set; }  = new ConnectionTracer();
+        public  TcpTracer Tcp  { get; set; } = new TcpTracer();
+        public  CountersTracer Counter  { get; set; } = new CountersTracer();
 
         public void ConfigureTracingOptions(HttpTracingOptions options )
         {
