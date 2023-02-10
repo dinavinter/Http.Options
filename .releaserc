@@ -31,7 +31,9 @@
     [
       "@semantic-release/exec",
       {
-        "publishCmd": "dotnet build ${process.env.PROJECT_PATH} --framework ${process.env.TARGET_FRAMEWORKS} --configuration Release  --no-restore --output ${process.env.PACKAGE_OUTPUT_DIRECTORY}"
+        "analyzeCommitsCmd": "minor",
+        "prepareCmd": "dotnet pack ${process.env.PROJECT_PATH} --framework ${process.env.TARGET_FRAMEWORKS} --configuration Release  --no-restore --output ${process.env.PACKAGE_OUTPUT_DIRECTORY} -p:PackageVersion=${context.nextRelease!.version}",
+        "publishCmd": "dotnet nuget push ${process.env.PACKAGE_OUTPUT_DIRECTORY }/*.nupkg -k ${process.env.NUGET_TOKEN } -s ${ process.env.NUGET_PUSH_URL }"
       }
     ],
     [
