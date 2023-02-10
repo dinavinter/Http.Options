@@ -31,7 +31,7 @@
     [
       "@semantic-release/exec",
       {
-        "cmd": "dotnet build ${process.env.PROJECT_PATH} --framework ${process.env.TARGET_FRAMEWORKS} --configuration Release  --no-restore --output ${process.env.PACKAGE_OUTPUT_DIRECTORY}"
+        "publishCmd": "dotnet build ${process.env.PROJECT_PATH} --framework ${process.env.TARGET_FRAMEWORKS} --configuration Release  --no-restore --output ${process.env.PACKAGE_OUTPUT_DIRECTORY}"
       }
     ],
     [
