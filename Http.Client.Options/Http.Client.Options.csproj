@@ -6,7 +6,7 @@
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
         <Version>$(Version)</Version>
-        <TargetFrameworks>net6.0;net5.0;netstandard2.0;netstandard2.1</TargetFrameworks>
+        <TargetFramework>net6.0</TargetFramework>
 
     </PropertyGroup>
     <PropertyGroup Label="Package Properties">
@@ -15,6 +15,9 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageTags>http</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReleaseNotes>CHANGELOG.md</PackageReleaseNotes>
+        <DebugType>embedded</DebugType>
+
         <PackageProjectUrl>https://github.com/dinavinter/Http.Options.git</PackageProjectUrl>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
