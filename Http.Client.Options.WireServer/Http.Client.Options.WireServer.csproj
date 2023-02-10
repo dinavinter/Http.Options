@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <TargetFrameworks>net5.0;net6.0</TargetFrameworks> 
+        <TargetFrameworks>net6.0</TargetFrameworks> 
     </PropertyGroup>
 
     <ItemGroup>
