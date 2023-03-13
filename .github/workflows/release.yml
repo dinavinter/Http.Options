@@ -1,4 +1,4 @@
-name: Release
+name: release
 on:
   workflow_dispatch:
   push:
@@ -6,33 +6,37 @@ on:
       - "beta"
       - "prerelease"
       - "master"
+
+
 env:
   PROJECT_PATH: 'Http.Client.Options/Http.Client.Options.csproj'
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
   NUGET_PUSH_URL: ${{ secrets.NUGET_PUSH_URL }}
   NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-  DOTNET_VERSION: '6.0.x'
-  TARGET_FRAMEWORKS: 'net6.0'
 
 jobs:
-  
+  test:
+    uses: ./test.yml@beta
+
   release:
+    needs: test
     name: Release
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        
       - name: Setup .NET
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
+        uses: actions/setup-dotnet@v3
+        
+      - run: echo '${{ steps.stepid.outputs.dotnet-version }}'
+        
       - name: Install dependencies
         run: dotnet restore
-      
+        
       - name: Semantic Release
         id: release
         uses: cycjimmy/semantic-release-action@v3 

@@ -2,11 +2,10 @@
 
     <PropertyGroup>
         <RootNamespace>Http.Options</RootNamespace>
-         <LangVersion>8</LangVersion>
+         <LangVersion>11</LangVersion>
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
         <Version>$(Version)</Version>
-        <TargetFramework>net6.0</TargetFramework>
 
     </PropertyGroup>
     <PropertyGroup Label="Package Properties">
