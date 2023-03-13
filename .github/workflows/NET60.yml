@@ -1,10 +1,11 @@
 name: .NET60
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ main, master, beta, release, prerelease]
   pull_request:
-    branches: [ master ]
+    branches: [ main, master, beta, release, prerelease ]
 
 jobs:
   build:

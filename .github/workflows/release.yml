@@ -5,6 +5,7 @@ on:
     branches:
       - "beta"
       - "prerelease"
+      - "master"
 env:
   PROJECT_PATH: 'Http.Client.Options/Http.Client.Options.csproj'
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
