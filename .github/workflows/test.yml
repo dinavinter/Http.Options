@@ -39,8 +39,7 @@ jobs:
       if: ${{ always() }}
     - uses: dorny/test-reporter@v1
       with:
-        artifact: test-results-(.*)
-        name: Test report $1
+        name: Test Report - net${{ matrix.dotnet }} 
         reporter: dotnet-trx
         path: "reports/**/*.trx"
       if: ${{ always() }}
