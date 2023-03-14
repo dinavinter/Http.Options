@@ -1,49 +1,65 @@
 name: dotnet test
 
 on:
+  workflow_call:
   workflow_dispatch:
   push:
-    branches: [ main, master, beta, release, prerelease]
+    branches: [ main, master, release, prerelease]
   pull_request:
     branches: [ main, master, beta, release, prerelease ]
   
 jobs:
+ 
   build:
-    
-
+ 
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet: [ '6.*', '7.*']
-    name: Test w/t ${{ matrix.dotnet }} 
+        dotnet: ['net6 & net7']
+    name: Test
+
     steps:
+
     - uses: actions/checkout@v3
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
+
+    - uses: actions/cache@v3
+      id: cache
       with:
-        dotnet-version: ${{ matrix.dotnet }}
+        path: | 
+         **/bin
+         reports
+        key: ${{ runner.os }}-build-${{ hashFiles('**/Http.Options/[!.github]') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{hashFiles('**/Http.Options/[!.github]') }}
+
+
     - name: Restore dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
       run: dotnet restore
       
     - name: Build
-      run: dotnet build --no-restore
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: dotnet build --no-restore -o build
       
     - name: Test
-      run: dotnet test  --no-build --logger trx --results-directory "test-results-${{ matrix.dotnet-version }}"
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: dotnet test --no-build --logger trx --results-directory "reports/${{ matrix.dotnet }}/tests"
 
     - name: Upload dotnet test results
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-${{ matrix.dotnet-version }}
-        path: test-results-${{ matrix.dotnet-version }}
-      if: ${{ always() }}
+        name: test-results-${{ matrix.dotnet }}
+        path: reports/${{ matrix.dotnet }}/tests
+
     - uses: dorny/test-reporter@v1
       with:
-        path: test-results-${{ matrix.dotnet-version }}
-        name: test-results-${{ matrix.dotnet-version }}
+        name: Test Report - net${{ matrix.dotnet }} 
         reporter: dotnet-trx
-        fail-on-error: 'true'
-        artifact: test-results-${{ matrix.dotnet-version }}
+        path: "reports/**/*.trx"
       if: ${{ always() }}
 #    - name: Summery Report
 #      run: |

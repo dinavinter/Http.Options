@@ -16,12 +16,13 @@ env:
 
 jobs:
   test:
-    uses: ./test.yml@beta
+    uses: './.github/workflows/test.yml'
 
   release:
     needs: test
     name: Release
     strategy:
+      max-parallel: 1
       matrix:
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
@@ -44,9 +45,11 @@ jobs:
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
             @droidsolutions-oss/semantic-release-update-file
+            @droidsolutions-oss/semantic-release-nuget
             @semantic-release/git
             @semantic-release/github
-            @semantic-release/exec
+
+     #          @semantic-release/exec
 
 
         env:
