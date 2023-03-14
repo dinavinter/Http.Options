@@ -1,0 +1,83 @@
+{
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md",
+        "changelogTitle": "# Semantic Versioning Changelog"
+      }
+    ],
+    [
+      "@droidsolutions-oss/semantic-release-update-file",
+      {
+        "files": [
+          {
+            "path": [
+              "Directory.Build.props"
+            ],
+            "type": "xml",
+            "replacements": [
+              {
+                "key": "Version",
+                "value": "${nextRelease.version}"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "dotnet build ${process.env.PROJECT_PATH} --configuration Release  --no-restore --output ${process.env.PACKAGE_OUTPUT_DIRECTORY} -p:PackageVersion=${nextRelease.version}",
+        "publishCmd": "dotnet nuget push ${process.env.PACKAGE_OUTPUT_DIRECTORY }/*.nupkg -k ${process.env.NUGET_TOKEN } -s ${ process.env.NUGET_PUSH_URL }"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "Directory.Build.props",
+          "${process.env.PACKAGE_OUTPUT_DIRECTORY}"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    "@semantic-release/github"
+  ],
+  "npmPublish": false,
+  "projectPath": "${process.env.PROJECT_PATH}",
+  "includeSymbols": true,
+  "files": [
+    {
+      "path": [
+        "Directory.Build.props" 
+      ],
+      "type": "xml",
+      "replacements": [
+        {
+          "key": "VersionPrefix",
+          "value": "${nextRelease.version}"
+        },
+        {
+          "key": "RepositoryCommit",
+          "value": "${CI_COMMIT_SHA}"
+        }
+      ]
+    }
+  ],
+  "branches": [
+    "master",
+    {
+      "name": "beta",
+      "prerelease": true
+    },
+    {
+      "name": "prerelease",
+      "prerelease": true
+    }
+  ]
+}

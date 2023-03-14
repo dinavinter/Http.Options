@@ -1,0 +1,50 @@
+name: dotnet test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master, beta, release, prerelease]
+  pull_request:
+    branches: [ main, master, beta, release, prerelease ]
+  
+jobs:
+  build:
+    
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet: [ '6.*', '7.*']
+    name: Test w/t ${{ matrix.dotnet }} 
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ matrix.dotnet }}
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Test
+      run: dotnet test  --no-build --logger trx --results-directory "reports/${{ matrix.dotnet }}/tests"
+
+    - name: Upload dotnet test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.dotnet }}
+        path: reports/${{ matrix.dotnet }}/tests
+      if: ${{ always() }}
+    - uses: dorny/test-reporter@v1
+      with:
+        path: reports/${{ matrix.dotnet }}/tests
+        name: Test report ${{ matrix.dotnet }}
+        reporter: dotnet-trx
+        fail-on-error: 'true'
+      if: ${{ always() }}
+#    - name: Summery Report
+#      run: |
+#        echo "- Test w/t ${{ matrix.dotnet }} done" >> $GITHUB_STEP_SUMMARY
+
