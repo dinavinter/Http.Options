@@ -39,10 +39,9 @@ jobs:
       if: ${{ always() }}
     - uses: dorny/test-reporter@v1
       with:
-        path: reports/${{ matrix.dotnet }}/tests
-        name: Test report ${{ matrix.dotnet }}
+        artifact: test-results-(.*)
+        name: Test report $1
         reporter: dotnet-trx
-        fail-on-error: 'true'
       if: ${{ always() }}
 #    - name: Summery Report
 #      run: |
