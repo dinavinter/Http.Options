@@ -29,21 +29,20 @@ jobs:
       run: dotnet build --no-restore
       
     - name: Test
-      run: dotnet test  --no-build --logger trx --results-directory "test-results-${{ matrix.dotnet-version }}"
+      run: dotnet test  --no-build --logger trx --results-directory "reports/${{ matrix.dotnet }}/tests"
 
     - name: Upload dotnet test results
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-${{ matrix.dotnet-version }}
-        path: test-results-${{ matrix.dotnet-version }}
+        name: test-results-${{ matrix.dotnet }}
+        path: reports/${{ matrix.dotnet }}/tests
       if: ${{ always() }}
     - uses: dorny/test-reporter@v1
       with:
-        path: test-results-${{ matrix.dotnet-version }}
-        name: test-results-${{ matrix.dotnet-version }}
+        path: reports/${{ matrix.dotnet }}/tests
+        name: Test report ${{ matrix.dotnet }}
         reporter: dotnet-trx
         fail-on-error: 'true'
-        artifact: test-results-${{ matrix.dotnet-version }}
       if: ${{ always() }}
 #    - name: Summery Report
 #      run: |
