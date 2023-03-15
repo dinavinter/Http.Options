@@ -48,7 +48,7 @@ jobs:
       
     - name: Test
       if: steps.cache.outputs.cache-hit != 'true'
-      run: dotnet test build  --no-build --logger trx --results-directory "reports/${{ matrix.dotnet }}/tests"
+      run: dotnet test --no-build --logger trx --results-directory "reports/${{ matrix.dotnet }}/tests"
 
     - name: Upload dotnet test results
       if: steps.cache.outputs.cache-hit != 'true'
