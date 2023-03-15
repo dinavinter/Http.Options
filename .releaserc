@@ -74,7 +74,7 @@
     {
       "name": "beta",
       "prerelease": true,
-      "channel": "beta/${CI_COMMIT_SHA}"
+      "channel": "beta"
     },
     {
       "name": "prerelease",
