@@ -16,7 +16,7 @@ env:
 
 jobs:
   test:
-    uses: './.github/workflows/test.yml@${{github.ref_name}}'
+    uses: './.github/workflows/test.yml'
 
   release:
     needs: test
