@@ -1,9 +1,10 @@
 name: dotnet test
 
 on:
+  workflow_call:
   workflow_dispatch:
   push:
-    branches: [ main, master, beta, release, prerelease]
+    branches: [ main, master, release, prerelease]
   pull_request:
     branches: [ main, master, beta, release, prerelease ]
   
