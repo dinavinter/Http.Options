@@ -3,7 +3,6 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "beta"
       - "prerelease"
       - "master"
 
@@ -16,7 +15,7 @@ env:
 
 jobs:
   test:
-    uses: '${{repository_owner}}/${{github.repository}}/.github/workflows/test.yml@${{github.ref_name}}'
+    uses: './.github/workflows/test.yml@${{github.ref_name}}'
 
   release:
     needs: test
