@@ -22,6 +22,7 @@ jobs:
     needs: test
     name: Release
     strategy:
+      max-parallel: 1
       matrix:
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
