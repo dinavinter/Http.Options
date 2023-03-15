@@ -45,9 +45,11 @@ jobs:
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
             @droidsolutions-oss/semantic-release-update-file
+            @droidsolutions-oss/semantic-release-nuget
             @semantic-release/git
             @semantic-release/github
-            @semantic-release/exec
+
+     #          @semantic-release/exec
 
 
         env:
