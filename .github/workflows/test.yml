@@ -30,6 +30,8 @@ jobs:
           echo "- Test results restored from cahce key = ${{ runner.os }}-${{ hashFiles('Http.*/**') }}" >> $GITHUB_STEP_SUMMARY
 
   build:
+    needs: [ cache ]
+
     if: jobs.cache.outputs.cache-hit != 'true'
     runs-on: ubuntu-latest
     strategy:
