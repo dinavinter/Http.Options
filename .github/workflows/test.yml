@@ -9,29 +9,9 @@ on:
     branches: [ main, master, beta, release, prerelease ]
   
 jobs:
-  cache: 
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        id: cache
-        with:
-          key: ${{ runner.os }}-${{ hashFiles('Http.*/**') }}
-    outputs: 
-      include: steps.cache.outputs
-  
-  restore-cache:
-    if: steps.cache.outputs.cache-hit == 'true'
-    runs-on: ubuntu-latest
-    steps:
-       - name: Summery Report
-         run: |
-          echo "- Test results restored from cahce key = ${{ runner.os }}-${{ hashFiles('Http.*/**') }}" >> $GITHUB_STEP_SUMMARY
-
+ 
   build:
-    needs: [ cache ]
-
-    if: steps.cache.outputs.cache-hit != 'true'
+ 
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -46,13 +26,26 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: ${{ matrix.dotnet }}
+
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path: ${{ github.workspace }}/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+
     - name: Restore dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
       run: dotnet restore
       
     - name: Build
+      if: steps.cache.outputs.cache-hit != 'true'
       run: dotnet build --no-restore
       
     - name: Test
+      if: steps.cache.outputs.cache-hit != 'true'
       run: dotnet test  --no-build --logger trx --results-directory "reports/${{ matrix.dotnet }}/tests"
 
     - name: Upload dotnet test results
