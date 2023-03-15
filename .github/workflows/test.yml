@@ -14,15 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
-        id: get
+        id: cache
         with:
-          path: path/to/dependencies
           key: ${{ runner.os }}-${{ hashFiles('Http.*/**') }}
     outputs: 
       include: steps.get.outputs
   
   restore-cache:
-    if: jobs.cache.outputs.cache-hit == 'true'
+    if: steps.cache.outputs.cache-hit == 'true'
     runs-on: ubuntu-latest
     steps:
        - name: Summery Report
@@ -32,7 +31,7 @@ jobs:
   build:
     needs: [ cache ]
 
-    if: jobs.cache.outputs.cache-hit != 'true'
+    if: steps.cache.outputs.cache-hit != 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
