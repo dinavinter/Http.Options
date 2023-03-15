@@ -30,10 +30,12 @@ jobs:
     - uses: actions/cache@v3
       id: cache
       with:
-        path: ${{ github.workspace }}/.nuget/packages
+        path: | 
+         ${{ github.workspace }}/build
+         ${{ github.workspace }}/reports
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-nuget-
+          ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
 
 
     - name: Restore dependencies
@@ -42,18 +44,19 @@ jobs:
       
     - name: Build
       if: steps.cache.outputs.cache-hit != 'true'
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -o build
       
     - name: Test
       if: steps.cache.outputs.cache-hit != 'true'
       run: dotnet test  --no-build --logger trx --results-directory "reports/${{ matrix.dotnet }}/tests"
 
     - name: Upload dotnet test results
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/upload-artifact@v3
       with:
         name: test-results-${{ matrix.dotnet }}
         path: reports/${{ matrix.dotnet }}/tests
-      if: ${{ always() }}
+
     - uses: dorny/test-reporter@v1
       with:
         name: Test Report - net${{ matrix.dotnet }} 
