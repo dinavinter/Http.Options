@@ -16,7 +16,7 @@ env:
 
 jobs:
   test:
-    uses: ./test.yml@beta
+    uses: '${{repository_owner}}/${{ github.repository }}.github/workflows/test.yml@${{github.ref_name}}'
 
   release:
     needs: test
