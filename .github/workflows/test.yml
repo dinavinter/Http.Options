@@ -9,16 +9,38 @@ on:
     branches: [ main, master, beta, release, prerelease ]
   
 jobs:
-  build:
-    
+  cache: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        id: get
+        with:
+          path: path/to/dependencies
+          key: ${{ runner.os }}-${{ hashFiles('Http.*/**') }}
+    outputs: 
+      include: steps.get.outputs
+  
+  restore-cache:
+    if: jobs.cache.outputs.cache-hit == 'true'
+    runs-on: ubuntu-latest
+    steps:
+       - name: Summery Report
+         run: |
+          echo "- Test results restored from cahce key = ${{ runner.os }}-${{ hashFiles('Http.*/**') }}" >> $GITHUB_STEP_SUMMARY
 
+  build:
+    if: jobs.cache.outputs.cache-hit != 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         dotnet: [ '6', '7']
     name: Test w/t ${{ matrix.dotnet }} 
+
     steps:
+
     - uses: actions/checkout@v3
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
