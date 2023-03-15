@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet: [ '6', '7']
-    name: Test w/t ${{ matrix.dotnet }} 
+        dotnet: ['net6 & net7']
+    name: Test
 
     steps:
 
@@ -24,8 +24,6 @@ jobs:
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: ${{ matrix.dotnet }}
 
     - uses: actions/cache@v3
       id: cache
