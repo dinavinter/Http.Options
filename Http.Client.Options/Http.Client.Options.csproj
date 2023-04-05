@@ -55,5 +55,8 @@
       <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />
 
     </ItemGroup>
-
+    <Target Name="PublishLocalNugetsOnBuild" AfterTargets="Pack" Condition="$(LocalPush)">
+        <Exec Command="dotnet nuget push **/*$(Version).nupkg  -s $(ArtifactsDir)" />
+        <Exec Command="dotnet nuget push **/*$(Version).snupkg  -s $(ArtifactsDir)" />
+    </Target>
 </Project>
