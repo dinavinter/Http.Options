@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <TargetFrameworks>$(TargetFrameworks)</TargetFrameworks> 
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
 <!--    <Target Name="net6" Condition="$(Framework) == 'net'"-->

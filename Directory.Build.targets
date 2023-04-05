@@ -1,5 +1,5 @@
-<Project >
-    
+<Project>
+
     <PropertyGroup>
         <Microsoft_Extensions_Version>3.1.24</Microsoft_Extensions_Version>
         <Microsoft_Extensions_Http_Version>3.1.0</Microsoft_Extensions_Http_Version>
@@ -10,28 +10,34 @@
     </PropertyGroup>
 
     <ItemGroup>
-        
-        
-        <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(Microsoft_Extensions_Version)" />
-        <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="$(Microsoft_Extensions_Version)" />
 
-        <PackageReference Update="Microsoft.Extensions.Http" Version="$(Microsoft_Extensions_Http_Version)" />
+
+        <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(Microsoft_Extensions_Version)"/>
+        <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="$(Microsoft_Extensions_Version)"/>
+
+        <PackageReference Update="Microsoft.Extensions.Http" Version="$(Microsoft_Extensions_Http_Version)"/>
         <PackageReference Update="Microsoft.Extensions.Http.Polly" Version="$(Microsoft_Extensions_Http_Version)"/>
 
-        <PackageReference Update="Polly" Version="$(Polly_Version)" />
-        <PackageReference Update="Polly.Extensions.Http" Version="$(Polly_Extensions_Version)" />
+        <PackageReference Update="Polly" Version="$(Polly_Version)"/>
+        <PackageReference Update="Polly.Extensions.Http" Version="$(Polly_Extensions_Version)"/>
 
-        <PackageReference Update="OpenTelemetry" Version="$(OpenTelemetry_Version)" />
-        <PackageReference Update="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetry_Extensions_Version)" />
-        <PackageReference Update="OpenTelemetry.Instrumentation.Http"  Version="1.0.0-rc9.14"  />
-        <PackageReference Update="OpenTelemetry.Exporter.Console"  Version="$(OpenTelemetry_Extensions_Version)"  />
+        <PackageReference Update="OpenTelemetry" Version="$(OpenTelemetry_Version)"/>
+        <PackageReference Update="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetry_Extensions_Version)"/>
+        <PackageReference Update="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.14"/>
+        <PackageReference Update="OpenTelemetry.Exporter.Console" Version="$(OpenTelemetry_Extensions_Version)"/>
 
-        <PackageReference Update="System.ComponentModel.Annotations" Version="4.7.0" />
-        <PackageReference Update="Microsoft.ApplicationInsights" Version="2.17.0" />
-        
-        <PackageReference Update="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
-        <PackageReference Update="System.Diagnostics.Tracing" Version="4.3.0" />
-        <PackageReference Update="WireMock.Net" Version="1.3.6" />
+        <PackageReference Update="System.ComponentModel.Annotations" Version="4.7.0"/>
+        <PackageReference Update="Microsoft.ApplicationInsights" Version="2.17.0"/>
+
+        <PackageReference Update="System.Diagnostics.DiagnosticSource" Version="7.0.0"/>
+        <PackageReference Update="System.Diagnostics.Tracing" Version="4.3.0"/>
+        <PackageReference Update="WireMock.Net" Version="1.3.6"/>
+        <PackageReference Update="System.Reactive" Version="5.0.0"/>
+        <PackageReference Update="Newtonsoft.Json" Version="13.0.3"/>
 
     </ItemGroup>
+
+
+    
+
 </Project>
