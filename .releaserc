@@ -1,4 +1,8 @@
 {
+  "npmPublish": false,
+  "projectPath": "${process.env.PROJECT_PATH}",
+  "includeSymbols": true,
+
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
@@ -28,11 +32,7 @@
         ]
       }
     ],
-    [
-    "@droidsolutions-oss/semantic-release-nuget", 
-    {
-    }
-    ]
+  
     [
       "@semantic-release/git",
       {
@@ -46,9 +46,6 @@
     ],
     "@semantic-release/github"
   ],
-  "npmPublish": false,
-  "projectPath": "${process.env.PROJECT_PATH}",
-  "includeSymbols": true,
   "files": [
     {
       "path": [

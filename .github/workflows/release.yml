@@ -13,30 +13,160 @@ env:
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
   NUGET_PUSH_URL: ${{ secrets.NUGET_PUSH_URL }}
   NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-
+  build_artifact: build-${{github.ref_name}}-${{github.sha}}
+  test_artifact: test-${{github.ref_name}}-${{github.sha}}
+  release_name: ${{github.ref_name}}
+  
 jobs:
-  test:
-    uses: './.github/workflows/test.yml'
+  version:
+    runs-on: ubuntu-latest
+    env:
+      release_name: ${{github.ref_name}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2 
+        with:
+          fetch-depth: 0
 
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        
+      - name: Git Semantic Version
+        uses: PaulHatch/semantic-version@v5.0.3
+        id: git_version
+        with:
+          tag_prefix: "v"
+          version_format: "${major}.${minor}.${patch}-beta.${increment}"
+          search_commit_body: true
+          major_pattern: "BREAKING CHANGE"
+          
+          # A string which, if present in a git commit, indicates that a change represents a
+          # major (breaking) change, supports regular expressions wrapped with '/'
+         #  major_pattern: "(MAJOR)"
+          # A string which indicates the flags used by the `major_pattern` regular expression. Supported flags: idgs
+         #  major_regexp_flags: ""
+          # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
+         #  minor_pattern: "(MINOR)"
+          # A string which indicates the flags used by the `minor_pattern` regular expression. Supported flags: idgs
+          # minor_regexp_flags: ""
+          # A string to determine the format of the version output
+        #   version_format: "${major}.${minor}.${patch}-prerelease${increment}"
+          # Optional path to check for changes. If any changes are detected in the path the
+          # 'changed' output will true. Enter multiple paths separated by spaces.
+         #  change_path: "src/my-service"
+          # Named version, will be used as suffix for name version tag
+        #   namespace: my-service
+          # If this is set to true, *every* commit will be treated as a new version.
+        #  bump_each_commit: false
+          # If true, the body of commits will also be searched for major/minor patterns to determine the version type.
+          
+          # The output method used to generate list of users, 'csv' or 'json'.
+         #  user_format_type: "csv"
+          # Prevents pre-v1.0.0 version from automatically incrementing the major version.
+          # If enabled, when the major version is 0, major releases will be treated as minor and minor as patch. Note that the version_type output is unchanged.
+          enable_prerelease_mode: true
+           
+      - run: |
+          git tag v${{steps.git_version.outputs.version}} -f
+          git push origin v${{steps.git_version.outputs.version}} 
+          gh release create v${{steps.git_version.outputs.version}} -d --generate-notes -p 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v3
+        with:
+#          ci: true
+#          dry_run: true
+          semantic_version: ${{ steps.git_version.outputs.version }}
+          # You can specify specifying version range for the extra plugins if you prefer.
+          extra_plugins: |
+            @droidsolutions-oss/semantic-release-update-file
+            
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+          PROJECT_PATH: Http.Client.Options/Http.Client.Options.csproj
+          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
+     
+
+
+      - name: Set version
+        run: echo "VERSION=${{ steps.semantic.git_version.version }}" >> $GITHUB_ENV
+      
+    
+      - name: Set tag
+        run: |
+          echo "pre_rc_tag=${{ steps.semantic.outputs.new_release_git_tag }}" >> $GITHUB_ENV
+          echo "build_artifact=build-${{env.pre_rc_tag}} >> $GITHUB_ENV
+          echo "test_artifact=test-${{env.pre_rc_tag}} >> $GITHUB_ENV
+
+      - name: Do something when a new release published
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          echo ${{ steps.semantic.outputs.new_release_version }}
+          echo ${{ steps.semantic.outputs.new_release_major_version }}
+          echo ${{ steps.semantic.outputs.new_release_minor_version }}
+          echo ${{ steps.semantic.outputs.new_release_git_tag }} 
+          
+      - name: GIT CMD
+        env:
+         GH_TOKEN: ${{ github.token }}
+        run: | 
+          gh release list
+          git status
+      
+#      - name: Create Pull Request
+#        if: steps.semantic.outputs.new_release_published == 'true'
+#        uses: peter-evans/create-pull-request@v5
+#        with:
+#            token: ${{ secrets.GITHUB_TOKEN }}
+#            commit-message: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
+#            title: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
+#            delete-branch: true
+#            body: "${{env.RELEASE_NOTES}}"
+#            labels: |
+#               ${{steps.semantic.outputs.new_release_git_tag}}
+#               automated pr
+
+
+#      
+#    outputs: 
+#      new_release_git_tag: ${{steps.semantic.outputs.new_release_git_tag}}
+      
+
+  build:
+    needs: version
+    uses: './.github/workflows/build.yml'
+    with:
+      build_artifact: build-${{github.ref_name}}-${{github.sha}}
+      test_artifact: test-${{github.ref_name}}-${{github.sha}}
+      retention: 5
+  
+  
   release:
-    needs: test
-    name: Release
+    needs: build
+    name: release
     strategy:
       max-parallel: 1
       matrix:
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{env.build_artifact}}
+          path: ${{ github.workspace }}
         
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
+        id: setup
         
-      - run: echo '${{ steps.stepid.outputs.dotnet-version }}'
-        
-      - name: Install dependencies
-        run: dotnet restore
+      - run: echo '${{ steps.setup.outputs.dotnet-version }}'
         
       - name: Semantic Release
         id: release

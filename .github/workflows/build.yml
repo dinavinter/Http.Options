@@ -1,0 +1,157 @@
+name: dotnet build
+
+on:
+  workflow_call:
+    inputs:
+      build_artifact:
+        description: 'The name of the build artifact'
+        required: false
+        type: string
+      test_artifact:
+        description: 'The name of the test artifact'
+        required: false
+        type: string
+      retention:
+        description: 'The number of days to retain the artifact'
+        required: false
+        default: 5
+        type: number
+      ref:
+        description: 'The branch, tag or SHA to checkout. When checking out the repository that triggered a workflow, this defaults to the reference or SHA for that event.'
+        required: false
+        default: 5
+        type: string
+  workflow_dispatch:
+    inputs:
+      build_artifact:
+        description: 'The name of the build artifact'
+        required: false
+        type: string
+      test_artifact:
+        description: 'The name of the test artifact'
+        required: false
+        type: string
+      retention:
+        description: 'The number of days to retain the artifact'
+        required: false
+        type: number
+        default: 5
+      ref:
+        description: 'The branch, tag or SHA to checkout. When checking out the repository that triggered a workflow, this defaults to the reference or SHA for that event.'
+        required: false
+        type: string
+
+  push:
+    tags: ["v*", "test-please-*"]
+  pull_request:
+    tags: ["v*"]
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+
+jobs:
+  build:
+    
+    env:      
+      ref: ${{github.ref_name}}-last
+      test: ${{ github.workspace }}/tests
+      DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
+      dotnet-versions: 7.x-6.x
+      key: ${{format('{0}-{1}', github.ref_name, github.sha) }}
+      build_artifact: ${{inputs.build_artifact ||  format('build-artifact-{0}', github.sha) }}
+      test_artifact: ${{inputs.test_artifact || format('test-artifact-{0}', github.sha) }}
+      
+    runs-on: ${{ github.event.act && 'self-hosted' || 'ubuntu-latest' }}
+ 
+    steps:    
+      - name: Setup Env
+        run: |
+          echo "ref=${{inputs.ref || github.sha}}" >> $GITHUB_ENV
+          echo "test=${{ github.workspace }}/tests" >> $GITHUB_ENV
+          echo "DOTNET_INSTALL_DIR=${{ github.workspace }}/.dotnet" >> $GITHUB_ENV
+          echo "build_artifact=${{inputs.test_artifact || format('test-artifact-{0}', github.sha) }}" >> $GITHUB_ENV
+          echo "test_artifact=${{inputs.test_artifact || format('test-artifact-{0}', github.sha) }}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{inputs.ref || github.sha}}
+          submodules: true
+      - name: Cache Net setup
+        uses: actions/cache@v2
+        id: cache-net
+        with:
+          path: ${{ env.DOTNET_INSTALL_DIR }}
+          key: ${{ runner.os }}-dotnet-${{env.dotnet-versions}}
+          restore-keys: |
+            ${{ runner.os }}-dotnet-${{env.dotnet-versions}}
+            
+      - name: Set dotnet path
+        run: echo "${{ env.DOTNET_INSTALL_DIR }}" >> $GITHUB_PATH
+        if: steps.cache-net.outputs.cache-hit == 'true'
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.x
+            7.x
+        if: steps.cache-net.outputs.cache-hit != 'true'
+          
+        
+      - uses: actions/cache@v2
+        id: cache-nuget
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+  
+      - name: Restore dependencies
+        run: dotnet restore
+  
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+        
+      - name: Upload sha build artifact to ${{env.build_artifact}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{env.build_artifact}}
+          path: ${{ github.workspace }}/**/*
+          retention-days: ${{inputs.retention}}
+           
+      - name: Test
+        run: dotnet test  --no-build --configuration Release --logger trx --results-directory ${{env.test}}
+        continue-on-error: true
+        
+      - name: Process trx reports with default
+        id: process-trx
+        uses: im-open/process-dotnet-test-results@v2.3.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ignore-test-failures: true
+          base-directory: ${{env.test}}
+          output-test-results: true
+          create-results-file: true
+          comment-identifier: 'unit-tests'
+          report-title-filter: "Unit Tests"
+
+      - name: Annotate Test Results
+        run: cat ${{ steps.process-test.outputs.test-results-file-path }} > $GITHUB_STEP_SUMMARY
+      
+      
+      - name: Upload dotnet test results to ${{env.test_artifact}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{env.test_artifact}}
+          path: ${{env.test}}/**/*
+          retention-days: ${{inputs.retention}}
+   
+
+      - name: Fail if there were test problems
+        if: steps.process-trx.outputs.test-outcome == 'Failed'
+        run: |
+          echo "There were test failures."
+          exit 1
+
+
