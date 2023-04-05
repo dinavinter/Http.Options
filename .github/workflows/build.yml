@@ -1,9 +1,15 @@
-name: build
+name: dotnet build
 
 on:
   workflow_call:
   workflow_dispatch:
-  
+  push:
+    branches:
+      - "beta"
+      - "prerelease"
+      - "master"
+
+
 jobs:
   build:
     env:
