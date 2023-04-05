@@ -18,11 +18,11 @@ on:
   
 jobs:
   build:
-    with:
+    env:
       name: ${{github.ref}}-${{github.sha}}
       ref: ${{github.ref}}-last
       retention: 5
-      test: ${{ github.workspace }}-tests
+      test: ${{ github.workspace }}/tests
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -38,9 +38,9 @@ jobs:
     - name: Upload sha build artifact
       uses: actions/upload-artifact@v3
       with:
-        name: build-artifact-${{name}}
+        name: build-artifact-$name
         path: ${{ github.workspace }}/**/*
-        retention-days: ${{retention}}
+        retention-days: $retention
         
     - name: Upload build artifact to ${{ref}}
       uses: actions/upload-artifact@v3
@@ -49,30 +49,31 @@ jobs:
         path: ${{ github.workspace }}/**/*
 
     - name: Test
-      run: dotnet test  --no-build --logger trx --results-directory "${{test}}"
+      run: dotnet test  --no-build --logger trx --results-directory "$test"
       continue-on-error: true
       
     - name: Process trx reports with default
+      id: process-trx
       if: always()
       uses: im-open/process-dotnet-test-results@v2.3.0
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         ignore-test-failures: true
-        base-directory: ${{test}}
+        base-directory: $test
     
-    - name: Upload dotnet test results to ${{name}}
+    - name: Upload dotnet test results to $name
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-${{name}}-{{steps.process-trx.outputs.test-outcome}}
-        path: ${{test}}/**/*
-        retention-days: ${{retention}}
+        name: test-results-$name-{{steps.process-trx.outputs.test-outcome}}
+        path: $test/**/*
+        retention-days: $retention
       if: ${{ always() }}
 
     - name: Upload dotnet test results to ${{ref}}
       uses: actions/upload-artifact@v3
       with:
         name: test-results-${{ref}}
-        path: ${{test}}/**/*
+        path: $test/**/*
       if: steps.process-trx.outputs.test-outcome == 'Passed'
 
     - name: Fail if there were test problems
