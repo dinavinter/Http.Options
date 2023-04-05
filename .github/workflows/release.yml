@@ -32,8 +32,9 @@ jobs:
         
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
+        id: setup
         
-      - run: echo '${{ steps.stepid.outputs.dotnet-version }}'
+      - run: echo '${{ steps.setup.outputs.dotnet-version }}'
         
       - name: Install dependencies
         run: dotnet restore

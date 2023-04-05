@@ -43,7 +43,7 @@ jobs:
         path: ${{ github.workspace }}/**/*
 
     - name: Test
-      run: dotnet test  --no-build --configuration Release --logger trx --results-directory {{test}}
+      run: dotnet test  --no-build --configuration Release --logger trx --results-directory ${{env.test}}
       continue-on-error: true
       
     - name: Process trx reports with default
@@ -59,14 +59,13 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: test-results-${{env.name}}-${{steps.process-trx.outputs.test-outcome}}
-        path: ${{ github.workspace }}/tests/**/*
+        path: ${{env.test}}/**/*
         retention-days: ${{env.retention}}
-      if: ${{ always() }}
-
-    - name: Upload dotnet test results to $ref
+ 
+    - name: Upload dotnet test results to test-results-${{env.ref}}
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-${{env.ref}}
+        name: test-results-${{env.ref}}-${{steps.process-trx.outputs.test-outcome}}
         path: ${{env.test}}/**/*
       if: steps.process-trx.outputs.test-outcome == 'Passed'
 
