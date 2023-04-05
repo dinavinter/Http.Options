@@ -2,6 +2,20 @@ name: dotnet build
 
 on:
   workflow_call:
+    inputs:
+      build-artifact:
+        description: 'The name of the build artifact'
+        required: true
+        default: build-${{github.branch}}-${{github.sha}}
+      test-artifact:
+        description: 'The name of the test artifact'
+        required: true
+        default: test-${{github.branch}}-${{github.sha}}
+      retention:
+        description: 'The number of days to retain the artifact'
+        required: true
+        default: '5'
+
   workflow_dispatch:
   push:
     branches:
@@ -12,10 +26,8 @@ on:
 
 jobs:
   build:
-    env:
-      name: ${{github.branch}}-${{github.sha}}
+    env:      
       ref: ${{github.ref_name}}-last
-      retention: 5
       test: ${{ github.workspace }}/tests
     runs-on: ubuntu-latest
     steps:
@@ -32,9 +44,9 @@ jobs:
     - name: Upload sha build artifact
       uses: actions/upload-artifact@v3
       with:
-        name: build-artifact-${{env.name}}
+        name: ${{inputs.build-artifact}}
         path: ${{ github.workspace }}/**/*
-        retention-days: ${{env.retention}}
+        retention-days: ${{inputs.retention}}
         
     - name: Upload build artifact to ${{env.ref}}
       uses: actions/upload-artifact@v3
@@ -54,12 +66,12 @@ jobs:
         ignore-test-failures: true
         base-directory: ${{env.test}}
     
-    - name: Upload dotnet test results to ${{env.name}}
+    - name: Upload dotnet test results to ${{inputs.test-artifact}}
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-${{env.name}}-${{steps.process-trx.outputs.test-outcome}}
+        name: ${{inputs.test-artifact}}
         path: ${{env.test}}/**/*
-        retention-days: ${{env.retention}}
+        retention-days: ${{inputs.retention}}
  
     - name: Upload dotnet test results to test-results-${{env.ref}}
       uses: actions/upload-artifact@v3
