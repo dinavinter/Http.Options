@@ -26,11 +26,11 @@ jobs:
     - name: Upload sha build artifact
       uses: actions/upload-artifact@v3
       with:
-        name: build-artifact-{{name}}
+        name: build-artifact-${{env.name}}
         path: ${{ github.workspace }}/**/*
-        retention-days: {{retention}}
+        retention-days: ${{env.retention}}
         
-    - name: Upload build artifact to {{ref}}
+    - name: Upload build artifact to ${{env.ref}}
       uses: actions/upload-artifact@v3
       with:
         name: build-artifact-$ref
@@ -49,19 +49,19 @@ jobs:
         ignore-test-failures: true
         base-directory: {{test}}
     
-    - name: Upload dotnet test results to {{name}}
+    - name: Upload dotnet test results to ${{env.name}}
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-{{name}}-{{steps.process-trx.outputs.test-outcome}}
-        path: {{test}}/**/*
-        retention-days: {{retention}}
+        name: test-results-${{env.name}}-${{steps.process-trx.outputs.test-outcome}}
+        path: ${{ github.workspace }}/tests/**/*
+        retention-days: ${{env.retention}}
       if: ${{ always() }}
 
     - name: Upload dotnet test results to $ref
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-{{ref}}
-        path: {{test}}/**/*
+        name: test-results-${{env.ref}}
+        path: ${{env.test}}/**/*
       if: steps.process-trx.outputs.test-outcome == 'Passed'
 
     - name: Fail if there were test problems
