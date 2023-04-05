@@ -1,20 +1,8 @@
-name: dotnet build
+name: build
 
 on:
+  workflow_call:
   workflow_dispatch:
-    inputs:
-      name:
-        type: choice
-        description: Target framework
-        target:
-          - net6.0
-          - net7.0
-        
-  
-  push:
-    branches: [ main, master, beta, release, prerelease]
-  pull_request:
-    branches: [ main, master, beta, release, prerelease ]
   
 jobs:
   build:
@@ -38,18 +26,18 @@ jobs:
     - name: Upload sha build artifact
       uses: actions/upload-artifact@v3
       with:
-        name: build-artifact-$name
+        name: build-artifact-{{name}}
         path: ${{ github.workspace }}/**/*
-        retention-days: $retention
+        retention-days: {{retention}}
         
-    - name: Upload build artifact to $ref
+    - name: Upload build artifact to {{ref}}
       uses: actions/upload-artifact@v3
       with:
         name: build-artifact-$ref
         path: ${{ github.workspace }}/**/*
 
     - name: Test
-      run: dotnet test  --no-build --logger trx --results-directory "$test"
+      run: dotnet test  --no-build --configuration Release --logger trx --results-directory {{test}}
       continue-on-error: true
       
     - name: Process trx reports with default
@@ -59,21 +47,21 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         ignore-test-failures: true
-        base-directory: $test
+        base-directory: {{test}}
     
-    - name: Upload dotnet test results to $name
+    - name: Upload dotnet test results to {{name}}
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-$name-{{steps.process-trx.outputs.test-outcome}}
-        path: $test/**/*
-        retention-days: $retention
+        name: test-results-{{name}}-{{steps.process-trx.outputs.test-outcome}}
+        path: {{test}}/**/*
+        retention-days: {{retention}}
       if: ${{ always() }}
 
     - name: Upload dotnet test results to $ref
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-$ref
-        path: $test/**/*
+        name: test-results-{{ref}}
+        path: {{test}}/**/*
       if: steps.process-trx.outputs.test-outcome == 'Passed'
 
     - name: Fail if there were test problems
