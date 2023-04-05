@@ -1,0 +1,60 @@
+name: dotnet test
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        type: choice
+        description: Target framework
+        target:
+          - net6.0
+          - net7.0
+        
+  
+  push:
+    branches: [ main, master, beta, release, prerelease]
+  pull_request:
+    branches: [ main, master, beta, release, prerelease ]
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore 
+    - name: Upload sha build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifact-${{ matrix.dotnet-version }}}-${{github.sha}}
+        path: ./dist
+        retention-days: 5
+    - name: Upload build artifact to ${{github.ref}}
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifact-${{github.ref}}-${{ matrix.dotnet-version }}}
+        path: ./dist
+
+    - name: Test
+      run: dotnet test  --no-build --logger trx --results-directory "test-results-${{ matrix.dotnet-version }}"
+      
+    - name: Upload dotnet test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{github.ref}}-${{ matrix.dotnet-version }}
+        path: test-results-${{ matrix.dotnet-version }}
+      if: ${{ always() }}
+    
+
+    - name: Generate list using Markdown
+      run: |
+        echo "This is the lead in sentence for the list" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY # this is a blank line
+        echo "- Lets add a bullet point" >> $GITHUB_STEP_SUMMARY
+        echo "- Lets add a second bullet point" >> $GITHUB_STEP_SUMMARY
+        echo "- How about a third one?" >> $GITHUB_STEP_SUMMARY
+
