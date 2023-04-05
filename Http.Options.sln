@@ -16,8 +16,6 @@ EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".playground", ".playground", "{5D491C0C-69AE-4B2F-8001-8F4E74D1C54B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Options.Playground472", ".playground\Http.Options.Playground472\Http.Options.Playground472.csproj", "{2AAA9B6F-A455-4409-B1D4-BD7A3A0C2A69}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Options.PlaygroundCore", ".playground\Http.Options.PlaygroundCore\Http.Options.PlaygroundCore.csproj", "{11FF6998-A3EF-46CE-85FB-64624DEB49A4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{30F2E8E3-9847-4B77-BD02-ED61AFA73244}"
@@ -47,20 +45,15 @@ Global
 		{C9CD62E2-7039-4BF4-A92A-593623412F05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9CD62E2-7039-4BF4-A92A-593623412F05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9CD62E2-7039-4BF4-A92A-593623412F05}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2AAA9B6F-A455-4409-B1D4-BD7A3A0C2A69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2AAA9B6F-A455-4409-B1D4-BD7A3A0C2A69}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2AAA9B6F-A455-4409-B1D4-BD7A3A0C2A69}.Release|Any CPU.Build.0 = Release|Any CPU
 		{11FF6998-A3EF-46CE-85FB-64624DEB49A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{11FF6998-A3EF-46CE-85FB-64624DEB49A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11FF6998-A3EF-46CE-85FB-64624DEB49A4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{11FF6998-A3EF-46CE-85FB-64624DEB49A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5177538B-BD6E-49A0-B4BA-7D3BACADDAE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5177538B-BD6E-49A0-B4BA-7D3BACADDAE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5177538B-BD6E-49A0-B4BA-7D3BACADDAE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5177538B-BD6E-49A0-B4BA-7D3BACADDAE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{2AAA9B6F-A455-4409-B1D4-BD7A3A0C2A69} = {5D491C0C-69AE-4B2F-8001-8F4E74D1C54B}
 		{11FF6998-A3EF-46CE-85FB-64624DEB49A4} = {5D491C0C-69AE-4B2F-8001-8F4E74D1C54B}
 	EndGlobalSection
 EndGlobal

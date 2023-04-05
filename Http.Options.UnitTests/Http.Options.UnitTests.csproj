@@ -11,6 +11,10 @@
 
     <ItemGroup>
 
+        <PackageReference Include="Faker.Net" Version="2.0.154" />
+
+        <PackageReference Include="IdentityModel.AspNetCore" Version="4.3.0" />
+
         <PackageReference Include="Microsoft.Extensions.Http" />
         <PackageReference Include="Microsoft.Extensions.Http.Polly" />
         <PackageReference Include="OpenTelemetry" />
