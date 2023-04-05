@@ -22,7 +22,7 @@ jobs:
       name: ${{github.ref}}-${{github.sha}}
       ref: ${{github.ref}}-last
       retention: 5
-      test-results: ${{ github.workspace }}/reports/tests
+      test: ${{ github.workspace }}-tests
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -49,7 +49,7 @@ jobs:
         path: ${{ github.workspace }}/**/*
 
     - name: Test
-      run: dotnet test  --no-build --logger trx --results-directory "${{test-results}}"
+      run: dotnet test  --no-build --logger trx --results-directory "${{test}}"
       continue-on-error: true
       
     - name: Process trx reports with default
@@ -58,13 +58,13 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         ignore-test-failures: true
-        base-directory: ${{test-results}}
+        base-directory: ${{test}}
     
     - name: Upload dotnet test results to ${{name}}
       uses: actions/upload-artifact@v3
       with:
         name: test-results-${{name}}-{{steps.process-trx.outputs.test-outcome}}
-        path: ${{test-results}}/**/*
+        path: ${{test}}/**/*
         retention-days: ${{retention}}
       if: ${{ always() }}
 
@@ -72,7 +72,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: test-results-${{ref}}
-        path: ${{test-results}}/**/*
+        path: ${{test}}/**/*
       if: steps.process-trx.outputs.test-outcome == 'Passed'
 
     - name: Fail if there were test problems
