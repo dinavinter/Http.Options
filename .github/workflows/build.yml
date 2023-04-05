@@ -42,10 +42,10 @@ jobs:
         path: ${{ github.workspace }}/**/*
         retention-days: $retention
         
-    - name: Upload build artifact to ${{ref}}
+    - name: Upload build artifact to $ref
       uses: actions/upload-artifact@v3
       with:
-        name: build-artifact-${{ref}}
+        name: build-artifact-$ref
         path: ${{ github.workspace }}/**/*
 
     - name: Test
@@ -69,10 +69,10 @@ jobs:
         retention-days: $retention
       if: ${{ always() }}
 
-    - name: Upload dotnet test results to ${{ref}}
+    - name: Upload dotnet test results to $ref
       uses: actions/upload-artifact@v3
       with:
-        name: test-results-${{ref}}
+        name: test-results-$ref
         path: $test/**/*
       if: steps.process-trx.outputs.test-outcome == 'Passed'
 
