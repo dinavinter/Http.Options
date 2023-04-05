@@ -13,8 +13,8 @@ on:
 jobs:
   build:
     env:
-      name: ${{github.ref}}-${{github.sha}}
-      ref: ${{github.ref}}-last
+      name: ${{github.branch}}-${{github.sha}}
+      ref: ${{github.branch}}-last
       retention: 5
       test: ${{ github.workspace }}/tests
     runs-on: ubuntu-latest
@@ -39,7 +39,7 @@ jobs:
     - name: Upload build artifact to ${{env.ref}}
       uses: actions/upload-artifact@v3
       with:
-        name: build-artifact-$ref
+        name: build-artifact-${{env.ref}}
         path: ${{ github.workspace }}/**/*
 
     - name: Test
