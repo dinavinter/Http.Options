@@ -53,7 +53,7 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         ignore-test-failures: true
-        base-directory: {{test}}
+        base-directory: ${{env.test}}
     
     - name: Upload dotnet test results to ${{env.name}}
       uses: actions/upload-artifact@v3
