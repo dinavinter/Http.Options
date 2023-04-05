@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Http.Options
 {
-    public class HttpClientCollection: IHostedService
+    public class HttpClientCollection: IHostedService, IHttpClientFactory
     { 
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _serviceProvider;

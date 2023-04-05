@@ -24,10 +24,11 @@
 
         <PackageReference Include="System.Reactive" Version="5.0.0" />
         <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
-        <PackageReference Include="WireMock.Net" Version="1.5.18" />
+        <PackageReference Include="WireMock.Net" />
+        <PackageReference Include="System.Diagnostics.DiagnosticSource" />
 
  
-        <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.1" />
+        <PackageReference Include="System.Diagnostics.DiagnosticSource" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\Http.Client.Options.WireServer\Http.Client.Options.WireServer.csproj" />

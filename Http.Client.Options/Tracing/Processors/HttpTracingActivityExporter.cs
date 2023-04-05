@@ -21,4 +21,14 @@ namespace Http.Options.Tracing.Processors
             return ExportResult.Success;
         }
     }
+
+    public class HttpTracingActivityExporterProcessor : SimpleActivityExportProcessor
+    {
+        public HttpTracingActivityExporterProcessor():base(new HttpTracingActivityExporter())
+        {
+            
+        }
+    }
+    
+    
 } 

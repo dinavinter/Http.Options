@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using Http.Client.Options.Tracing;
+using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Trace;
 
 namespace Http.Options.Tracing.HttpEnrichment
@@ -13,46 +14,40 @@ namespace Http.Options.Tracing.HttpEnrichment
         {
         }
 
-        public virtual void ConfigureTraceProvider(TracerProviderBuilder builder)
+       
+
+        public  void ConfigureHttpClientInstrumentation(HttpClientInstrumentationOptions options)
         {
-#if NETFRAMEWORK
-                    builder.AddHttpClientInstrumentation(
-                        options => options.Enrich = Enrich, 
-                        options => options.Enrich = Enrich);
-#else
-            builder.AddHttpClientInstrumentation(options => options.Enrich = Enrich);
-#endif
-        }
-
-        private void Enrich(Activity activity, string eventName, object rawObject)
-        {
-            if (!(activity?.GetCustomProperty(nameof(HttpTracingActivity)) is
-                HttpTracingActivity ctx)) return;
-
-            var enrichment = ctx.TracingOptions.Enrichment;
-
-            switch (eventName)
+            options.EnrichWithHttpRequestMessage = (activity, httpRequestMessage) =>
             {
-                case "OnStartActivity" when rawObject is HttpRequestMessage request:
-                    enrichment.EnrichRequest(ctx, request);
-                    break;
+                if (!(activity?.GetCustomProperty(nameof(HttpTracingActivity)) is
+                        HttpTracingActivity ctx)) return;
 
-                case "OnStartActivity" when rawObject is HttpWebRequest request:
-                    enrichment.EnrichRequest(ctx, request);
-                    break;
+                var enrichment = ctx.TracingOptions.Enrichment;
 
-                case "OnStopActivity" when rawObject is HttpResponseMessage response:
-                    enrichment.EnrichResponse(ctx, response);
-                    break;
+                enrichment.EnrichRequest(ctx, httpRequestMessage);
+            };
+            // Note: Only called on .NET & .NET Core runtimes.
+            options.EnrichWithHttpResponseMessage = (activity, httpResponseMessage) =>
+            {
+                if (!(activity?.GetCustomProperty(nameof(HttpTracingActivity)) is
+                        HttpTracingActivity ctx)) return;
 
-                case "OnStopActivity" when rawObject is HttpWebResponse response:
-                    enrichment.EnrichResponse(ctx, response);
-                    break;
+                var enrichment = ctx.TracingOptions.Enrichment;
 
-                case "OnException" when rawObject is Exception exception:
-                    enrichment.EnrichException(ctx, exception);
-                    break;
-            }
-        }
+                enrichment.EnrichResponse(ctx, httpResponseMessage);
+            };
+            // Note: Called for all runtimes.
+            options.EnrichWithException = (activity, exception) =>
+            {
+                if (!(activity?.GetCustomProperty(nameof(HttpTracingActivity)) is
+                        HttpTracingActivity ctx)) return;
+
+                var enrichment = ctx.TracingOptions.Enrichment;
+
+                enrichment.EnrichException(ctx, exception);
+                activity.SetTag("stackTrace", exception.StackTrace);
+            };
+        } 
     }
 }
