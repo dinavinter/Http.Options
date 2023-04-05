@@ -1,67 +1,126 @@
-name: dotnet test
+name: test
 
 on:
-  workflow_call:
+  workflow_call:  
+    inputs:
+      ref:
+        description: 'The branch, tag or SHA to checkout. When checking out the repository that triggered a workflow, this defaults to the reference or SHA for that event.'
+        required: false
+        type: string
   workflow_dispatch:
+    inputs:
+      ref:
+        description: 'The branch, tag or SHA to checkout. When checking out the repository that triggered a workflow, this defaults to the reference or SHA for that event.'
+        required: false
+        type: string
+
   push:
-    branches: [ main, master, release, prerelease]
+    tags: ["v*", "test-please-*"]
   pull_request:
-    branches: [ main, master, beta, release, prerelease ]
-  
+    tags: ["v*"]
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ inputs.ref || github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+
 jobs:
- 
   build:
- 
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet: ['net6 & net7']
-    name: Test
-
+    env:
+      DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
+      dotnet-versions: 7.x-6.x
+      key: ${{format('{0}-{1}', github.ref_name, github.sha) }}
+      ref: ${{ inputs.ref || github.ref }}
+    
+    runs-on: ${{ github.event.act && 'self-hosted' || 'ubuntu-latest' }}
+    
     steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          ref: ${{ env.ref }}
+      - name: set env
+        run: |
+          echo "test=${{ github.workspace }}/tests" >> $GITHUB_ENV
+          echo "build_artifact=${{ github.ref_name }}-build-artifact-${{ github.sha }}" >> $GITHUB_ENV
+          echo "test_artifact=${{ github.ref_name }}-test-artifact-${{ github.sha }}" >> $GITHUB_ENV
+      - name: Cache Net setup
+        uses: actions/cache@v2
+        id: cache-net
+        with:
+          path: ${{ env.DOTNET_INSTALL_DIR }}
+          key: ${{ runner.os }}-dotnet-${{env.dotnet-versions}}
+          restore-keys: |
+            ${{ runner.os }}-dotnet-${{env.dotnet-versions}}
 
-    - uses: actions/checkout@v3
+      - name: Set dotnet path
+        run: echo "${{ env.DOTNET_INSTALL_DIR }}" >> $GITHUB_PATH
+        if: steps.cache-net.outputs.cache-hit == 'true'
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-
-    - uses: actions/cache@v3
-      id: cache
-      with:
-        path: | 
-         **/bin
-         reports
-        key: ${{ runner.os }}-build-${{ hashFiles('**/Http.Options/[!.github]') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{hashFiles('**/Http.Options/[!.github]') }}
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.x
+            7.x
+        if: steps.cache-net.outputs.cache-hit != 'true'
 
 
-    - name: Restore dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: dotnet restore
+      - uses: actions/cache@v3
+        id: cache-nuget
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore --packages ${{ github.workspace }}/.nuget/packages --use-lock-file
+        
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test  --no-build --configuration Release --logger trx --results-directory ${{env.test}}
+        continue-on-error: true
+
+      - name: Process trx reports with default
+        id: process-trx
+        uses: im-open/process-dotnet-test-results@v2.3.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ignore-test-failures: true
+          create-results-file: true
+          comment-identifier: 'unit-tests-bot'
+
+      - name: Annotate Test Results
+        run: cat ${{ steps.process-trx.outputs.test-results-file-path }} > $GITHUB_STEP_SUMMARY
+
+      - name: Upload Tests Results to release assets
+        run: |
+          gh release edit ${{ env.ref }} --add-label ${{ steps.process-trx.outputs.test-outcome }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if:  gh release view ${{ env.ref }} --json id --jq '.id' || false
+
+      - name: add test outcome as a github label to pr
+        run: gh pr edit ${{ github.event.pull_request.number }} --add-label Tests-${{ steps.process-trx.outputs.test-outcome }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.event_name == 'pull_request'
+        
+      - name: add test outcome as a github label to issue
+        run: gh issue edit ${{ github.event.issue.number }} --add-label Tests-${{ steps.process-trx.outputs.test-outcome }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.event_name == 'issues'
       
-    - name: Build
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: dotnet build --no-restore -o build
-      
-    - name: Test
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: dotnet test --no-build --logger trx --results-directory "reports/${{ matrix.dotnet }}/tests"
+      - name: Fail if there were test problems
+        if: steps.process-trx.outputs.test-outcome == 'Failed'
+        run: |
+          echo "There were test failures." >> $GITHUB_STEP_SUMMARY
+          cat ${{steps.process-trx.outputs.test-results-file-path}} >> $GITHUB_STEP_SUMMARY
+          exit 1
 
-    - name: Upload dotnet test results
-      if: steps.cache.outputs.cache-hit != 'true'
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-results-${{ matrix.dotnet }}
-        path: reports/${{ matrix.dotnet }}/tests
 
-    - uses: dorny/test-reporter@v1
-      with:
-        name: Test Report - net${{ matrix.dotnet }} 
-        reporter: dotnet-trx
-        path: "reports/**/*.trx"
-      if: ${{ always() }}
-#    - name: Summery Report
-#      run: |
-#        echo "- Test w/t ${{ matrix.dotnet }} done" >> $GITHUB_STEP_SUMMARY
-
+  
