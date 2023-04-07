@@ -3,12 +3,12 @@ name: dotnet build
 on:
   workflow_call:
     inputs:
-      build-artifact:
+      build_artifact:
         description: 'The name of the build artifact'
         required: true
         type: string
         default: build-${{github.branch}}-${{github.sha}}
-      test-artifact:
+      test_artifact:
         description: 'The name of the test artifact'
         required: true
         type: string
@@ -25,6 +25,9 @@ on:
       - "prerelease"
       - "master"
 
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -43,10 +46,10 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration Release
       
-    - name: Upload sha build artifact
+    - name: Upload sha build artifact to ${{inputs.build_artifact}}
       uses: actions/upload-artifact@v3
       with:
-        name: ${{inputs.build-artifact}}
+        name: ${{inputs.build_artifact}}
         path: ${{ github.workspace }}/**/*
         retention-days: ${{inputs.retention}}
         
@@ -68,10 +71,10 @@ jobs:
         ignore-test-failures: true
         base-directory: ${{env.test}}
     
-    - name: Upload dotnet test results to ${{inputs.test-artifact}}
+    - name: Upload dotnet test results to ${{inputs.test_artifact}}
       uses: actions/upload-artifact@v3
       with:
-        name: ${{inputs.test-artifact}}
+        name: ${{inputs.test_artifact}}
         path: ${{env.test}}/**/*
         retention-days: ${{inputs.retention}}
  
