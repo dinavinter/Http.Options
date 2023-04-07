@@ -6,16 +6,18 @@ on:
       build-artifact:
         description: 'The name of the build artifact'
         required: true
+        type: string
         default: build-${{github.branch}}-${{github.sha}}
       test-artifact:
         description: 'The name of the test artifact'
         required: true
+        type: string
         default: test-${{github.branch}}-${{github.sha}}
       retention:
         description: 'The number of days to retain the artifact'
         required: true
-        default: '5'
-
+        default: 5
+        type: number
   workflow_dispatch:
   push:
     branches:
