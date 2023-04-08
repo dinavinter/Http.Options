@@ -10,7 +10,8 @@
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
         <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-
+        <ArtifactsDir>$(SolotionDir)/nugets</ArtifactsDir>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     </PropertyGroup>
     
     <PropertyGroup>

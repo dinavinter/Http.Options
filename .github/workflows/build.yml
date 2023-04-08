@@ -19,6 +19,22 @@ on:
         default: 5
         type: number
   workflow_dispatch:
+    inputs:
+      build_artifact:
+        description: 'The name of the build artifact'
+        required: true
+        type: string
+        default: build-${{github.branch}}-${{github.sha}}
+      test_artifact:
+        description: 'The name of the test artifact'
+        required: true
+        type: string
+        default: test-${{github.branch}}-${{github.sha}}
+      retention:
+        description: 'The number of days to retain the artifact'
+        required: true
+        default: 5
+        type: number
   push:
     branches:
       - "beta"
@@ -34,61 +50,99 @@ jobs:
     env:      
       ref: ${{github.ref_name}}-last
       test: ${{ github.workspace }}/tests
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
+      dotnet-versions: 7.x-6.x
       
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
-      
-    - name: Upload sha build artifact to ${{inputs.build_artifact}}
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{inputs.build_artifact}}
-        path: ${{ github.workspace }}/**/*
-        retention-days: ${{inputs.retention}}
-        
-    - name: Upload build artifact to ${{env.ref}}
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-artifact-${{env.ref}}
-        path: ${{ github.workspace }}/**/*
-
-    - name: Test
-      run: dotnet test  --no-build --configuration Release --logger trx --results-directory ${{env.test}}
-      continue-on-error: true
-      
-    - name: Process trx reports with default
-      id: process-trx
-      uses: im-open/process-dotnet-test-results@v2.3.0
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        ignore-test-failures: true
-        base-directory: ${{env.test}}
-    
-    - name: Upload dotnet test results to ${{inputs.test_artifact}}
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{inputs.test_artifact}}
-        path: ${{env.test}}/**/*
-        retention-days: ${{inputs.retention}}
+    runs-on: ${{ github.event.act && 'self-hosted' || 'ubuntu-latest' }}
  
-    - name: Upload dotnet test results to test-results-${{env.ref}}
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-results-${{env.ref}}-${{steps.process-trx.outputs.test-outcome}}
-        path: ${{env.test}}/**/*
-      if: steps.process-trx.outputs.test-outcome == 'Passed'
+    steps:      
+      - uses: actions/checkout@v3
+      - name: Cache Net setup
+        uses: actions/cache@v2
+        id: cache-net
+        with:
+          path: ${{ env.DOTNET_INSTALL_DIR }}
+          key: ${{ runner.os }}-dotnet-${{env.dotnet-versions}}
+          restore-keys: |
+            ${{ runner.os }}-dotnet-${{env.dotnet-versions}}
+            
+      - name: Set dotnet path
+        run: echo "${{ env.DOTNET_INSTALL_DIR }}" >> $GITHUB_PATH
+        if: steps.cache-net.outputs.cache-hit == 'true'
 
-    - name: Fail if there were test problems
-      if: steps.process-trx.outputs.test-outcome == 'Failed'
-      run: |
-        echo "There were test failures."
-        exit 1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.x
+            7.x
+        if: steps.cache-net.outputs.cache-hit != 'true'
+          
+        
+      - uses: actions/cache@v2
+        id: cache-nuget
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+  
+      - name: Restore dependencies
+        run: dotnet restore
+  
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+        
+      - name: Upload sha build artifact to ${{inputs.build_artifact}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{inputs.build_artifact}}
+          path: ${{ github.workspace }}/**/*
+          retention-days: ${{inputs.retention}}
+          
+      - name: Upload build artifact to ${{env.ref}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifact-${{env.ref}}
+          path: ${{ github.workspace }}/**/*
+  
+      - name: Test
+        run: dotnet test  --no-build --configuration Release --logger trx --results-directory ${{env.test}}
+        continue-on-error: true
+        
+      - name: Process trx reports with default
+        id: process-trx
+        uses: im-open/process-dotnet-test-results@v2.3.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ignore-test-failures: true
+          base-directory: ${{env.test}}
+          test-results-files: '**/*.trx'
+          test-run-title: 'Test Run'
+          name-format: 'Test Run'
+          output-test-results: true
+          create-results-file: true
+         
+          
+      
+      - name: Upload dotnet test results to ${{inputs.test_artifact}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{inputs.test_artifact}}
+          path: ${{env.test}}/**/*
+          retention-days: ${{inputs.retention}}
+   
+      - name: Upload dotnet test results to test-results-${{env.ref}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{env.ref}}-${{steps.process-trx.outputs.test-outcome}}
+          path: ${{env.test}}/**/*
+        if: steps.process-trx.outputs.test-outcome == 'Passed'
+  
+      - name: Fail if there were test problems
+        if: steps.process-trx.outputs.test-outcome == 'Failed'
+        run: |
+          echo "There were test failures."
+          exit 1
 
 
