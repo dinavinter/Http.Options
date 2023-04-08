@@ -52,7 +52,7 @@ jobs:
       dotnet-versions: 7.x-6.x
       key: ${{format('{0}-{1}', github.ref_name, github.sha) }}
       build_artifact: ${{inputs.build_artifact ||  format('build-artifact-{0}', env.key) }}
-      test_artifact: ${{inputs.test_artifact || format('test-artifact-{0}', env.key), )
+      test_artifact: ${{inputs.test_artifact || format('test-artifact-{0}', env.key) }}
       
     runs-on: ${{ github.event.act && 'self-hosted' || 'ubuntu-latest' }}
  
