@@ -42,6 +42,7 @@ concurrency:
   cancel-in-progress: true
 
 
+
 jobs:
   build:
     env:      
@@ -49,8 +50,9 @@ jobs:
       test: ${{ github.workspace }}/tests
       DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
       dotnet-versions: 7.x-6.x
-      build_artifact: ${{inputs.build_artifact || 'build-artifact-${{github.ref_name}}-${{github.sha}}' }}
-      test_artifact: ${{inputs.test_artifact || 'test-artifact-${{github.ref_name}}-${{github.sha}}' }}
+      key: ${{format('{0}-{1}', github.ref_name, github.sha) }}
+      build_artifact: ${{inputs.build_artifact ||  format('build-artifact-{0}', env.key) }}
+      test_artifact: ${{inputs.test_artifact || format('test-artifact-{0}', env.key), )
       
     runs-on: ${{ github.event.act && 'self-hosted' || 'ubuntu-latest' }}
  
@@ -116,13 +118,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           ignore-test-failures: true
           base-directory: ${{env.test}}
-          test-results-files: '**/*.trx'
-          test-run-title: 'Test Run'
-          name-format: 'Test Run'
           output-test-results: true
           create-results-file: true
-         
-          
+          comment-identifier: 'unit-tests'
+          report-title-filter: "Unit Tests"
+
+      - name: Annotate Test Results
+        run: cat ${{ steps.process-test.outputs.test-results-file-path }} > $GITHUB_STEP_SUMMARY
+      
       
       - name: Upload dotnet test results to ${{env.test_artifact}}
         uses: actions/upload-artifact@v3

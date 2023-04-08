@@ -13,13 +13,19 @@ env:
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
   NUGET_PUSH_URL: ${{ secrets.NUGET_PUSH_URL }}
   NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+  build_artifact: build-${{github.ref_name}}-${{github.sha}}
+  test_artifact: test-${{github.ref_name}}-${{github.sha}}
 
 jobs:
-  test:
+  build:
     uses: './.github/workflows/build.yml'
+    with:
+      build_artifact: ${{env.build_artifact}}
+      test_artifact:  ${{env.test_artifact}}
+      retention: 5
 
   release:
-    needs: test
+    needs: build
     name: Release
     strategy:
       max-parallel: 1
@@ -27,8 +33,11 @@ jobs:
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{env.build_artifact}}
+          path: ${{ github.workspace }}
         
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
