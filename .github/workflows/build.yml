@@ -49,8 +49,8 @@ jobs:
       test: ${{ github.workspace }}/tests
       DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
       dotnet-versions: 7.x-6.x
-      build_artifact: ${{inputs.build_artifact || "build-artifact-${{github.ref_name}}-${{github.sha}}" }}
-      test_artifact: ${{inputs.test_artifact || "test-artifact-${{github.ref_name}}-${{github.sha}}" }}
+      build_artifact: ${{inputs.build_artifact || 'build-artifact-${{github.ref_name}}-${{github.sha}}' }}
+      test_artifact: ${{inputs.test_artifact || 'test-artifact-${{github.ref_name}}-${{github.sha}}' }}
       
     runs-on: ${{ github.event.act && 'self-hosted' || 'ubuntu-latest' }}
  
