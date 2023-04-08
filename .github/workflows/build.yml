@@ -5,14 +5,12 @@ on:
     inputs:
       build_artifact:
         description: 'The name of the build artifact'
-        required: true
+        required: false
         type: string
-        default: build-${{github.ref_name}}-${{github.sha}}
       test_artifact:
         description: 'The name of the test artifact'
-        required: true
+        required: false
         type: string
-        default: test-${{github.ref_name}}-${{github.sha}}
       retention:
         description: 'The number of days to retain the artifact'
         required: true
@@ -22,17 +20,15 @@ on:
     inputs:
       build_artifact:
         description: 'The name of the build artifact'
-        required: true
+        required: false
         type: string
-        default: build-${{github.ref_name}}-${{github.sha}}
       test_artifact:
         description: 'The name of the test artifact'
-        required: true
+        required: false
         type: string
-        default: test-${{github.ref_name}}-${{github.sha}}
       retention:
         description: 'The number of days to retain the artifact'
-        required: true
+        required: false
         default: 5
         type: number
   push:
@@ -45,6 +41,7 @@ concurrency:
   group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
   cancel-in-progress: true
 
+
 jobs:
   build:
     env:      
@@ -52,6 +49,8 @@ jobs:
       test: ${{ github.workspace }}/tests
       DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
       dotnet-versions: 7.x-6.x
+      build_artifact: ${{inputs.build_artifact || "build-artifact-${{github.ref_name}}-${{github.sha}}" }}
+      test_artifact: ${{inputs.test_artifact || "test-artifact-${{github.ref_name}}-${{github.sha}}" }}
       
     runs-on: ${{ github.event.act && 'self-hosted' || 'ubuntu-latest' }}
  
@@ -93,10 +92,10 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
         
-      - name: Upload sha build artifact to ${{inputs.build_artifact}}
+      - name: Upload sha build artifact to ${{env.build_artifact}}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{inputs.build_artifact}}
+          name: ${{env.build_artifact}}
           path: ${{ github.workspace }}/**/*
           retention-days: ${{inputs.retention}}
           
@@ -125,10 +124,10 @@ jobs:
          
           
       
-      - name: Upload dotnet test results to ${{inputs.test_artifact}}
+      - name: Upload dotnet test results to ${{env.test_artifact}}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{inputs.test_artifact}}
+          name: ${{env.test_artifact}}
           path: ${{env.test}}/**/*
           retention-days: ${{inputs.retention}}
    
