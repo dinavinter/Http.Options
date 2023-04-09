@@ -74,15 +74,18 @@ jobs:
     needs: version
     env:
       pre_rc_tag: ${{env.pre_rc_tag}}
+      build_artifact: build-${{env.pre_rc_tag}}
+      test_artifact: test-${{env.pre_rc_tag}}
+
     steps:
       - uses: './.github/workflows/build.yml'
         with:
           ref: ${{env.pre_rc_tag}}
-          build_artifact: build-${{env.pre_rc_tag}}
-          test_artifact: test-${{env.pre_rc_tag}}
+          build_artifact: ${{env.build_artifact}}
+          test_artifact: ${{env.test_artifact}}
           retention: 5
       
-
+    
   release:
     needs: build
     name: release
