@@ -34,8 +34,10 @@ jobs:
           dry_run: true
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
-            @droidsolutions-oss/semantic-release-update-file,
-            @semantic-release/git          
+            @droidsolutions-oss/semantic-release-update-file
+            @droidsolutions-oss/semantic-release-nuget
+            @semantic-release/git
+            @semantic-release/github
       - name: Set version
         run: echo "VERSION=${{ steps.semantic.outputs.new_version }}" >> $GITHUB_ENV
       
