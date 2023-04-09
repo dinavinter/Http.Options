@@ -52,13 +52,6 @@ concurrency:
   group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
   cancel-in-progress: true
 
-outputs:
-    build_artifact:
-        description: 'The name of the build artifact'
-        value: ${{ env.build_artifact }}
-    test_artifact:
-        description: 'The name of the test artifact'
-        value: ${{ env.test_artifact }}
 
 jobs:
   build:
