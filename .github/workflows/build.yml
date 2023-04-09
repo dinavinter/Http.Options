@@ -13,9 +13,14 @@ on:
         type: string
       retention:
         description: 'The number of days to retain the artifact'
-        required: true
+        required: false
         default: 5
         type: number
+      ref:
+        description: 'The branch, tag or SHA to checkout. When checking out the repository that triggered a workflow, this defaults to the reference or SHA for that event.'
+        required: false
+        default: 5
+        type: string
   workflow_dispatch:
     inputs:
       build_artifact:
@@ -31,6 +36,12 @@ on:
         required: false
         default: 5
         type: number
+      ref:
+        description: 'The branch, tag or SHA to checkout. When checking out the repository that triggered a workflow, this defaults to the reference or SHA for that event.'
+        required: false
+        default: 5
+        type: string
+
   push:
     branches:
       - "beta"
@@ -41,10 +52,17 @@ concurrency:
   group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
   cancel-in-progress: true
 
-
+outputs:
+    build_artifact:
+        description: 'The name of the build artifact'
+        value: ${{ env.build_artifact }}
+    test_artifact:
+        description: 'The name of the test artifact'
+        value: ${{ env.test_artifact }}
 
 jobs:
   build:
+    
     env:      
       ref: ${{github.ref_name}}-last
       test: ${{ github.workspace }}/tests
@@ -56,8 +74,18 @@ jobs:
       
     runs-on: ${{ github.event.act && 'self-hosted' || 'ubuntu-latest' }}
  
-    steps:      
+    steps:    
+      - name: Setup Env
+        run: |
+          echo "ref=${{inputs.ref || github.sha}}" >> $GITHUB_ENV
+          echo "test=${{ github.workspace }}/tests" >> $GITHUB_ENV
+          echo "DOTNET_INSTALL_DIR=${{ github.workspace }}/.dotnet" >> $GITHUB_ENV
+          echo "build_artifact=${{inputs.test_artifact || format('test-artifact-{0}', github.sha) }}" >> $GITHUB_ENV
+          echo "test_artifact=${{inputs.test_artifact || format('test-artifact-{0}', github.sha) }}" >> $GITHUB_ENV
       - uses: actions/checkout@v3
+        with:
+          ref: ${{inputs.ref || github.sha}}
+          submodules: true
       - name: Cache Net setup
         uses: actions/cache@v2
         id: cache-net
@@ -100,13 +128,7 @@ jobs:
           name: ${{env.build_artifact}}
           path: ${{ github.workspace }}/**/*
           retention-days: ${{inputs.retention}}
-          
-      - name: Upload build artifact to ${{env.ref}}
-        uses: actions/upload-artifact@v3
-        with:
-          name: build-artifact-${{env.ref}}
-          path: ${{ github.workspace }}/**/*
-  
+           
       - name: Test
         run: dotnet test  --no-build --configuration Release --logger trx --results-directory ${{env.test}}
         continue-on-error: true
@@ -134,13 +156,7 @@ jobs:
           path: ${{env.test}}/**/*
           retention-days: ${{inputs.retention}}
    
-      - name: Upload dotnet test results to test-results-${{env.ref}}
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results-${{env.ref}}-${{steps.process-trx.outputs.test-outcome}}
-          path: ${{env.test}}/**/*
-        if: steps.process-trx.outputs.test-outcome == 'Passed'
-  
+
       - name: Fail if there were test problems
         if: steps.process-trx.outputs.test-outcome == 'Failed'
         run: |

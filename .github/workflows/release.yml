@@ -15,18 +15,64 @@ env:
   NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
   build_artifact: build-${{github.ref_name}}-${{github.sha}}
   test_artifact: test-${{github.ref_name}}-${{github.sha}}
-
+  release_name: ${{github.ref_name}}
+  
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    env:
+      release_name: ${{github.ref_name}}
+      branch_name: ${{github.ref_name}}/release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2  
+      - name: Checkout new branch for the release version
+        run: git checkout -b ${{env.branch_name}}
+      - name: Push new branch
+        run: git push  ${{env.branch_name}} --set-upstream origin ${{env.branch_name}}
+
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v3
+        with:
+          tag_format: 'check-v${version}'
+          # You can specify specifying version range for the extra plugins if you prefer.
+          extra_plugins: |
+            @droidsolutions-oss/semantic-release-update-file
+             [
+                "@semantic-release/git",
+                {
+                  "assets": [
+                    "VERSION"
+                  ],
+                  "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+                }
+            ]
+      - name: Set version
+        run: echo "VERSION=${{ steps.release-dry-run.outputs.new_version }}" >> $GITHUB_ENV
+   
+      - name: Do something when a new release published
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          echo ${{ steps.semantic.outputs.new_release_version }}
+          echo ${{ steps.semantic.outputs.new_release_major_version }}
+          echo ${{ steps.semantic.outputs.new_release_minor_version }}
+          echo ${{ steps.semantic.outputs.new_release_patch_version }}
+
+    outputs: steps.semantic.outputs
+      
+
   build:
+    needs: version
     uses: './.github/workflows/build.yml'
-    id: build
     with:
-      build_artifact: build-${{github.ref_name}}-${{github.sha}}
-      test_artifact: build-${{github.ref_name}}-${{github.sha}}
+      ref: jobs.version.outputs.new_release_git_tag
+      build_artifact: build-${{jobs.version.outputs.new_release_git_tag}}
+      test_artifact: test-${{jobs.version.outputs.new_release_git_tag}}
       retention: 5
     outputs:
       build_artifact: build-${{github.ref_name}}-${{github.sha}}
-      test_artifact: build-${{github.ref_name}}-${{github.sha}}
+      test_artifact: test-${{github.ref_name}}-${{github.sha}}
 
   release:
     needs: build
