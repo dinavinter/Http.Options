@@ -30,13 +30,6 @@ jobs:
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-          PROJECT_PATH: ${{ env.PROJECT_PATH }}
-          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
-
         with:
           dry_run: true
           # You can specify specifying version range for the extra plugins if you prefer.
@@ -45,6 +38,13 @@ jobs:
             @droidsolutions-oss/semantic-release-nuget
             @semantic-release/git
             @semantic-release/github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+          PROJECT_PATH: Http.Client.Options/Http.Client.Options.csproj
+          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
+
       - name: Set version
         run: echo "VERSION=${{ steps.semantic.outputs.new_version }}" >> $GITHUB_ENV
       
