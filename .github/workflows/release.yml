@@ -31,20 +31,11 @@ jobs:
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
         with:
-          tag_format: 'check-v${version}'
           dry_run: true
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
-            @droidsolutions-oss/semantic-release-update-file
-             [
-                "@semantic-release/git",
-                {
-                  "assets": [
-                    "VERSION"
-                  ],
-                  "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-                }
-            ]
+            @droidsolutions-oss/semantic-release-update-file,
+            @semantic-release/git          
       - name: Set version
         run: echo "VERSION=${{ steps.semantic.outputs.new_version }}" >> $GITHUB_ENV
       
