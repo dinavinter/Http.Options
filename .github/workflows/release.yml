@@ -25,7 +25,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2  
-     
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+          PROJECT_PATH: Http.Client.Options/Http.Client.Options.csproj
+          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
+        run: npx semantic-release
+
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
