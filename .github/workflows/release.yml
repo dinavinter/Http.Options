@@ -19,14 +19,18 @@ env:
 jobs:
   build:
     uses: './.github/workflows/build.yml'
+    id: build
     with:
-      build_artifact: ${{env.build_artifact}}
-      test_artifact:  ${{env.test_artifact}}
+      build_artifact: build-${{github.ref_name}}-${{github.sha}}
+      test_artifact: build-${{github.ref_name}}-${{github.sha}}
       retention: 5
+    outputs:
+      build_artifact: build-${{github.ref_name}}-${{github.sha}}
+      test_artifact: build-${{github.ref_name}}-${{github.sha}}
 
   release:
     needs: build
-    name: Release
+    name: release
     strategy:
       max-parallel: 1
       matrix:
@@ -36,7 +40,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v2
         with:
-          name: ${{env.build_artifact}}
+          name: ${{jobs.build.outputs.build_artifact}}
           path: ${{ github.workspace }}
         
       - name: Setup .NET
