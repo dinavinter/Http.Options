@@ -57,22 +57,20 @@ jobs:
           echo ${{ steps.semantic.outputs.new_release_version }}
           echo ${{ steps.semantic.outputs.new_release_major_version }}
           echo ${{ steps.semantic.outputs.new_release_minor_version }}
-          echo ${{ steps.semantic.outputs.new_release_patch_version }}
+          echo ${{ steps.semantic.outputs.new_release_git_tag }}
 
-    outputs: steps.semantic.outputs
+    outputs: 
+      new_release_git_tag: ${{steps.semantic.outputs.new_release_git_tag}}
       
 
   build:
     needs: version
     uses: './.github/workflows/build.yml'
     with:
-      ref: jobs.version.outputs.new_release_git_tag
+      ref: ${{jobs.version.outputs.new_release_git_tag}}
       build_artifact: build-${{jobs.version.outputs.new_release_git_tag}}
       test_artifact: test-${{jobs.version.outputs.new_release_git_tag}}
       retention: 5
-    outputs:
-      build_artifact: build-${{github.ref_name}}-${{github.sha}}
-      test_artifact: test-${{github.ref_name}}-${{github.sha}}
 
   release:
     needs: build
