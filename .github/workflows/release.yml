@@ -67,9 +67,9 @@ jobs:
     needs: version
     uses: './.github/workflows/build.yml'
     with:
-      ref: ${{jobs.version.outputs.new_release_git_tag}}
-      build_artifact: build-${{jobs.version.outputs.new_release_git_tag}}
-      test_artifact: test-${{jobs.version.outputs.new_release_git_tag}}
+      ref: ${{env.branch_name}}
+      build_artifact: build-${{env.branch_name}}
+      test_artifact: test-${{env.branch_name}}
       retention: 5
 
   release:
