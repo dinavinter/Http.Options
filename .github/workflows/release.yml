@@ -61,13 +61,17 @@ jobs:
           echo ${{ steps.semantic.outputs.new_release_git_tag }}
       
       - name: Create Pull Request
+        if: steps.semantic.outputs.new_release_published == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
             token: ${{ secrets.GITHUB_TOKEN }}
             commit-message: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
             title: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
+            delete-branch: true
             body: "${{env.RELEASE_NOTES}}"
-            branch: releases/${{github.RELEASE_GIT_TAG}}
+            labels: |
+               ${{steps.semantic.outputs.new_release_git_tag}}
+               automated pr
 
 
       
