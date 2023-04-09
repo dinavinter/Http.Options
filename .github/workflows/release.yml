@@ -36,7 +36,9 @@ jobs:
           PROJECT_PATH: Http.Client.Options/Http.Client.Options.csproj
           PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
           TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
-        run: npx semantic-release
+        run: |
+          npm i -g semantic-release @semantic-release/{git,commit-analyzer,release-notes-generator,npm,changelog,github} @droidsolutions-oss/semantic-release-update-file
+          npx semantic-release
 
       - name: Semantic Release
         id: semantic
