@@ -26,16 +26,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2  
-      - name: Checkout new branch for the release version
-        run: git checkout -b ${{env.branch_name}}
-      - name: Push new branch
-        run: git push  ${{env.branch_name}} --set-upstream origin ${{env.branch_name}}
-
+     
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
         with:
           tag_format: 'check-v${version}'
+          dry_run: true
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
             @droidsolutions-oss/semantic-release-update-file
@@ -67,8 +64,21 @@ jobs:
           echo ${{ steps.semantic.outputs.new_release_major_version }}
           echo ${{ steps.semantic.outputs.new_release_minor_version }}
           echo ${{ steps.semantic.outputs.new_release_git_tag }}
-      - name: PR release
-        run: gh pr create --title "Semantic Release  ${{ env.RELEASE_GIT_TAG }}" --body "${{env.RELEASE_NOTES}}" -B ${{github.ref}}
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            commit-message: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
+            title: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
+            body: "${{env.RELEASE_NOTES}}"
+            branch: ${{github.ref}}
+
+      - name: Checkout new branch for the release version
+        run: git checkout -b ${{env.branch_name}}
+      - name: Push new branch
+        run: git push  ${{env.branch_name}} --set-upstream origin ${{env.branch_name}}
+
       
     outputs: 
       new_release_git_tag: ${{steps.semantic.outputs.new_release_git_tag}}
