@@ -28,11 +28,7 @@
         ]
       }
     ],
-    [
-    "@droidsolutions-oss/semantic-release-nuget", 
-    {
-    }
-    ],
+  
     [
       "@semantic-release/git",
       {
