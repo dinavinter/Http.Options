@@ -22,7 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       release_name: ${{github.ref_name}}
-      branch_name: ${{github.sha}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2  
@@ -46,8 +45,6 @@ jobs:
       - name: Set version
         run: echo "VERSION=${{ steps.semantic.outputs.new_version }}" >> $GITHUB_ENV
       
-      - name: Set branch_name
-        run: echo "branch_name=${{ steps.semantic.outputs.new_release_git_tag }}" >> $GITHUB_ENV
     
       - name: Set tag
         run: |
@@ -70,12 +67,8 @@ jobs:
             commit-message: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
             title: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
             body: "${{env.RELEASE_NOTES}}"
-            branch: ${{github.ref}}
+            branch: releases/${{github.RELEASE_GIT_TAG}}
 
-      - name: Checkout new branch for the release version
-        run: git checkout -b ${{env.branch_name}}
-      - name: Push new branch
-        run: git push  ${{env.branch_name}} --set-upstream origin ${{env.branch_name}}
 
       
     outputs: 
