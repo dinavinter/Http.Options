@@ -68,7 +68,7 @@ jobs:
           echo ${{ steps.semantic.outputs.new_release_minor_version }}
           echo ${{ steps.semantic.outputs.new_release_git_tag }}
       - name: PR release
-        run: gh pr create --title "Semantic Release  ${{ RELEASE_GIT_TAG }}" --body "${{RELEASE_NOTES}}"
+        run: gh pr create --title "Semantic Release  ${{ env.RELEASE_GIT_TAG }}" --body "${{env.RELEASE_NOTES}}"
       
     outputs: 
       new_release_git_tag: ${{steps.semantic.outputs.new_release_git_tag}}
