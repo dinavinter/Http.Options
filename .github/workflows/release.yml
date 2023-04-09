@@ -30,7 +30,6 @@ jobs:
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
         with:
-          dry_run: true
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
             @droidsolutions-oss/semantic-release-update-file
