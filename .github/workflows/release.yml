@@ -62,6 +62,8 @@ jobs:
           echo ${{ steps.semantic.outputs.new_release_git_tag }}
           
       - name: GIT CMD
+        env:
+         GH_TOKEN: ${{ github.token }}
         run: | 
           gh release list
           git status
