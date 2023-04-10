@@ -3,7 +3,17 @@ on:
   release:
     types: [created, edited]
   workflow_call:
+    inputs:
+      tag_name:
+        description: 'The name of the release tag'
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'The name of the release tag'
+        required: true
+        type: string
   push:
     tags:
       - v*  
@@ -65,6 +75,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ inputs.tag_name  || event.release.tag_name || github.ref_name  }}
           files: |
              ${{ github.workspace }}/nugets/*.nupkg
              ${{ github.workspace }}/nugets/*.snupkg
