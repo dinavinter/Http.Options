@@ -67,12 +67,12 @@ jobs:
           # If enabled, when the major version is 0, major releases will be treated as minor and minor as patch. Note that the version_type output is unchanged.
           enable_prerelease_mode: true
            
-      - run: |
-          git tag v${{steps.git_version.outputs.version}} -f
-          git push origin v${{steps.git_version.outputs.version}} 
-          gh release create v${{steps.git_version.outputs.version}} -d --generate-notes -p 
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - run: |
+#          git tag v${{steps.git_version.outputs.version}} -f
+#          git push origin v${{steps.git_version.outputs.version}} 
+#          gh release create v${{steps.git_version.outputs.version}} -d --generate-notes -p 
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Semantic Release
         id: semantic
@@ -80,7 +80,7 @@ jobs:
         with:
 #          ci: true
 #          dry_run: true
-          semantic_version: ${{ steps.git_version.outputs.version }}
+#          semantic_version: ${{ steps.git_version.outputs.version }}
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
             @droidsolutions-oss/semantic-release-update-file

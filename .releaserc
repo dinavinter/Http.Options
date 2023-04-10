@@ -2,9 +2,46 @@
   "npmPublish": false,
   "projectPath": "${process.env.PROJECT_PATH}",
   "includeSymbols": true,
-
   "plugins": [
-    "@semantic-release/commit-analyzer",
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "releaseRules": [
+          {
+            "type": "build",
+            "release": "patch"
+          },
+          {
+            "type": "new",
+            "release": "patch"
+          },
+          {
+            "type": "ci",
+            "release": "patch"
+          },
+          {
+            "type": "chore",
+            "release": "patch"
+          },
+          {
+            "type": "docs",
+            "release": "patch"
+          },
+          {
+            "type": "refactor",
+            "release": "patch"
+          },
+          {
+            "type": "style",
+            "release": "patch"
+          },
+          {
+            "type": "test",
+            "release": "patch"
+          }
+        ]
+      }
+    ],
     "@semantic-release/release-notes-generator",
     [
       "@semantic-release/changelog",
@@ -32,7 +69,6 @@
         ]
       }
     ],
-  
     [
       "@semantic-release/git",
       {
@@ -49,7 +85,7 @@
   "files": [
     {
       "path": [
-        "Directory.Build.props" 
+        "Directory.Build.props"
       ],
       "type": "xml",
       "replacements": [
@@ -70,7 +106,7 @@
       "name": "beta",
       "prerelease": true,
       "channel": "beta"
-    },
+    },   
     {
       "name": "prerelease",
       "prerelease": true
