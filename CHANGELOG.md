@@ -1,3 +1,24 @@
+# [](https://github.com/dinavinter/Http.Options/compare/v7.3.0-prerelease.1...v) (2023-04-10)
+
+
+### chore
+
+* drop support for net5.0 ([c8ee53a](https://github.com/dinavinter/Http.Options/commit/c8ee53a7d91d54609888041a0f52b0269edcea4e))
+
+
+### Features
+
+* **core:** support compression ([08ec55c](https://github.com/dinavinter/Http.Options/commit/08ec55c5dd1b89d144a9a29610c6e506f9bb7a02))
+* **core:** upgrade open telemetry ([f260e75](https://github.com/dinavinter/Http.Options/commit/f260e75f985b4d087f901bf5a25fd5e9d16145a4))
+
+
+### BREAKING CHANGES
+
+* **core:** introduces breaking changes in telemetry config
+* Drop support for net5.0 or lower net versions.
+
+
+
 # [](https://github.com/dinavinter/Http.Options/compare/v8.0.0-beta.10...v) (2023-04-10)
 
 
