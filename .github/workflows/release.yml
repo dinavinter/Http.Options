@@ -149,7 +149,6 @@ jobs:
   publish:
     needs: nuget
     runs-on: ubuntu-latest
-    image: mcr.microsoft.com/dotnet/sdk:7.0
     steps:
       - name: download nugets from release assets
         run: |
@@ -165,7 +164,7 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_TOKEN }}
   
   prerelease:
-    needs: publish
+    needs: publish    
     runs-on: ubuntu-latest
     steps:
       - name: set release as prerelease
