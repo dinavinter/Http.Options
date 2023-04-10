@@ -24,14 +24,17 @@ jobs:
       release_name: ${{github.ref_name}}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2  
-      - run: echo "hash=${{git rev-parse --short HEAD}} >> $GITHUB_ENV
+        uses: actions/checkout@v2 
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
         with:
-          tag_format: "v${version}.${{env.hash}}"
+          tag_format: "v${version}.${{env.sha_short}}"
           ci: true
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
@@ -70,7 +73,6 @@ jobs:
         run: | 
           gh release list
           git status
-        
       
       - name: Create Pull Request
         if: steps.semantic.outputs.new_release_published == 'true'
