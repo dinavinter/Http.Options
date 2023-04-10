@@ -19,7 +19,6 @@ on:
       ref:
         description: 'The branch, tag or SHA to checkout. When checking out the repository that triggered a workflow, this defaults to the reference or SHA for that event.'
         required: false
-        default: 5
         type: string
   workflow_dispatch:
     inputs:

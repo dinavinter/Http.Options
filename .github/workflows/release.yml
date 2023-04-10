@@ -138,6 +138,7 @@ jobs:
     with:
       build_artifact: build-${{github.ref_name}}-${{github.sha}}
       test_artifact: test-${{github.ref_name}}-${{github.sha}}
+      ref: ${{github.ref}}
       retention: 5
   
   
