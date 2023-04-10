@@ -30,7 +30,6 @@ jobs:
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
         with:
-          dry_run: true
           ci: false
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
