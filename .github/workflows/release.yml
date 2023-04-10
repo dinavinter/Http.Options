@@ -18,7 +18,7 @@ env:
   release_name: ${{github.ref_name}}
   
 jobs:
-  version:
+  draft:
     runs-on: ubuntu-latest
     env:
       release_name: ${{github.ref_name}}
@@ -72,6 +72,7 @@ jobs:
           # Prevents pre-v1.0.0 version from automatically incrementing the major version.
           # If enabled, when the major version is 0, major releases will be treated as minor and minor as patch. Note that the version_type output is unchanged.
           enable_prerelease_mode: true
+          
       - name: update Directory.Build.props with the version
         run: |
           sed -i "s/<Version>.*<\/Version>/<Version>${{steps.git_version.outputs.version}}<\/Version>/g" Directory.Build.props
@@ -87,10 +88,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - run: |
+      - name: Create Release
+        run: |
           git tag v${{steps.git_version.outputs.version}} -a -m "v${{steps.git_version.outputs.version}}"
           git push origin ${{github.ref_name}} --tags         
-          gh release create v${{steps.git_version.outputs.version}} -d --generate-notes -p -t "v${{steps.git_version.outputs.version}}"  --notes-file  CHANGELOG.md --notes-start-tag ${{steps.git_version.outputs.previous_version}}  
+          gh release create v${{steps.git_version.outputs.version}} -d --generate-notes -p -t "v${{steps.git_version.outputs.version}}"  --notes-file  CHANGELOG.md --notes-start-tag v${{steps.git_version.outputs.previous_version}}  
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
      
@@ -112,6 +114,11 @@ jobs:
           echo "::set-output name=git_log::$(git log --decorate  --graph)"
         id: git_log
         
+      - name: add release tag to output and env
+        run: |
+          echo "::set-output name=release_tag::v${{steps.git_version.outputs.version}}"
+          echo "RELEASE_GIT_TAG=v${{steps.git_version.outputs.version}}" >> $GITHUB_ENV
+        id: release_tag
       
 #      - name: Create Pull Request
 #        if: steps.semantic.outputs.new_release_published == 'true'
@@ -131,58 +138,78 @@ jobs:
 #    outputs: 
 #      new_release_git_tag: ${{steps.semantic.outputs.new_release_git_tag}}
       
-
-  build:
-    needs: version
-    uses: './.github/workflows/build.yml'
-    with:
-      build_artifact: build-${{github.ref_name}}-${{github.sha}}
-      test_artifact: test-${{github.ref_name}}-${{github.sha}}
-      ref: ${{github.ref}}
-      retention: 5
+  nuget:
+    needs: draft
+    uses: './.github/workflows/release-nugets.yml'
+      
+#  verify:
+#    needs: nuget
+#    uses: './.github/workflows/build.yml'
   
-  
-  release:
-    needs: build
-    name: release
-    strategy:
-      max-parallel: 1
-      matrix:
-        os: [ ubuntu-latest ]
-    runs-on: ${{ matrix.os }}
+  publish:
+    needs: nuget
     steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: ${{env.build_artifact}}
-          path: ${{ github.workspace }}
-        
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        id: setup
-        
-      - run: echo '${{ steps.setup.outputs.dotnet-version }}'
-        
-      - name: Semantic Release
-        id: release
-        uses: cycjimmy/semantic-release-action@v3 
-        with:
-          # You can specify specifying version range for the extra plugins if you prefer.
-          extra_plugins: |
-            @droidsolutions-oss/semantic-release-update-file
-            @droidsolutions-oss/semantic-release-nuget
-            @semantic-release/git
-            @semantic-release/github
-
-     #          @semantic-release/exec
-
-
+      - name: download nugets from release assets
+        run: |
+          gh release download ${{ RELEASE_GIT_TAG }} --pattern "*.nupkg"  --pattern "*.snupkg" --dir ${{ github.workspace }}/nugets
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-          PROJECT_PATH: ${{ env.PROJECT_PATH }}
-          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
+          GH_TOKEN: ${{ github.token }}
+      
+      - name: dotnet nuget push
+        uses: docker://mcr.microsoft.com/dotnet/sdk:7.0
+        run: |
+          dotnet nuget push ${{ github.workspace }}/nugets/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push ${{ github.workspace }}/nugets/*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_TOKEN }}
+  
+  prerelease:
+    needs: publish
+    run: |
+      gh release edit ${{ RELEASE_GIT_TAG  }} --prerelease true --draft false 
+    env:
+      GH_TOKEN: ${{ github.token }}
+  
+#  release:
+#    needs: build
+#    name: release
+#    strategy:
+#      max-parallel: 1
+#      matrix:
+#        os: [ ubuntu-latest ]
+#    runs-on: ${{ matrix.os }}
+#    steps:
+#      - name: Download build artifacts
+#        uses: actions/download-artifact@v2
+#        with:
+#          name: ${{env.build_artifact}}
+#          path: ${{ github.workspace }}
+#        
+#      - name: Setup .NET
+#        uses: actions/setup-dotnet@v3
+#        id: setup
+#        
+#      - run: echo '${{ steps.setup.outputs.dotnet-version }}'
+#        
+#      - name: Semantic Release
+#        id: release
+#        uses: cycjimmy/semantic-release-action@v3 
+#        with:
+#          # You can specify specifying version range for the extra plugins if you prefer.
+#          extra_plugins: |
+#            @droidsolutions-oss/semantic-release-update-file
+#            @droidsolutions-oss/semantic-release-nuget
+#            @semantic-release/git
+#            @semantic-release/github
+#
+#
+#
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+#          PROJECT_PATH: ${{ env.PROJECT_PATH }}
+#          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+#          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
             
             #      - name: Install dependencies
 #        run: dotnet restore

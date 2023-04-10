@@ -2,6 +2,7 @@ name: release add packages
 on:
   release:
     types: [created, edited]
+  workflow_call:
   workflow_dispatch:
   push:
     tags:
@@ -9,9 +10,7 @@ on:
     
 jobs:
   build:
-    
     env:
-      test: ${{ github.workspace }}/tests
       DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
       dotnet-versions: 7.x-6.x
       key: ${{format('{0}-{1}', github.ref_name, github.sha) }}
