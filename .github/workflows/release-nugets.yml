@@ -50,7 +50,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore --packages ${{ github.workspace }}/.nuget/packages --use-lock-file
 
       - name: Build
         run: dotnet build --no-restore --configuration Release
