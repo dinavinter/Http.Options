@@ -148,10 +148,12 @@ jobs:
   
   publish:
     needs: nuget
+    runs-on: ubuntu-latest
+    image: mcr.microsoft.com/dotnet/sdk:7.0
     steps:
       - name: download nugets from release assets
         run: |
-          gh release download ${{ RELEASE_GIT_TAG }} --pattern "*.nupkg"  --pattern "*.snupkg" --dir ${{ github.workspace }}/nugets
+          gh release download ${{ env.RELEASE_GIT_TAG }} --pattern "*.nupkg"  --pattern "*.snupkg" --dir ${{ github.workspace }}/nugets
         env:
           GH_TOKEN: ${{ github.token }}
       
@@ -164,10 +166,11 @@ jobs:
   
   prerelease:
     needs: publish
+    runs-on: ubuntu-latest
     steps:
       - name: set release as prerelease
         run: |
-          gh release edit ${{ RELEASE_GIT_TAG  }} --prerelease true --draft false 
+          gh release edit ${{ env.RELEASE_GIT_TAG  }} --prerelease true --draft false 
         env:
           GH_TOKEN: ${{ github.token }}
             
