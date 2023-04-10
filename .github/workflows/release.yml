@@ -139,7 +139,7 @@ jobs:
     steps:
       - name: download nugets from release assets
         run: |
-          gh release download  ${{ needs.draft.outputs.release_tag }} --pattern "*.nupkg"  --pattern "*.snupkg" --dir ${{ github.workspace }}/nugets
+          gh release download  ${{ needs.draft.outputs.release_tag }} --pattern "*.nupkg"  --pattern "*.snupkg" 
         env:
           GH_TOKEN: ${{ github.token }}
       
