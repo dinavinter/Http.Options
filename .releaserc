@@ -1,5 +1,5 @@
 {
-  "extends": ["semantic-release-npm-github-publish"]
+  "extends": ["semantic-release-npm-github-publish"],
   "npmPublish": false,
   "projectPath": "${process.env.PROJECT_PATH}",
   "includeSymbols": true,
