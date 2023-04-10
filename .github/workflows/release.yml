@@ -141,6 +141,8 @@ jobs:
   nuget:
     needs: draft
     uses: './.github/workflows/release-nugets.yml'
+    with:
+      release_tag: ${{ env.RELEASE_GIT_TAG }}
       
 #  verify:
 #    needs: nuget
