@@ -1,3 +1,7 @@
+# [](https://github.com/dinavinter/Http.Options/compare/v8.0.0-beta.7...v) (2023-04-10)
+
+
+
 # Semantic Versioning Changelog
 
 # [8.0.0-beta.1](https://github.com/dinavinter/Http.Options/compare/v7.2.0...v8.0.0-beta.1) (2023-04-10)
