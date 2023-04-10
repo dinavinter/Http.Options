@@ -3,6 +3,26 @@
 # [8.0.0-beta.1](https://github.com/dinavinter/Http.Options/compare/v7.2.0...v8.0.0-beta.1) (2023-04-10)
 
 
+### chore
+
+* drop support for net5.0 ([c8ee53a](https://github.com/dinavinter/Http.Options/commit/c8ee53a7d91d54609888041a0f52b0269edcea4e))
+
+
+### Features
+
+* **core:** change fields to auto properties to allow serialization - this required for using microsoft.extensions.options from a config file. ([5900fca](https://github.com/dinavinter/Http.Options/commit/5900fca0678b3dea3b16ee98f9fa6f2cda9a9df5))
+* **core:** support compression ([08ec55c](https://github.com/dinavinter/Http.Options/commit/08ec55c5dd1b89d144a9a29610c6e506f9bb7a02))
+* **core:** upgrade open telemetry ([f260e75](https://github.com/dinavinter/Http.Options/commit/f260e75f985b4d087f901bf5a25fd5e9d16145a4))
+
+
+### BREAKING CHANGES
+
+* **core:** introduces breaking changes in telemetry config
+* Drop support for net5.0 or lower net versions.
+
+# [8.0.0-beta.1](https://github.com/dinavinter/Http.Options/compare/v7.2.0...v8.0.0-beta.1) (2023-04-10)
+
+
 ### Bug Fixes
 
 * build ([7c5eee6](https://github.com/dinavinter/Http.Options/commit/7c5eee6dd7cd648b8f512a8898cb5c22915b0641))
