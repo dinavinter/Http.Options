@@ -34,19 +34,17 @@ on:
       retention:
         description: 'The number of days to retain the artifact'
         required: false
-        default: 5
         type: number
+        default: 5
       ref:
         description: 'The branch, tag or SHA to checkout. When checking out the repository that triggered a workflow, this defaults to the reference or SHA for that event.'
         required: false
-        default: 5
         type: string
 
   push:
-    branches:
-      - "beta"
-      - "prerelease"
-      - "master"
+    tags: ["v*", "test-please-*"]
+  pull_request:
+    tags: ["v*"]
 
 concurrency:
   group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
