@@ -60,8 +60,13 @@ jobs:
           echo ${{ steps.semantic.outputs.new_release_major_version }}
           echo ${{ steps.semantic.outputs.new_release_minor_version }}
           echo ${{ steps.semantic.outputs.new_release_git_tag }}
-      - name: Commit
-        run: git add . && gist status        
+          
+      - name: GIT CMD
+        run: | 
+          gh release list
+          git status
+        
+      
       - name: Create Pull Request
         if: steps.semantic.outputs.new_release_published == 'true'
         uses: peter-evans/create-pull-request@v5
