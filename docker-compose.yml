@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  nugets:
+    build: &build-dev
+      context: .
+      dockerfile: src/Http.Client.Options/Dockerfile      
+      tags:
+        - localhost:5000/http-options-build:latest
+      cache_from:
+        - localhost:5000/http-options-build:cache
+      cache_to:
+        - localhost:5000/http-options-build:cache
+    container_name: http-options-build-container    
+    volumes:
+      - nugets:/nugets
+
+  test:
+    build:
+      context: .
+      dockerfile: tests/Http.Options.UnitTests/Dockerfile
+      tags:
+        - localhost:5000/http-options-test:latest
+      cache_from:
+        - localhost:5000/http-options-test:cache        
+      cache_to:
+        - localhost:5000/http-options-test:cache
+    container_name: http-options-test-container    
+    
+    depends_on:
+      - nugets
+    volumes:
+      - reports:/reports
+#    command: sh -c 'dotnet nuget add source /packages --name local-packages && dotnet test /app --framework net6.0 --verbosity normal --logger trx --results-directory /output/net6'
+
+
+#    command: sh -c 'dotnet nuget add source /packages --name local-packages && dotnet test /app --framework net7.0 --verbosity normal --logger trx --results-directory /output/net7'
+
+volumes:
+  reports:
+  nugets:
+  

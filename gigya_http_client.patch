@@ -1,0 +1,825 @@
+Subject: [PATCH] gigya http client
+---
+Index: Gigya.Http.Client.Tests/Gigya.Http.Client.Tests.csproj
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Gigya.Http.Client.Tests/Gigya.Http.Client.Tests.csproj b/Gigya.Http.Client.Tests/Gigya.Http.Client.Tests.csproj
+new file mode 100644
+--- /dev/null	(date 1680939620324)
++++ b/Gigya.Http.Client.Tests/Gigya.Http.Client.Tests.csproj	(date 1680939620324)
+@@ -0,0 +1,41 @@
++<Project Sdk="Microsoft.NET.Sdk">
++
++    <PropertyGroup>
++
++        <IsPackable>false</IsPackable>
++
++        <LangVersion>latest</LangVersion>
++
++
++    </PropertyGroup>
++
++    <ItemGroup>
++
++        <PackageReference Include="Faker.Net" Version="2.0.154" />
++
++        <PackageReference Include="IdentityModel.AspNetCore" Version="4.3.0" />
++
++        <PackageReference Include="Microsoft.Extensions.Http" />
++        <PackageReference Include="OpenTelemetry" />
++        <PackageReference Include="OpenTelemetry.Exporter.Console" />
++        <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
++        <PackageReference Include="SiteFactory.client" Version="3.0.0" />
++
++        <PackageReference Include="FluTe" Version="0.5.0.1" />
++
++        <PackageReference Include="NUnit" Version="3.12.0" />
++        <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
++        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
++
++        <PackageReference Include="System.Reactive" />
++        <PackageReference Include="WireMock.Net" />
++
++    </ItemGroup>
++
++    <ItemGroup>
++        <!--      <ProjectReference Include="..\Http.Client.Options.Caching\Http.Client.Options.Caching.csproj" />-->
++        <ProjectReference Include="..\Http.Client.Options\Http.Client.Options.csproj" />
++    </ItemGroup>
++
++
++</Project>
+Index: Gigya.Http.Client.Tests/GigyaApi/GigyaClientTests.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Gigya.Http.Client.Tests/GigyaApi/GigyaClientTests.cs b/Gigya.Http.Client.Tests/GigyaApi/GigyaClientTests.cs
+new file mode 100644
+--- /dev/null	(date 1680660898258)
++++ b/Gigya.Http.Client.Tests/GigyaApi/GigyaClientTests.cs	(date 1680660898258)
+@@ -0,0 +1,273 @@
++
++using System;
++using System.Collections;
++using System.Collections.Generic;
++using System.Diagnostics;
++using System.Linq;
++using System.Net.Http;
++using System.Net.Http.Headers;
++using System.Net.Http.Json;
++using System.Text.Json;
++using System.Threading;
++using System.Threading.Tasks;
++
++using Http.Options;
++using Http.Options.Standalone;
++using IdentityModel.AspNetCore.AccessTokenManagement;
++using ImpromptuInterface;
++using Microsoft.Extensions.DependencyInjection;
++using Microsoft.Extensions.Hosting;
++using Newtonsoft.Json;
++using NUnit.Framework;
++using NUnit.Framework.Interfaces;
++using NUnit.Framework.Internal;
++using OpenTelemetry.Trace;
++using SiteFactory.client;
++using SiteFactory.client.Models;
++using WireMock.RequestBuilders;
++using JsonSerializer = System.Text.Json.JsonSerializer;
++
++namespace Http.Options.UnitTests.GigyaApi
++{
++    [TestFixture]
++    
++    public class IntegrationTests
++    {
++        string DC = "il3";
++        private GigyaSite _site;
++        private IHttpClientFactory _httpClientFactory;
++        private static Action<Action<Activity>> _onExport;
++        ActivitySource activitySource = new ActivitySource("test");
++
++        internal class Count
++        {
++            [JsonProperty("counter")] public int Total { get; set; }
++        }
++
++        [OneTimeSetUp]
++        public async Task Setup()
++        {
++            _site = await GetSite();
++            _httpClientFactory = await GetHttpClientFactory(_site);
++            var jsonSerializerOptions = new JsonSerializerOptions()
++            {
++                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
++                IncludeFields = true
++            };
++
++             
++                var res = await
++                    _httpClientFactory
++                        .CreateClient(_site.ApiKey)
++                        .GetFromJsonAsync<SearchResponse>(
++                            new AccountsSearchRequest("select count(*) as counter from accounts").Uri(),
++                            jsonSerializerOptions);
++
++                if (res.SelectMetric("counter") < 1000)
++                {
++                    for (int i = 0; i < 5; i++)
++                    {
++
++                        var import = await _httpClientFactory
++                            .CreateClient(_site.ApiKey)
++                            .GetFromJsonAsync<GStatus>(
++                                new AccountsImportRequest().Uri(),
++                                jsonSerializerOptions);
++
++                        // TestContext.WriteLine(JsonSerializer.Serialize(import));
++
++                        if (import.ErrorCode != 0)
++                            throw new Exception(import.Error().ToString());
++                    }
++                }
++                
++          
++
++        }
++
++        private async Task<GigyaSite> GetSite()
++        {
++            var site = await SiteFactoryClient.GetSite(options => options
++                .Env(DC)
++                .Suit("intTests")
++                .Region(DC)
++                .SiteConfig(configuration => configuration));
++
++            return new GigyaSite(
++                $"{site.dc}.gigya.com",
++                new GigyaCreds(site.testUser.userKey, site.testUser.userSecret),
++                site.apikey,
++                (uint) site.partnerId);
++        }
++
++        private  async Task<IHttpClientFactory> GetHttpClientFactory(GigyaSite site)
++        {
++            var gigyaAccess = new GigyaOidcProvider(site);
++
++            var serviceCollection = new ServiceCollection();
++            var name = site.ApiKey;
++
++            serviceCollection.AddAccessTokenManagement(tokenOptions => gigyaAccess.Configure(tokenOptions, name));
++ 
++            serviceCollection.AddHttpOptionsTelemetry(builder =>
++            {
++                
++                builder.ConfigureOpenTelemetryBuilder(providerBuilder => providerBuilder.AddConsoleExporter());
++                builder.ConfigureTracing(options =>
++                {
++                    options.Activity.Source = activitySource;
++                });
++              
++            });
++
++            serviceCollection.AddHttpClientOptions((options) =>
++                {
++                    options.ServiceName = name;
++                    // options.Connection.Timeout = TimeSpan.FromSeconds(10);
++                    options.Connection.Server = site.Domain;
++                    options.Connection.Url = site.AccountsBaseAddress().ToString();
++                    options.AddHandler((provider, options) =>
++                        new IdentityModel.AspNetCore.AccessTokenManagement.ClientAccessTokenHandler(provider.GetRequiredService<IClientAccessTokenManagementService>(),
++                            options.ServiceName));
++                }
++            );
++
++            
++            var serviceProvider = serviceCollection.BuildServiceProvider();
++            await Task.WhenAll(serviceProvider.GetServices<IHostedService>()
++                .Select(e => e.StartAsync(CancellationToken.None)));
++
++            return serviceProvider.GetRequiredService<IHttpClientFactory>();
++        }
++
++
++        [Test]
++        public async Task ServiceShouldSayHelloWorld()
++        {
++            
++            var res = await
++                _httpClientFactory
++                    .CreateClient(_site.ApiKey)
++                    .GetFromJsonAsync<SearchResponse>(
++                        new AccountsSearchRequest("select count(*) as counter from accounts").Uri(),
++                        new JsonSerializerOptions()
++                        {
++                            PropertyNameCaseInsensitive = true
++                        },
++                        CancellationToken.None);
++            await TestContext.Out.WriteLineAsync(JsonSerializer.Serialize(res, new JsonSerializerOptions()
++            {
++                WriteIndented = true
++            }));
++        }
++    }
++
++    public class AccountsSearchRequest : Request
++    {
++        public AccountsSearchRequest(string query) : base("accounts.search",
++            new Dictionary<string, string>
++            {
++                [nameof(query)] = query
++            })
++        {
++        }
++    }
++
++    public class AccountsImportRequest : Request
++    {
++        public AccountsImportRequest(string uid = null, Identity[] identities = null) : base(
++            "accounts.importFullAccount",
++            new Dictionary<string, string>
++            {
++                [nameof(uid)] = uid ?? Faker.Identification.SocialSecurityNumber(false),
++                [nameof(identities)] = JsonSerializer.Serialize(identities ?? new FakeIdentityCollection().ToArray(),
++                    new JsonSerializerOptions()
++                    {
++                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
++                    })
++            })
++        {
++        }
++
++        public class FakeIdentityCollection : IEnumerable<Identity>
++        {
++            public IEnumerator<Identity> GetEnumerator()
++            {
++                return Enumerable.Range(0, 3).Select(e => new Identity()
++                {
++                    email = Faker.Internet.Email(),
++                    provider = Faker.Company.Name(),
++                    providerUID = Faker.Internet.UserName(),
++                    isLoginIdentity = true,
++                    lastLoginTime =
++                        UnixTime.ToUnixMs(DateTime.UtcNow.AddTicks(-Faker.RandomNumber.Next(TimeSpan.TicksPerDay)))
++                }).GetEnumerator();
++            }
++
++            IEnumerator IEnumerable.GetEnumerator()
++            {
++                return GetEnumerator();
++            }
++        }
++
++        public record Identity
++        {
++            public string email { get; set; }
++            public string provider { get; set; }
++            public string providerUID { get; set; }
++            public bool isLoginIdentity { get; set; }
++            public ulong lastLoginTime { get; set; }
++        }
++    }
++}
++
++static class UnixTime
++{
++    internal static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
++
++    internal static ulong ToUnixMs(DateTime dateTime) => (ulong) (dateTime - UnixTime.Epoch).TotalMilliseconds;
++}
++
++
++
++[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
++public class TracePerTestRunAttribute : Attribute, IApplyToTest
++{
++    public string Name { get; }
++    public ActivitySource ActivitySource { get; }
++
++    public TracePerTestRunAttribute(string name)
++    {
++        Name = name;
++        ActivitySource = new ActivitySource(name);
++        parent = ActivitySource.StartActivity(name, ActivityKind.Server);
++    }
++
++    // private Activity? activityForThisTest;
++    internal static Activity? parent;
++
++
++    public void ApplyToTest(Test test)
++    {
++        // if (ActivityForTestRun == null)
++        //     throw new ArgumentNullException(nameof(ActivityForTestRun),
++        //         "The test run Activity was null, and therefore can't be used");
++        // var parent = ActivitySource.StartActivity("incoming request", ActivityKind.Server);
++        using  var  source = new ActivitySource(Name);
++        using var activityForThisTest =
++            source
++                .StartActivity(test.Name,
++                    ActivityKind.Server,
++                    parent?.Context ?? parent?.Context ?? default,
++                    TestContext.CurrentContext.Test?.Properties.Keys.Select(key =>
++                        new KeyValuePair<string, object?>(key, TestContext.CurrentContext.Test.Properties.Get(key)))
++                );
++        
++        var testResult = test.MakeTestResult();
++
++        activityForThisTest.SetTag("resul-state", testResult.ResultState.ToString());
++        activityForThisTest.SetTag("test-duration", testResult.Duration.ToString());
++        activityForThisTest.SetTag("message", testResult.Message);
++
++    }
++}
+\ No newline at end of file
+Index: Gigya.Http.Client.Tests/GigyaApi/ClientAccessTokenHandler.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Gigya.Http.Client.Tests/GigyaApi/ClientAccessTokenHandler.cs b/Gigya.Http.Client.Tests/GigyaApi/ClientAccessTokenHandler.cs
+new file mode 100644
+--- /dev/null	(date 1680660898270)
++++ b/Gigya.Http.Client.Tests/GigyaApi/ClientAccessTokenHandler.cs	(date 1680660898270)
+@@ -0,0 +1,65 @@
++using System.Net.Http;
++using System.Net.Http.Headers;
++using System.Threading;
++using System.Threading.Tasks;
++using IdentityModel.AspNetCore.AccessTokenManagement;
++
++namespace Http.Options.UnitTests.GigyaApi;
++
++public class ClientAccessTokenHandler : DelegatingHandler
++{
++    private readonly IClientAccessTokenManagementService _accessTokenManagementService;
++    private readonly string _tokenClientName;
++
++    /// <summary>
++    /// ctor
++    /// </summary>
++    /// <param name="accessTokenManagementService">The Access Token Management Service</param>
++    /// <param name="tokenClientName">The name of the token client configuration</param>
++    public ClientAccessTokenHandler(IClientAccessTokenManagementService accessTokenManagementService, string tokenClientName = AccessTokenManagementDefaults.DefaultTokenClientName)
++    {
++        _accessTokenManagementService = accessTokenManagementService;
++        _tokenClientName = tokenClientName;
++    }
++
++    /// <inheritdoc/>
++    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
++    {
++        await SetTokenAsync(request, forceRenewal: false, cancellationToken);
++        var response = await base.SendAsync(request, cancellationToken);
++
++
++        // retry if 401
++        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
++        {
++            response.Dispose();
++
++            await SetTokenAsync(request, forceRenewal: true, cancellationToken);
++            return await base.SendAsync(request, cancellationToken);
++        }
++
++        return response;
++    }
++
++    /// <summary>
++    /// Set an access token on the HTTP request
++    /// </summary>
++    /// <param name="request"></param>
++    /// <param name="forceRenewal"></param>
++    /// <param name="cancellationToken"></param>
++    /// <returns></returns>
++    protected virtual async Task SetTokenAsync(HttpRequestMessage request, bool forceRenewal, CancellationToken cancellationToken)
++    {
++        var parameters = new ClientAccessTokenParameters
++        {
++            ForceRenewal = forceRenewal
++        };
++
++        var token = await _accessTokenManagementService.GetClientAccessTokenAsync(_tokenClientName, parameters, cancellationToken);
++
++        if (!string.IsNullOrWhiteSpace(token))
++        {
++           request.Headers.Authorization = new AuthenticationHeaderValue("OAuth", token);
++        }
++    }
++}
+\ No newline at end of file
+Index: Gigya.Http.Client.Tests/GigyaApi/SearchResponse.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Gigya.Http.Client.Tests/GigyaApi/SearchResponse.cs b/Gigya.Http.Client.Tests/GigyaApi/SearchResponse.cs
+new file mode 100644
+--- /dev/null	(date 1680660898302)
++++ b/Gigya.Http.Client.Tests/GigyaApi/SearchResponse.cs	(date 1680660898302)
+@@ -0,0 +1,51 @@
++using System.Collections.Generic;
++using System.Linq;
++using System.Text.Json;
++
++namespace Http.Options.UnitTests.GigyaApi
++{
++    public class SearchResponse :  GStatus
++    {
++
++
++        public JsonElement[] Results { get; set; }
++
++        public int ObjectsCount { get; set; }
++
++        public int TotalCount { get; set; }
++
++        public string NextCursorId { get; set; }
++
++        public IEnumerable<T?> SelectResults<T>()
++        {
++            return Results.Select(jsonElement =>
++                        jsonElement.EnumerateObject().FirstOrDefault(e=>e.Name == "data")
++                            .Value.GetRawText())
++                    .Select(e=>   JsonSerializer.Deserialize<T>(e, SerializerOptions))
++                ;
++            // .Select(e=>e.data!);
++        }
++
++
++        public double SelectMetric (string metric)
++        {
++            return Results.Select(jsonElement =>
++                {
++                    jsonElement.TryGetProperty(metric, out var element);
++                    return element;
++                }).Select(e => e.GetDouble())
++                .First();
++
++        }
++
++        private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
++        {
++            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
++            WriteIndented = false,
++            IgnoreNullValues = true,
++            PropertyNameCaseInsensitive = true,
++            ReadCommentHandling = JsonCommentHandling.Skip
++        };
++
++    }
++}
+\ No newline at end of file
+Index: Gigya.Http.Client.Tests/GigyaApi/GigyaModel.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Gigya.Http.Client.Tests/GigyaApi/GigyaModel.cs b/Gigya.Http.Client.Tests/GigyaApi/GigyaModel.cs
+new file mode 100644
+--- /dev/null	(date 1680660898311)
++++ b/Gigya.Http.Client.Tests/GigyaApi/GigyaModel.cs	(date 1680660898311)
+@@ -0,0 +1,100 @@
++using System;
++using System.Net;
++using System.Text.Json;
++using System.Text.Json.Serialization;
++
++namespace Http.Options.UnitTests.GigyaApi
++{
++
++    public class GigyaModel
++    {
++        public readonly string ApiKey;
++        public readonly string Domain;
++
++        public GigyaModel(string apiKey, string domain = "gigya.com")
++        {
++            ApiKey = apiKey;
++            Domain = domain;
++        }
++
++    }
++
++    public record ErrorMessage
++    {
++        public string Message { get; set; }
++        public string ErrorDetails { get; set; }
++        public string? RequestId { get; set; }
++        public int? ErrorCode { get; set; }
++        public object? Details { get; set; }
++
++        public ErrorMessage(string message, string errorDetails, string? requestId = null, int? errorCode = 0, object? details = null)
++        {
++            Message = message;
++            ErrorDetails = errorDetails;
++            RequestId = requestId;
++            ErrorCode = errorCode;
++            Details = details;
++        }
++    }
++
++    public class GStatus
++    {
++        public string CallId { get; set; }
++
++        public int ErrorCode { get; set; }
++
++        public string ErrorMessage { get; set; }
++        public string ErrorDetails { get; set; }
++
++        public HttpStatusCode StatusCode { get; set; }
++
++        public DateTime Time { get; set; }
++
++        public DebugInfo Debug;
++        public IgnoredParam[] IgnoredParams;
++        public int ApiVersion;
++
++        [JsonIgnore]
++        public string kibanaLink =>
++            $"http://kibana/kibana3/#/dashboard/elasticsearch/SearchByCallID?my_url_parameter=callID:{CallId}";
++
++        public class IgnoredParam
++        {
++            public string paramName { get; set; }
++            public string message { get; set; }
++            public int warningCode { get; set; }
++        }
++
++        public class DebugInfo
++        {
++            public JsonElement exceptionDatas;
++
++            public string exceptionMessage;
++
++            public string offendingService;
++
++            public string stackTrace;
++        }
++
++        public ErrorMessage Error() => new ErrorMessage(ErrorMessage, ErrorDetails, CallId, ErrorCode, this);
++    }
++
++
++    public interface ISearchResults<out TResult>
++    {
++        TResult[] Results { get; }
++
++        int ObjectsCount { get; }
++
++
++        int TotalCount { get; }
++
++        string NextCursorId { get; }
++
++        string CallId { get; }
++
++        int ErrorCode { get; }
++
++        string ErrorMessage { get; }
++    }
++}
+\ No newline at end of file
+Index: Gigya.Http.Client.Tests/GigyaApi/GigyaSite.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Gigya.Http.Client.Tests/GigyaApi/GigyaSite.cs b/Gigya.Http.Client.Tests/GigyaApi/GigyaSite.cs
+new file mode 100644
+--- /dev/null	(date 1680660898333)
++++ b/Gigya.Http.Client.Tests/GigyaApi/GigyaSite.cs	(date 1680660898333)
+@@ -0,0 +1,228 @@
++using System;
++using System.Collections.Generic;
++using System.Linq;
++using System.Net.Http;
++using System.Threading;
++using System.Threading.Tasks;
++using System.Web;
++using IdentityModel.AspNetCore.AccessTokenManagement;
++using IdentityModel.Client;
++using HttpMethod = System.Net.Http.HttpMethod;
++
++namespace Http.Options.UnitTests.GigyaApi
++{
++    public record GigyaSite(string Domain, GigyaCreds Creds, string ApiKey, uint Partner): GigyaDomain(Domain)
++    {
++        public IEnumerable<(string name, string value)> Params()
++        {
++            yield return (name: "apiKey", value: ApiKey);
++        }
++
++        public Request.HttpGetRequest Apply(Request.HttpGetRequest request)
++        {
++            request.Param = ("apiKey", ApiKey);
++            return request;
++        }
++
++    }
++    public record GigyaDomain(string Domain)
++    {
++        public Uri AccountsBaseAddress() => new Uri($"https://accounts.{Domain}/");
++        public Uri AccountsPath(string path) => new Uri($"https://accounts.{Domain}/accounts.{path}");
++        public Uri SocializePath(string path) => new Uri($"https://socialize.{Domain}/socialize.{path}");
++
++    }
++ 
++
++    public record GigyaOidcProvider(GigyaDomain Domain, GigyaCreds Creds)
++    {
++        public GigyaSite Site { get; }
++        public string ClientSecret { get; init; } = Creds.Secret;
++        public string ClientId { get; init; }= Creds.UserKey;
++        public string Token { get; init; }=Domain.SocializePath("getToken").ToString();
++
++        public GigyaOidcProvider(GigyaSite site):this(site as GigyaDomain, site.Creds)
++        {
++            Site = site;
++        }
++        public void Configure(AccessTokenManagementOptions accessTokenManagementOptions, string name = "gigya")
++        {
++            var parameters = new Parameters();
++            parameters.AddOptional("apiKey", Site?.ApiKey);
++            parameters.AddOptional("userKey", Creds?.UserKey);
++            parameters.AddOptional("secret", Creds?.Secret);
++            
++            accessTokenManagementOptions.Client.Clients.Add(name, new ClientCredentialsTokenRequest
++            {
++                Address = Token,
++                // ClientId = ClientId,
++                // ClientSecret = ClientSecret,
++                
++                Scope = "api",
++                GrantType = "none",
++                Parameters = parameters
++            });
++            
++
++        }
++    }
++
++
++    public class Request
++    {
++        public string Api { get; }
++        public Dictionary<string, string> Params { get; }
++
++        public Request(string api = "gs/ver.htm", Dictionary<string, string> @params = null)
++        {
++            Api = api;
++            Params = @params ?? new Dictionary<string, string>();
++        }
++
++        public (string name, string value) Param
++        {
++            set => Params[value.name] = value.value;
++        }
++
++        public Uri Uri()
++        {
++            return new Uri($"/{Api}{Query()}", UriKind.Relative);
++
++        }
++        private string Query() =>
++
++                Params
++                .Select(tuple => $"{HttpUtility.UrlEncode(tuple.Key)}={HttpUtility.UrlEncode(tuple.Value)}")
++                .Aggregate("?", (query, param) => $"{query}{param}&")
++                .TrimEnd('&');
++        public IEnumerable<(string name, string value)> SetParams
++        {
++            set
++            {
++                foreach (var param in value)
++                {
++                    Params[param.name] = param.value;
++                }
++            }
++        }
++
++
++        public class HttpRequest
++        {
++            public Request Request { get; set; }
++            public string Host { get; set; }
++
++            public HttpRequest(Request request, string host = null)
++            {
++                Request = request;
++                Host = host;
++            }
++
++            public string Scheme = "https";
++
++            public IEnumerable<(string name, string value)> SetParams
++            {
++                set => Request.SetParams = value;
++            }
++
++            public (string name, string value) Param
++            {
++                set => Request.Param = value;
++            }
++        }
++
++        public class HttpGetRequest : HttpRequest
++        {
++            public HttpGetRequest(Request request) : base(request)
++            {
++            }
++
++            public Uri Uri()
++            {
++                return new UriBuilder()
++                {
++                    Scheme = Scheme,
++                    Host = Host,
++                    Path = Request.Api,
++                    Query = Query()
++                }.Uri;
++            }
++
++            public async Task<HttpResponseMessage> SendAsync(HttpClient client, CancellationToken cancellationToken)
++            {
++                return await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, Uri()), cancellationToken);
++            }
++
++
++            private string Query() =>
++                Request
++                    .Params
++                    .Select(tuple => $"{HttpUtility.UrlEncode(tuple.Key)}={HttpUtility.UrlEncode(tuple.Value)}")
++                    .Aggregate("?", (query, param) => $"{query}{param}&")
++                    .TrimEnd('&');
++
++
++            // public Request SetParam(string name, string value)
++            // {
++            //      Params[name] = value;
++            //      return this;
++            // }
++        }
++    }
++
++    public class GigyaCreds
++    {
++        public string UserKey { get; set; }
++        public string Secret { get; set; }
++
++
++        public GigyaCreds(string userKey, string secret)
++        {
++            UserKey = userKey;
++            Secret = secret;
++        }
++
++        public static GigyaCreds Test =
++            new GigyaCreds("AIvzv0Pv8IFX", "e6DgUArTi5mGQgaqqAzPdFNYiWaPNaqu");
++
++
++        public Request.HttpGetRequest Apply(Request.HttpGetRequest request)
++        {
++            request.Param = (name: "userKey", value: UserKey);
++            request.Param = (name: "secret", value: Secret);
++
++            return request;
++        }
++
++        public IEnumerable<(string name, string value)> CredsParams()
++        {
++            yield return (name: "userKey", value: UserKey);
++            yield return (name: "secret", value: Secret);
++        }
++
++        public Uri ApplyCreds(Uri uri)
++        {
++            return uri
++                .AddQuery("userKey", UserKey)
++                .AddQuery("secret", Secret);
++        }
++    }
++
++    public static class HttpExtensions
++    {
++        public static Uri AddQuery(this Uri uri, string name, string value)
++        {
++            var httpValueCollection = HttpUtility.ParseQueryString(uri.Query);
++
++            httpValueCollection.Remove(name);
++            httpValueCollection.Add(name, value);
++
++            var ub = new UriBuilder(uri)
++            {
++                Query = httpValueCollection.ToString() ?? string.Empty
++            };
++
++            return ub.Uri;
++        }
++    }
++}
+\ No newline at end of file
