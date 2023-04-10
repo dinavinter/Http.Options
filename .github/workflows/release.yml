@@ -164,12 +164,15 @@ jobs:
   
   prerelease:
     needs: publish
-    run: |
-      gh release edit ${{ RELEASE_GIT_TAG  }} --prerelease true --draft false 
-    env:
-      GH_TOKEN: ${{ github.token }}
-  
-#  release:
+    steps:
+      - name: set release as prerelease
+        run: |
+          gh release edit ${{ RELEASE_GIT_TAG  }} --prerelease true --draft false 
+        env:
+          GH_TOKEN: ${{ github.token }}
+            
+            
+            #  release:
 #    needs: build
 #    name: release
 #    strategy:
