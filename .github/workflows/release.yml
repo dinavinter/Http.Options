@@ -25,24 +25,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2  
-        
+      - run: echo "hash=${{git rev-parse --short HEAD}} >> $GITHUB_ENV
+
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
         with:
+          tag_format: "v${version}.${{env.hash}}"
           ci: true
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
             @droidsolutions-oss/semantic-release-update-file
             @semantic-release/git 
-            semantic-release-npm-github-publish
+            semantic-release-npm-github-publish 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
           PROJECT_PATH: Http.Client.Options/Http.Client.Options.csproj
           PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
           TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
-
+     
+     
       - name: Set version
         run: echo "VERSION=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_ENV
       
