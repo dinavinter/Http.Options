@@ -25,25 +25,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2  
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "lts/*"
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-          PROJECT_PATH: Http.Client.Options/Http.Client.Options.csproj
-          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
-        run: |
-          npm i -g semantic-release @semantic-release/{git,commit-analyzer,release-notes-generator,npm,changelog,github} @droidsolutions-oss/semantic-release-update-file
-          npx semantic-release
-
+        
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
         with:
+          dry_run: true
+          ci: false
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
             @droidsolutions-oss/semantic-release-update-file
@@ -56,7 +44,7 @@ jobs:
           TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
 
       - name: Set version
-        run: echo "VERSION=${{ steps.semantic.outputs.new_version }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_ENV
       
     
       - name: Set tag
@@ -72,7 +60,8 @@ jobs:
           echo ${{ steps.semantic.outputs.new_release_major_version }}
           echo ${{ steps.semantic.outputs.new_release_minor_version }}
           echo ${{ steps.semantic.outputs.new_release_git_tag }}
-      
+      - name: Commit
+        run: git add . && gist status        
       - name: Create Pull Request
         if: steps.semantic.outputs.new_release_published == 'true'
         uses: peter-evans/create-pull-request@v5
