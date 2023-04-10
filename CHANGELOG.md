@@ -1,3 +1,7 @@
+# [](https://github.com/dinavinter/Http.Options/compare/v8.0.0-beta.16...v) (2023-04-10)
+
+
+
 # [](https://github.com/dinavinter/Http.Options/compare/v7.3.0-prerelease.1...v) (2023-04-10)
 
 
