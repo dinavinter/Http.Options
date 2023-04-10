@@ -70,7 +70,7 @@ jobs:
           echo "ref=${{inputs.ref || github.sha}}" >> $GITHUB_ENV
           echo "test=${{ github.workspace }}/tests" >> $GITHUB_ENV
           echo "DOTNET_INSTALL_DIR=${{ github.workspace }}/.dotnet" >> $GITHUB_ENV
-          echo "build_artifact=${{inputs.test_artifact || format('test-artifact-{0}', github.sha) }}" >> $GITHUB_ENV
+          echo "build_artifact=${{inputs.build_artifact || format('build-artifact-{0}', github.sha) }}" >> $GITHUB_ENV
           echo "test_artifact=${{inputs.test_artifact || format('test-artifact-{0}', github.sha) }}" >> $GITHUB_ENV
       - uses: actions/checkout@v3
         with:
