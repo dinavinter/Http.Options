@@ -18,7 +18,10 @@
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
         <Version>$(Version)</Version>
-
+        <ContainerFramework>7.0</ContainerFramework>
+        <ContainerFramework Condition="'$(TargetFramework)' == 'net6.0'">6.0</ContainerFramework>
+        <ContainerFramework Condition="'$(TargetFramework)' == 'net7.0'">7.0</ContainerFramework>
+        
     </PropertyGroup>
     
     <ItemGroup>
@@ -36,4 +39,9 @@
         <PackageReference Include="OpenTelemetry" />
         <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />
     </ItemGroup>
+
+    <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' ">
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
 </Project>

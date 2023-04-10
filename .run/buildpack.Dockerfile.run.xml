@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="buildpack.Dockerfile" type="docker-deploy" factoryName="dockerfile" singleton="false" server-name="Docker">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="containerName" value="http-options-build" />
+        <option name="sourceFilePath" value="buildpack.Dockerfile" />
+      </settings>
+    </deployment>
+    <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isPublishEnabled="true" />
+    <method v="2" />
+  </configuration>
+</component>

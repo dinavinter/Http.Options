@@ -1,0 +1,14 @@
+version: "3.4"
+services:
+  act-ubuntu-latest:
+    container_name: act-ubuntu-latest
+    image: ghcr.io/catthehacker/ubuntu:act-latest
+  http-options:
+    container_name: http-options
+    image: mcr.microsoft.com/dotnet/sdk:7.0
+    volumes:
+      - ../
+    working_dir: ../
+    command: "dotnet build -c Release"
+
+    

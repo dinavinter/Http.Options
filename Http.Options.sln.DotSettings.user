@@ -1,4 +1,7 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
+  &lt;Assembly Path="C:\Users\I347305\.nuget\packages\opentelemetry\1.4.0\lib\net6.0\OpenTelemetry.dll" /&gt;&#xD;
+&lt;/AssemblyExplorer&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2b237c01_002D12a3_002D4d3c_002D89c4_002D652aba718fbe/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="HttpTracing_SanityTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;And&gt;&#xD;
     &lt;Project Location="C:\Users\I347305\Documents\GitHub\Http.Options\Http.Options.UnitTests" Presentation="&amp;lt;Http.Options.UnitTests&amp;gt;" /&gt;&#xD;

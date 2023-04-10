@@ -1,0 +1,6 @@
+-P ubuntu-latest=localhost:5000/ghaction-dotnetsdk:4
+-P self-hosted=localhost:5000/ghaction-dotnetsdk:4
+-e ./.act/event.json
+--env-file ./.act/.env  
+--artifact-server-path /tmp/artifacts
+--secret-file ./.act/secrets
