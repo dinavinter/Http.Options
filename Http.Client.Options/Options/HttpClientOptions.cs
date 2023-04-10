@@ -14,7 +14,7 @@ namespace Http.Options
         public HttpTimeoutOptions Timeout { get; set; }= new HttpTimeoutOptions();
         public HttpClientHandlerOptions Handler { get; set; }= new HttpClientHandlerOptions();
         public HttpConnectionOptions Connection { get; set; }= new HttpConnectionOptions();
-        public HttpTelemetryOptions Telemetry { get; set; }= new HttpTelemetryOptions(); 
+        public HttpTelemetryOptions Telemetry { get; set; }= new HttpTelemetryOptions();
         public HttpClientCompressionOptions Compression { get; set; }= new HttpClientCompressionOptions();
 
         public HttpClientOptions()
