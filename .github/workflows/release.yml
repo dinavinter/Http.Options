@@ -96,7 +96,7 @@ jobs:
           ref: ${{env.pre_rc_tag}}
           build_artifact: ${{env.build_artifact}}
           test_artifact: ${{env.test_artifact}}
-          retention: 5
+          retention: 5 
       
     
   release:
@@ -119,9 +119,6 @@ jobs:
         id: setup
         
       - run: echo '${{ steps.setup.outputs.dotnet-version }}'
-        
-      - name: Install dependencies
-        run: dotnet restore
         
       - name: Semantic Release
         id: release
