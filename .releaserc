@@ -1,4 +1,9 @@
 {
+  "extends": ["semantic-release-npm-github-publish"]
+  "npmPublish": false,
+  "projectPath": "${process.env.PROJECT_PATH}",
+  "includeSymbols": true,
+
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
@@ -42,9 +47,6 @@
     ],
     "@semantic-release/github"
   ],
-  "npmPublish": false,
-  "projectPath": "${process.env.PROJECT_PATH}",
-  "includeSymbols": true,
   "files": [
     {
       "path": [
