@@ -1,0 +1,68 @@
+name: release add packages
+on:
+  release:
+    types: [created, edited]
+  workflow_dispatch:
+    
+jobs:
+  build:
+    
+    env:
+      test: ${{ github.workspace }}/tests
+      DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
+      dotnet-versions: 7.x-6.x
+      key: ${{format('{0}-{1}', github.ref_name, github.sha) }}
+    
+    runs-on: ${{ github.event.act && 'self-hosted' || 'ubuntu-latest' }}
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Cache Net setup
+        uses: actions/cache@v2
+        id: cache-net
+        with:
+          path: ${{ env.DOTNET_INSTALL_DIR }}
+          key: ${{ runner.os }}-dotnet-${{env.dotnet-versions}}
+          restore-keys: |
+            ${{ runner.os }}-dotnet-${{env.dotnet-versions}}
+
+      - name: Set dotnet path
+        run: echo "${{ env.DOTNET_INSTALL_DIR }}" >> $GITHUB_PATH
+        if: steps.cache-net.outputs.cache-hit == 'true'
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.x
+            7.x
+        if: steps.cache-net.outputs.cache-hit != 'true'
+
+
+      - uses: actions/cache@v2
+        id: cache-nuget
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      
+      - name: Pack
+        run: dotnet pack --no-build --configuration Release --output ${{ github.workspace }}/nugets
+      
+      - name: Upload NuGet to release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: 
+            - ${{ github.workspace }}/nugets/*.nupkg
+            - ${{ github.workspace }}/nugets/*.snupkg
