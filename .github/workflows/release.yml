@@ -156,7 +156,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
       
       - name: dotnet nuget push
-        uses: docker://mcr.microsoft.com/dotnet/sdk:7.0
         run: |
           dotnet nuget push ${{ github.workspace }}/nugets/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
           dotnet nuget push ${{ github.workspace }}/nugets/*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
