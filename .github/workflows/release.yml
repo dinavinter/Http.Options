@@ -22,6 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       release_name: ${{github.ref_name}}
+    outputs:
+      release_name: ${{github.ref_name}}
+      release_version: ${{steps.git_version.outputs.version}}
+      release_tag: v${{steps.git_version.outputs.version}}
+      changelog: ${{steps.git_version.outputs.changelog}}
+      
+        
+
     steps:
       - uses: actions/setup-node@v3
       - name: set git config user
@@ -46,33 +54,10 @@ jobs:
           version_format: "${major}.${minor}.${patch}-beta.${increment}"
           search_commit_body: true
           major_pattern: "BREAKING CHANGE"
-          
-          # A string which, if present in a git commit, indicates that a change represents a
-          # major (breaking) change, supports regular expressions wrapped with '/'
-         #  major_pattern: "(MAJOR)"
-          # A string which indicates the flags used by the `major_pattern` regular expression. Supported flags: idgs
-         #  major_regexp_flags: ""
-          # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
-         #  minor_pattern: "(MINOR)"
-          # A string which indicates the flags used by the `minor_pattern` regular expression. Supported flags: idgs
-          # minor_regexp_flags: ""
-          # A string to determine the format of the version output
-        #   version_format: "${major}.${minor}.${patch}-prerelease${increment}"
-          # Optional path to check for changes. If any changes are detected in the path the
-          # 'changed' output will true. Enter multiple paths separated by spaces.
-         #  change_path: "src/my-service"
-          # Named version, will be used as suffix for name version tag
-        #   namespace: my-service
-          # If this is set to true, *every* commit will be treated as a new version.
-        #  bump_each_commit: false
-          # If true, the body of commits will also be searched for major/minor patterns to determine the version type.
-          
-          # The output method used to generate list of users, 'csv' or 'json'.
-         #  user_format_type: "csv"
-          # Prevents pre-v1.0.0 version from automatically incrementing the major version.
-          # If enabled, when the major version is 0, major releases will be treated as minor and minor as patch. Note that the version_type output is unchanged.
           enable_prerelease_mode: true
-          
+      
+      
+      
       - name: update Directory.Build.props with the version
         run: |
           sed -i "s/<Version>.*<\/Version>/<Version>${{steps.git_version.outputs.version}}<\/Version>/g" Directory.Build.props
@@ -142,19 +127,19 @@ jobs:
     needs: draft
     uses: './.github/workflows/release-nugets.yml'
     with:
-      release_tag: ${{ env.RELEASE_GIT_TAG }}
+      release_tag: ${{ needs.draft.outputs.release_tag }}
       
 #  verify:
 #    needs: nuget
 #    uses: './.github/workflows/build.yml'
   
   publish:
-    needs: nuget
+    needs: [draft, nuget]
     runs-on: ubuntu-latest
     steps:
       - name: download nugets from release assets
         run: |
-          gh release download ${{ env.RELEASE_GIT_TAG }} --pattern "*.nupkg"  --pattern "*.snupkg" --dir ${{ github.workspace }}/nugets
+          gh release download  ${{ needs.draft.outputs.release_tag }} --pattern "*.nupkg"  --pattern "*.snupkg" --dir ${{ github.workspace }}/nugets
         env:
           GH_TOKEN: ${{ github.token }}
       
@@ -166,12 +151,12 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_TOKEN }}
   
   prerelease:
-    needs: publish    
+    needs:  [draft, publish]    
     runs-on: ubuntu-latest
     steps:
       - name: set release as prerelease
         run: |
-          gh release edit ${{ env.RELEASE_GIT_TAG  }} --prerelease true --draft false 
+          gh release edit  ${{ needs.draft.outputs.release_tag }} --prerelease true --draft false 
         env:
           GH_TOKEN: ${{ github.token }}
             
