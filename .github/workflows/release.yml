@@ -23,6 +23,12 @@ jobs:
     env:
       release_name: ${{github.ref_name}}
     steps:
+      - uses: actions/setup-node@v3
+      - name: set git config user
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+      
       - name: Checkout
         uses: actions/checkout@v2 
         with:
@@ -66,58 +72,46 @@ jobs:
           # Prevents pre-v1.0.0 version from automatically incrementing the major version.
           # If enabled, when the major version is 0, major releases will be treated as minor and minor as patch. Note that the version_type output is unchanged.
           enable_prerelease_mode: true
-           
-#      - run: |
-#          git tag v${{steps.git_version.outputs.version}} -f
-#          git push origin v${{steps.git_version.outputs.version}} 
-#          gh release create v${{steps.git_version.outputs.version}} -d --generate-notes -p 
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Semantic Release
-        id: semantic
-        uses: cycjimmy/semantic-release-action@v3
-        with:
-#          ci: true
-#          dry_run: true
-#          semantic_version: ${{ steps.git_version.outputs.version }}
-          # You can specify specifying version range for the extra plugins if you prefer.
-          extra_plugins: |
-            @droidsolutions-oss/semantic-release-update-file
-            
+      - name: update Directory.Build.props with the version
+        run: |
+          sed -i "s/<Version>.*<\/Version>/<Version>${{steps.git_version.outputs.version}}<\/Version>/g" Directory.Build.props
+          git add Directory.Build.props
+          git commit -m "chore(release): update version ${{steps.git_version.outputs.version}} [skip ci]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-          PROJECT_PATH: Http.Client.Options/Http.Client.Options.csproj
-          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
+      - name: changelog
+        run: |
+          npx conventional-changelog-cli conventional-changelog -p angular -i CHANGELOG.md -s  --tag-prefix v
+          git add CHANGELOG.md
+          git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - run: |
+          git tag v${{steps.git_version.outputs.version}} -a -m "v${{steps.git_version.outputs.version}}"
+          git push origin ${{github.ref_name}} --tags         
+          gh release create v${{steps.git_version.outputs.version}} -d --generate-notes -p -t "v${{steps.git_version.outputs.version}}"  --notes-file  CHANGELOG.md --notes-start-tag ${{steps.git_version.outputs.previous_version}}  
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
      
-
 
       - name: Set version
         run: echo "VERSION=${{ steps.semantic.git_version.version }}" >> $GITHUB_ENV
       
-    
-      - name: Set tag
-        run: |
-          echo "pre_rc_tag=${{ steps.semantic.outputs.new_release_git_tag }}" >> $GITHUB_ENV
-          echo "build_artifact=build-${{env.pre_rc_tag}} >> $GITHUB_ENV
-          echo "test_artifact=test-${{env.pre_rc_tag}} >> $GITHUB_ENV
 
-      - name: Do something when a new release published
-        if: steps.semantic.outputs.new_release_published == 'true'
-        run: |
-          echo ${{ steps.semantic.outputs.new_release_version }}
-          echo ${{ steps.semantic.outputs.new_release_major_version }}
-          echo ${{ steps.semantic.outputs.new_release_minor_version }}
-          echo ${{ steps.semantic.outputs.new_release_git_tag }} 
-          
       - name: GIT CMD
         env:
          GH_TOKEN: ${{ github.token }}
         run: | 
           gh release list
           git status
+          git log --decorate  --graph
+          
+      - name: anotate git log to action output
+        run: |
+          echo "::set-output name=git_log::$(git log --decorate  --graph)"
+        id: git_log
+        
       
 #      - name: Create Pull Request
 #        if: steps.semantic.outputs.new_release_published == 'true'
