@@ -30,11 +30,12 @@ jobs:
         id: semantic
         uses: cycjimmy/semantic-release-action@v3
         with:
-          ci: false
+          ci: true
           # You can specify specifying version range for the extra plugins if you prefer.
           extra_plugins: |
             @droidsolutions-oss/semantic-release-update-file
             @semantic-release/git 
+            semantic-release-npm-github-publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
