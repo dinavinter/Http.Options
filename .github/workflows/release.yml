@@ -57,7 +57,6 @@ jobs:
           enable_prerelease_mode: true
       
       
-      
       - name: update Directory.Build.props with the version
         run: |
           sed -i "s/<Version>.*<\/Version>/<Version>${{steps.git_version.outputs.version}}<\/Version>/g" Directory.Build.props
@@ -65,6 +64,8 @@ jobs:
           git commit -m "chore(release): update version ${{steps.git_version.outputs.version}} [skip ci]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          
       - name: changelog
         run: |
           npx conventional-changelog-cli conventional-changelog -p angular -i CHANGELOG.md -s  --tag-prefix v
@@ -72,11 +73,20 @@ jobs:
           git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+      
+      - name: merge changes to version_tag branch
+        run: |
+          git checkout ${{steps.git_version.outputs.version_tag}}
+          git merge ${{github.ref_name}} --no-edit --no-ff
+          git tag v${{steps.git_version.outputs.version}} -a -m "v${{steps.git_version.outputs.version}}"
+          git push origin ${{steps.git_version.outputs.version_tag}}  --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Create Release
         run: |
-          git tag v${{steps.git_version.outputs.version}} -a -m "v${{steps.git_version.outputs.version}}"
-          git push origin ${{github.ref_name}} --tags         
+#          git tag v${{steps.git_version.outputs.version}} -a -m "v${{steps.git_version.outputs.version}}"
+#          git push origin ${{github.ref_name}} --tags         
           gh release create v${{steps.git_version.outputs.version}} -d --generate-notes -p -t "v${{steps.git_version.outputs.version}}"  --notes-file  CHANGELOG.md --notes-start-tag v${{steps.git_version.outputs.previous_version}}  
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -139,7 +149,7 @@ jobs:
     steps:
       - name: download nugets from release assets
         run: |
-          gh release download  ${{ needs.draft.outputs.release_tag }} --pattern "*.nupkg"  --pattern "*.snupkg" 
+          gh release download  ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --pattern "*.nupkg"  --pattern "*.snupkg"  --dir nugets
         env:
           GH_TOKEN: ${{ github.token }}
       
