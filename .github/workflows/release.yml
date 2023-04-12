@@ -142,7 +142,6 @@ jobs:
   publish:
     needs: [draft, nuget]
     runs-on: ubuntu-latest
-    environment: release
     steps:
       - name: download nugets from release assets
         run: |
@@ -157,7 +156,7 @@ jobs:
 
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_TOKEN }}
-          NUGET_PUSH_URL: ${{ env.NUGET_PUSH_URL }}
+          NUGET_PUSH_URL: ${{ secrets.NUGET_PUSH_URL }}
   
   prerelease:
     needs:  [draft, publish]    
