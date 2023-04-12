@@ -79,7 +79,7 @@ jobs:
       - name: changelog
         id: changelog
         run: |
-          npx conventional-changelog-cli conventional-changelog -p angular --tag-prefix v > $changes
+          changes=$(npx conventional-changelog-cli conventional-changelog -p angular --tag-prefix v)
           echo $changes | tee -a CHANGELOG.md 
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
