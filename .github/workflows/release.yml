@@ -77,6 +77,7 @@ jobs:
       - name: merge changes to ${{steps.git_version.outputs.version_tag}} branch
         run: |
           git checkout -b ${{steps.git_version.outputs.version_tag}}
+          git pull origin ${{steps.git_version.outputs.version_tag}} --quiet
           git merge ${{github.ref_name}} --no-edit --no-ff
           git tag v${{steps.git_version.outputs.version}} -a -m "v${{steps.git_version.outputs.version}}"
           git push origin ${{steps.git_version.outputs.version_tag}}  --tags --set-upstream
