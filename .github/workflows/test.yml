@@ -96,11 +96,11 @@ jobs:
           report-title-filter: "Unit Tests"
 
       - name: Annotate Test Results
-        run: cat ${{ steps.process-test.outputs.test-results-file-path }} > $GITHUB_STEP_SUMMARY
+        run: cat ${{ steps.process-trx.outputs.test-results-file-path }} > $GITHUB_STEP_SUMMARY
 
       - name: Upload Tests Results to release assets
         run: |
-          gh release upload ${{ env.ref }} ${{ steps.process-test.outputs.test-results-file-path }} '#Test Results'
+          gh release upload ${{ env.ref }} ${{ steps.process-trx.outputs.test-results-file-path }} '#Test Results'
           gh release edit ${{ env.ref }} --add-label ${{ steps.process-trx.outputs.test-outcome }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
