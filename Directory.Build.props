@@ -4,7 +4,7 @@
     <!--        <PackageReference Update="@(PackageReference)" PrivateAssets="All"/> -->
     <!--    </ItemGroup>-->
     <PropertyGroup>
-        <Version>8.0.0-beta.46</Version>
+        <Version>8.0.0-beta.58</Version>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <IncludeSymbols>true</IncludeSymbols>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -17,7 +17,7 @@
     <PropertyGroup>
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
-        <Version>8.0.0-beta.46</Version>
+        <Version>8.0.0-beta.58</Version>
 
     </PropertyGroup>
     
