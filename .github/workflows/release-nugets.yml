@@ -80,3 +80,4 @@ jobs:
           files: |
              ${{ github.workspace }}/nugets/*.nupkg
              ${{ github.workspace }}/nugets/*.snupkg
+          draft: true

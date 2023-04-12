@@ -128,16 +128,20 @@ jobs:
 #      
 #    outputs: 
 #      new_release_git_tag: ${{steps.semantic.outputs.new_release_git_tag}}
-      
+  test:
+    needs: draft
+    uses: './.github/workflows/test.yml'
+    with:
+      ref: ${{ needs.draft.outputs.release_tag }}
+  
+  
   nuget:
     needs: draft
     uses: './.github/workflows/release-nugets.yml'
     with:
       release_tag: ${{ needs.draft.outputs.release_tag }}
       
-#  verify:
-#    needs: nuget
-#    uses: './.github/workflows/build.yml'
+ 
   
   publish:
     environment: release
@@ -152,7 +156,7 @@ jobs:
       
       - name: dotnet nuget push
         run: |
-          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }}  
+          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }} -ss-${{ vars.NUGET_PUSH_URL }}  
   
   prerelease:
     needs:  [draft, publish]    
