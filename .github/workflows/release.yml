@@ -83,7 +83,7 @@ jobs:
           echo $changes | tee -a CHANGELOG.md 
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
-          echo "changes=$changes" >> $GITHUB_OUTPUT
+          echo changes="$changes" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
