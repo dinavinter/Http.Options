@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFrameworks>$(TargetFrameworks)</TargetFrameworks> 
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
 <!--    <Target Name="net6" Condition="$(Framework) == 'net'"-->

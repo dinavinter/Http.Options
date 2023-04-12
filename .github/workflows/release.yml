@@ -61,15 +61,31 @@ jobs:
           git commit -m "chore(release): update version ${{steps.git_version.outputs.version}} [skip ci]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
           
+#      - name: Update CHANGELOG
+#        id: changelog
+#        uses: requarks/changelog-action@v1
+#        with:
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          tag: ${{ github.ref_name }}
+#          
+#      - name: update changelog
+#        run: |
+#          git add CHANGELOG.md
+#          git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        
       - name: changelog
+        id: changelog
         run: |
           npx conventional-changelog-cli conventional-changelog -p angular -i CHANGELOG.md -s  --tag-prefix v
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
+          echo "changes=$(cat CHANGELOG.md)" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
       
       - name: merge changes to v${{steps.git_version.outputs.version}} branch
         run: |
@@ -82,7 +98,7 @@ jobs:
      
       - name: annotate change log to step summary
         run: |
-          echo $(cat CHANGELOG.md ) >> $GITHUB_STEP_SUMMARY
+          echo "${{steps.changelog.outputs.changes}}" >> $GITHUB_STEP_SUMMARY
         id: changelog_annotation
       
       - name: Create Release v${{steps.git_version.outputs.version}}

@@ -9,6 +9,7 @@
     <RootNamespace>Http.Options.Benchmarks</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
     <TargetFrameworks />
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
