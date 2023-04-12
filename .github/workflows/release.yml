@@ -152,11 +152,7 @@ jobs:
       
       - name: dotnet nuget push
         run: |
-          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ env.NUGET_PUSH_URL }}  
-
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_TOKEN }}
-          NUGET_PUSH_URL: ${{ vars.NUGET_PUSH_URL }}
+          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }}  
   
   prerelease:
     needs:  [draft, publish]    
