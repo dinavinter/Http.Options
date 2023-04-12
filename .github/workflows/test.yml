@@ -104,7 +104,7 @@ jobs:
           gh release edit ${{ env.ref }} --add-label ${{ steps.process-trx.outputs.test-outcome }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: startsWith(${{git head}}, 'refs/tags/v')
+        if:  gh release view ${{ env.ref }} --json id --jq '.id' || false
 
       - name: add test outcome as a github label to pr
         run: gh pr edit ${{ github.event.pull_request.number }} --add-label Tests-${{ steps.process-trx.outputs.test-outcome }}
