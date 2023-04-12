@@ -104,7 +104,7 @@ jobs:
           
       - name: set output from release step to be used in other jobs
         run: |
-            echo "$(git show-ref --tags)" >>  $GITHUB_SUMMARY
+            echo "$(git show-ref --tags)" >>  $GITHUB_STEP_SUMMARY
         id: release_tag
       
       
