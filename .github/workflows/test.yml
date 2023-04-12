@@ -100,7 +100,7 @@ jobs:
           gh release edit ${{ env.ref }} --add-label ${{ steps.process-trx.outputs.test-outcome }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: startsWith(env.ref, 'refs/tags/v')
+        if: git show-ref --quiet --verify -- "refs/tags/v$rcid" 
 
       - name: add test outcome as a github label to pr
         run: gh pr edit ${{ github.event.pull_request.number }} --add-label Tests-${{ steps.process-trx.outputs.test-outcome }}
@@ -117,7 +117,9 @@ jobs:
       - name: Fail if there were test problems
         if: steps.process-trx.outputs.test-outcome == 'Failed'
         run: |
-          echo "There were test failures."
+          echo "There were test failures." >> $GITHUB_STEP_SUMMARY
+          cat steps.process-trx.outputs.test-results-file-path >> $GITHUB_STEP_SUMMARY
           exit 1
 
 
+  

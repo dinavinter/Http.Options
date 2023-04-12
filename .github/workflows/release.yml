@@ -82,10 +82,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Create Release v${{steps.git_version.outputs.version}}
+        id: release
         run: |
-          gh release create v${{steps.git_version.outputs.version}} -d --generate-notes -p -t "v${{steps.git_version.outputs.version}}"  --notes-file  CHANGELOG.md --notes-start-tag v${{steps.git_version.outputs.previous_version}}  
+          gh release create v${{steps.git_version.outputs.version}}  --target ${{steps.git_version.outputs.version}} -d --generate-notes -p -t "v${{steps.git_version.outputs.version}}"  --notes-file  CHANGELOG.md --notes-start-tag v${{steps.git_version.outputs.previous_version}}  
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
      
 
       - name: Set version
@@ -100,16 +102,14 @@ jobs:
           git status
           git log --decorate  --graph
           
-      - name: anotate git log to action output
+      - name: set output from release step to be used in other jobs
         run: |
-          echo "::set-output name=git_log::$(git log --decorate  --graph)"
-        id: git_log
-        
-      - name: add release tag to output and env
-        run: |
-          echo "::set-output name=release_tag::v${{steps.git_version.outputs.version}}"
-          echo "RELEASE_GIT_TAG=v${{steps.git_version.outputs.version}}" >> $GITHUB_ENV
+            echo "RELEASE_GIT_TAG=v${{steps.git_version.outputs.version}}" >> $GITHUB_OUTPUTS
+            echo "RELEASE_NOTES=$(gh release view v${{steps.git_version.outputs.version}} --json body --jq '.body')" >>  $GITHUB_OUTPUTS
+            echo "RELEASE_GIT_REF=$(git show-ref --tags)" >>  $GITHUB_SUMMARY
         id: release_tag
+      
+      
       
 #      - name: Create Pull Request
 #        if: steps.semantic.outputs.new_release_published == 'true'
@@ -132,7 +132,7 @@ jobs:
     needs: draft
     uses: './.github/workflows/test.yml'
     with:
-      ref: ${{ needs.draft.outputs.release_tag }}
+      ref: ${{ needs.draft.outputs.release_tag }} 
   
   
   nuget:
