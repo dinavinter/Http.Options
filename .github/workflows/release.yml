@@ -23,11 +23,10 @@ jobs:
       release_name: ${{github.ref_name}}
     outputs:
       release_name: ${{github.ref_name}}
-      release_version: ${{steps.git_version.outputs.version}}
+      release_base: ${{steps.git_version.outputs.version_tag}}
       release_tag: v${{steps.git_version.outputs.version}}
       changelog: ${{steps.git_version.outputs.changelog}}
-      
-        
+      release_branch: ${{steps.git_version.outputs.version}}
 
     steps:
       - uses: actions/setup-node@v3
@@ -175,4 +174,34 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
   
-    
+  pr:
+    needs: [draft, publish, prerelease]
+    runs-on: ubuntu-latest
+    steps:
+      - name: create release base branch if does not exist
+        run: |
+          git checkout -b ${{ needs.draft.outputs.release_base }}
+          git push origin ${{ needs.draft.outputs.release_base }} --set-upstream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            commit-message: "Semantic Release  ${{ needs.draft.outputs.release_tag }}"
+            title: "Semantic Release  ${{ needs.draft.outputs.release_tag }}"
+            delete-branch: true
+            body: "${needs.draft.outputs.release_notes}}"
+            branch: ${{ needs.draft.outputs.release_branch }}
+            base: ${{ needs.draft.outputs.release_base }}
+            labels: |
+               ${{needs.draft.outputs.release_tag}}
+               ${{needs.draft.outputs.release_base}}
+               automated pr
+            add-paths: |
+              ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg
+              ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.snupkg
+              CHANGELOG.md
+              Directory.Build.props
+            
