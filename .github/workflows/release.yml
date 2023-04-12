@@ -147,14 +147,15 @@ jobs:
     steps:
       - name: download nugets from release assets
         run: |
-          gh release download  ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --pattern "*.nupkg"  --pattern "*.snupkg"  --dir nugets
+          gh release download  ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --pattern "*.nupkg"  --pattern "*.snupkg"  --dir ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
         env:
           GH_TOKEN: ${{ github.token }}
       
       - name: dotnet nuget push
         run: |
-          dotnet nuget push ${{ github.workspace }}/nugets/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-          dotnet nuget push ${{ github.workspace }}/nugets/*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ env.NUGET_PUSH_URL }}  
+          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.snupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ env.NUGET_PUSH_URL }} 
+
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_TOKEN }}
   
