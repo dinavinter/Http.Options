@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <TargetFrameworks>$(TargetFrameworks)</TargetFrameworks> 
     </PropertyGroup>
 
