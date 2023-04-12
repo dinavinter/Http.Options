@@ -105,9 +105,8 @@ jobs:
       - name: set output from release step to be used in other jobs
         run: |
           echo "::debug::$(git show-ref --tags)"
-          echo "::debug::$(git head --tags)"
-          echo "::debug::$(github.ref)"
-          echo "$(git show-ref --tags)" >>  $GITHUB_STEP_SUMMARY
+          echo "::debug::$(git head --tags --heads)"
+          echo "::debug::$(git show-ref --tags --heads --verify  refs/tags/v${{steps.git_version.outputs.version}})"  
         id: release_tag
       
       
