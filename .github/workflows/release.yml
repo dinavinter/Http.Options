@@ -105,7 +105,6 @@ jobs:
       - name: set output from release step to be used in other jobs
         run: |
             echo "RELEASE_GIT_TAG=v${{steps.git_version.outputs.version}}" >> $GITHUB_OUTPUTS
-            echo "RELEASE_NOTES=$(gh release view v${{steps.git_version.outputs.version}} --json body --jq '.body')" >>  $GITHUB_OUTPUTS
             echo "RELEASE_GIT_REF=$(git show-ref --tags)" >>  $GITHUB_SUMMARY
         id: release_tag
       
