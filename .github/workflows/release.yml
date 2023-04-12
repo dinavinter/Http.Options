@@ -75,10 +75,10 @@ jobs:
       
       - name: merge changes to v${{steps.git_version.outputs.version}} branch
         run: |
-          git checkout -b v${{steps.git_version.outputs.version}}
+          git checkout -b ${{steps.git_version.outputs.version}}
           git merge ${{github.ref_name}} --no-edit --no-ff
           git tag v${{steps.git_version.outputs.version}} -a -m "v${{steps.git_version.outputs.version}}"
-          git push origin v${{steps.git_version.outputs.version}}  --tags --set-upstream
+          git push origin ${{steps.git_version.outputs.version}}  --tags --set-upstream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
