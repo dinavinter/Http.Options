@@ -17,6 +17,26 @@
         "resolved": "0.5.0.1",
         "contentHash": "Q/aGW+OUccR6V82fciGEnmbKUUNHAJPtSP9pbiWZEZJF0RIJ54I2KMN+lt8TL+IwtB46VCDxyZDRvO6LO4y6gQ=="
       },
+      "Http.Client.Options": {
+        "type": "Direct",
+        "requested": "[8.0.0-beta.88, )",
+        "resolved": "8.0.0-beta.88",
+        "contentHash": "gmK90bcEHcIa2NS7LctDBR3srKy+0gifUjWH6jCAtURkasgXCPRQmSjy6eV3gPDCCjKsJjUlIzZiKCHUW9QqRw==",
+        "dependencies": {
+          "Microsoft.ApplicationInsights": "2.17.0",
+          "Microsoft.Extensions.DependencyInjection": "3.1.24",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "3.1.24",
+          "Microsoft.Extensions.Http": "3.1.0",
+          "Microsoft.Extensions.Http.Polly": "3.1.0",
+          "OpenTelemetry": "1.4.0",
+          "OpenTelemetry.Extensions.Hosting": "1.4.0",
+          "OpenTelemetry.Instrumentation.Http": "1.0.0-rc9.14",
+          "Polly": "7.1.0",
+          "Polly.Extensions.Http": "3.0.0",
+          "System.ComponentModel.Annotations": "4.7.0",
+          "System.Diagnostics.Tracing": "4.3.0"
+        }
+      },
       "IdentityModel.AspNetCore": {
         "type": "Direct",
         "requested": "[4.3.0, )",
@@ -1124,23 +1144,6 @@
           "Newtonsoft.Json": "11.0.2",
           "XPath2": "1.1.0"
         }
-      },
-      "http.client.options": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.ApplicationInsights": "[2.17.0, )",
-          "Microsoft.Extensions.DependencyInjection": "[3.1.24, )",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.24, )",
-          "Microsoft.Extensions.Http": "[3.1.0, )",
-          "Microsoft.Extensions.Http.Polly": "[3.1.0, )",
-          "OpenTelemetry": "[1.4.0, )",
-          "OpenTelemetry.Extensions.Hosting": "[1.4.0, )",
-          "OpenTelemetry.Instrumentation.Http": "[1.0.0-rc9.14, )",
-          "Polly": "[7.1.0, )",
-          "Polly.Extensions.Http": "[3.0.0, )",
-          "System.ComponentModel.Annotations": "[4.7.0, )",
-          "System.Diagnostics.Tracing": "[4.3.0, )"
-        }
       }
     },
     "net7.0": {
@@ -1158,6 +1161,26 @@
         "requested": "[0.5.0.1, )",
         "resolved": "0.5.0.1",
         "contentHash": "Q/aGW+OUccR6V82fciGEnmbKUUNHAJPtSP9pbiWZEZJF0RIJ54I2KMN+lt8TL+IwtB46VCDxyZDRvO6LO4y6gQ=="
+      },
+      "Http.Client.Options": {
+        "type": "Direct",
+        "requested": "[8.0.0-beta.88, )",
+        "resolved": "8.0.0-beta.88",
+        "contentHash": "gmK90bcEHcIa2NS7LctDBR3srKy+0gifUjWH6jCAtURkasgXCPRQmSjy6eV3gPDCCjKsJjUlIzZiKCHUW9QqRw==",
+        "dependencies": {
+          "Microsoft.ApplicationInsights": "2.17.0",
+          "Microsoft.Extensions.DependencyInjection": "3.1.24",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "3.1.24",
+          "Microsoft.Extensions.Http": "3.1.0",
+          "Microsoft.Extensions.Http.Polly": "3.1.0",
+          "OpenTelemetry": "1.4.0",
+          "OpenTelemetry.Extensions.Hosting": "1.4.0",
+          "OpenTelemetry.Instrumentation.Http": "1.0.0-rc9.14",
+          "Polly": "7.1.0",
+          "Polly.Extensions.Http": "3.0.0",
+          "System.ComponentModel.Annotations": "4.7.0",
+          "System.Diagnostics.Tracing": "4.3.0"
+        }
       },
       "IdentityModel.AspNetCore": {
         "type": "Direct",
@@ -2262,23 +2285,6 @@
         "dependencies": {
           "Newtonsoft.Json": "11.0.2",
           "XPath2": "1.1.0"
-        }
-      },
-      "http.client.options": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.ApplicationInsights": "[2.17.0, )",
-          "Microsoft.Extensions.DependencyInjection": "[3.1.24, )",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.24, )",
-          "Microsoft.Extensions.Http": "[3.1.0, )",
-          "Microsoft.Extensions.Http.Polly": "[3.1.0, )",
-          "OpenTelemetry": "[1.4.0, )",
-          "OpenTelemetry.Extensions.Hosting": "[1.4.0, )",
-          "OpenTelemetry.Instrumentation.Http": "[1.0.0-rc9.14, )",
-          "Polly": "[7.1.0, )",
-          "Polly.Extensions.Http": "[3.0.0, )",
-          "System.ComponentModel.Annotations": "[4.7.0, )",
-          "System.Diagnostics.Tracing": "[4.3.0, )"
         }
       }
     }

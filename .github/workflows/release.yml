@@ -145,7 +145,7 @@ jobs:
   
   publish:
     environment: release
-    needs: [draft, nuget]
+    needs: [draft, nuget, test]
     runs-on: ubuntu-latest
     steps:
       - name: download nugets from release assets
