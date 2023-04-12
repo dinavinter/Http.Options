@@ -11,7 +11,6 @@ on:
 env:
   PROJECT_PATH: 'Http.Client.Options/Http.Client.Options.csproj'
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
-  NUGET_PUSH_URL: ${{ secrets.NUGET_PUSH_URL }}
   NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
   build_artifact: build-${{github.ref_name}}-${{github.sha}}
   test_artifact: test-${{github.ref_name}}-${{github.sha}}
@@ -143,6 +142,7 @@ jobs:
   publish:
     needs: [draft, nuget]
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - name: download nugets from release assets
         run: |
