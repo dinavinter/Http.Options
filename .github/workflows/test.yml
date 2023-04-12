@@ -118,7 +118,7 @@ jobs:
         if: steps.process-trx.outputs.test-outcome == 'Failed'
         run: |
           echo "There were test failures." >> $GITHUB_STEP_SUMMARY
-          cat steps.process-trx.outputs.test-results-file-path >> $GITHUB_STEP_SUMMARY
+          cat $(steps.process-trx.outputs.test-results-file-path) >> $GITHUB_STEP_SUMMARY
           exit 1
 
 
