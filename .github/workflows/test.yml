@@ -91,7 +91,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           ignore-test-failures: true
           base-directory: ${{env.test}}
-          output-test-results: true
           create-results-file: true
           comment-identifier: 'unit-tests-bot'
           report-title-filter: "Unit Tests"
