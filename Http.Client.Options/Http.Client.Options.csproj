@@ -8,36 +8,20 @@
         <Version>$(Version)</Version>
 
     </PropertyGroup>
-    <PropertyGroup Label="Package Properties">
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>$(Version)</PackageVersion>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageTags>http</PackageTags>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageReleaseNotes>CHANGELOG.md</PackageReleaseNotes>
-        <DebugType>embedded</DebugType>
 
-        <PackageProjectUrl>https://github.com/dinavinter/Http.Options.git</PackageProjectUrl>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <EmbedUntrackedSources>true</EmbedUntrackedSources>
-         <IncludeSymbols>true</IncludeSymbols>
-        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-        <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
-        <Description>Simplefied usage of http client factory using Options pattern.
-            read more about  client factory http https://docs.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests) 
-        </Description>
-        <Copyright>Copyright © Dina 2022</Copyright>
-
-    </PropertyGroup>
-    <ItemGroup>
+<!--    <ItemGroup>
         <None Include="LICENSE.md" Pack="true" PackagePath="LICENSE.md" />
-          
-        <None Include="packageIcon.png" Pack="true" PackagePath="\" />
         <None Include="..\README.md" Pack="true" PackagePath="\" />
+        <None Include="$(SolotionDir)/packageIcon.png" Pack="true" PackagePath="\" />
 
 
-    </ItemGroup>
+    </ItemGroup>-->
+<!--    <ItemGroup>-->
+<!--        <None Include="$(SolotionDir)/packageIcon.png" PackagePath="packageIcon.png" Pack="true" />-->
+<!--        <None Include="$(SolotionDir)/README.md" PackagePath="README.md" Pack="true" />-->
+<!--        <None Include="$(SolotionDir)/LICENSE.md" PackagePath="LICENSE.md" Pack="true" />-->
+<!--    </ItemGroup>-->
+
 
     <ItemGroup>
       <PackageReference Include="Microsoft.ApplicationInsights" />

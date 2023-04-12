@@ -82,7 +82,7 @@ jobs:
      
       - name: annotate change log to step summary
         run: |
-          echo $(cat CHANGELOG.md) >> $GITHUB_STEP_SUMMARY
+          echo $(cat CHANGELOG.md ) >> $GITHUB_STEP_SUMMARY
         id: changelog_annotation
       
       - name: Create Release v${{steps.git_version.outputs.version}}
