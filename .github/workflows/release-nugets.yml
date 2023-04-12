@@ -33,7 +33,7 @@ jobs:
           submodules: true
           ref: ${{ inputs.release_tag  || github.event.release.tag_name || github.ref  }}
       - name: Cache Net setup
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: cache-net
         with:
           path: ${{ env.DOTNET_INSTALL_DIR }}
@@ -54,7 +54,7 @@ jobs:
         if: steps.cache-net.outputs.cache-hit != 'true'
 
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache-nuget
         with:
           path: ${{ github.workspace }}/.nuget/packages
@@ -64,7 +64,8 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore --packages ${{ github.workspace }}/.nuget/packages --use-lock-file
-
+        if: steps.cache-nuget.outputs.cache-hit != 'true'
+        
       - name: Build
         run: dotnet build --no-restore --configuration Release
       
