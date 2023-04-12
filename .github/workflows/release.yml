@@ -54,9 +54,8 @@ jobs:
           version_format: "${major}.${minor}.${patch}-beta.${increment}"
           search_commit_body: true
           major_pattern: "BREAKING CHANGE"
-          enable_prerelease_mode: true
-      
-      
+          enable_prerelease_mode: true 
+          
       - name: update Directory.Build.props with the version
         run: |
           sed -i "s/<Version>.*<\/Version>/<Version>${{steps.git_version.outputs.version}}<\/Version>/g" Directory.Build.props
@@ -74,10 +73,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: merge changes to ${{steps.git_version.outputs.version_tag}} branch
+      - name: merge changes to ${{steps.git_version.outputs.version}} branch
         run: |
-          git checkout -b ${{steps.git_version.outputs.version_tag}}
-          git pull origin ${{steps.git_version.outputs.version_tag}} --rebase --quiet
+          git checkout -b v${{steps.git_version.outputs.version}}
           git merge ${{github.ref_name}} --no-edit --no-ff
           git tag v${{steps.git_version.outputs.version}} -a -m "v${{steps.git_version.outputs.version}}"
           git push origin ${{steps.git_version.outputs.version_tag}}  --tags --set-upstream
