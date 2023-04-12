@@ -162,8 +162,8 @@ jobs:
       
       - name: dotnet nuget push
         run: |
-          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }} -ss-${{ vars.NUGET_PUSH_URL }}  
-  
+          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }} --symbol-source ${{ vars.NUGET_PUSH_URL }}  
+
   prerelease:
     needs:  [draft, publish]    
     runs-on: ubuntu-latest
