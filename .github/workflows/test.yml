@@ -39,6 +39,11 @@ jobs:
         with:
           submodules: true
           ref: ${{ env.ref }}
+      - name: set env
+        run: |
+          echo "test=${{ github.workspace }}/tests" >> $GITHUB_ENV
+          echo "build_artifact=${{ github.ref_name }}-build-artifact-${{ github.sha }}" >> $GITHUB_ENV
+          echo "test_artifact=${{ github.ref_name }}-test-artifact-${{ github.sha }}" >> $GITHUB_ENV
       - name: Cache Net setup
         uses: actions/cache@v2
         id: cache-net
@@ -100,7 +105,7 @@ jobs:
           gh release edit ${{ env.ref }} --add-label ${{ steps.process-trx.outputs.test-outcome }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(${{git head}}, 'refs/tags/v')
 
       - name: add test outcome as a github label to pr
         run: gh pr edit ${{ github.event.pull_request.number }} --add-label Tests-${{ steps.process-trx.outputs.test-outcome }}
@@ -118,7 +123,7 @@ jobs:
         if: steps.process-trx.outputs.test-outcome == 'Failed'
         run: |
           echo "There were test failures." >> $GITHUB_STEP_SUMMARY
-          cat $(steps.process-trx.outputs.test-results-file-path) >> $GITHUB_STEP_SUMMARY
+          cat ${{steps.process-trx.outputs.test-results-file-path}} >> $GITHUB_STEP_SUMMARY
           exit 1
 
 
