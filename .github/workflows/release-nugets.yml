@@ -64,7 +64,7 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore --packages ${{ github.workspace }}/.nuget/packages --use-lock-file
-        if: steps.cache-nuget.outputs.cache-hit != 'true'
+        
         
       - name: Build
         run: dotnet build --no-restore --configuration Release
