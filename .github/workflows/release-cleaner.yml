@@ -40,9 +40,9 @@ jobs:
         id: search
         with:
           query: |
-            query {
-              repository(owner: "${{github.repository_owner}}", name: "${{github.repository_name}}") {
-                releases(last: 100, orderBy: {field: CREATED_AT, direction: DESC}, isDraft: ${{github.inputs.draft}}, baseRefName: ${{github.inputs.branch}}) {
+            query release($owner:String!,$repo:String!) {
+              repository(owner:$owner,name:$repo)  {
+                releases(last: 100, orderBy: {field: CREATED_AT, direction: DESC}, isDraft: $draft) {
                   nodes {
                     name
                     createdAt
@@ -58,6 +58,8 @@ jobs:
           headers: '{"Accept": "application/vnd.github.v3+json"}'
           owner: ${{ github.event.repository.owner.name }}
           repo: ${{ github.event.repository.name }}
+          draft: ${{github.inputs.draft}}
+          branch: ${{github.inputs.branch}}
 
           env: 
             GITHUB_TOKEN: ${{ github.token }}
