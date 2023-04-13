@@ -81,9 +81,9 @@ jobs:
         run: |
           changes=$(npx conventional-changelog-cli conventional-changelog -p angular --tag-prefix v)
           echo $changes | tee -a CHANGELOG.md 
+          $changes >> $GITHUB_STEP_SUMMARY
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
-          echo changes="$changes" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
@@ -97,10 +97,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
      
-      - name: annotate change log to step summary
-        run: |
-          echo "${{steps.changelog.outputs.changes}}" >> $GITHUB_STEP_SUMMARY
-        id: changelog_annotation
+#      - name: annotate change log to step summary
+#        run: |
+#          echo "${{steps.changelog.outputs.changes}}" >> $GITHUB_STEP_SUMMARY
+#        id: changelog_annotation
       
       - name: Create Release v${{steps.git_version.outputs.version}}
         id: release
