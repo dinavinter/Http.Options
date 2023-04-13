@@ -29,7 +29,7 @@ jobs:
   list_draft_releases:
     runs-on: ubuntu-latest
     env:
-      draft_pattern: "${{github.inputs.draft ? '-i -w draft' : ''}}"
+      draft_pattern: "${{github.inputs.draft && '-i -w draft' || ''}}"
       branch_pattern: "-i ${{github.inputs.branch}}"
     outputs:
       releases: ${{ steps.list_releases.outputs.releases }}
