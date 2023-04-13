@@ -40,7 +40,7 @@ jobs:
         id: search
         with:
           query: |
-            query release($owner:String!,$repo:String!) {
+            query release($owner:String!,$repo:String!, $draft:Boolean!) {
               repository(owner:$owner,name:$repo)  {
                 releases(last: 100, orderBy: {field: CREATED_AT, direction: DESC}, isDraft: $draft) {
                   nodes {
@@ -61,8 +61,8 @@ jobs:
           draft: ${{github.inputs.draft}}
           branch: ${{github.inputs.branch}}
 
-          env: 
-            GITHUB_TOKEN: ${{ github.token }}
+        env: 
+          GITHUB_TOKEN: ${{ github.token }}
             
       - run: "echo 'latest release: ${{ steps.search.outputs.data }}'"
       
