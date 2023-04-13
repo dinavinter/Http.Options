@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Http.Client.Options.Tracing;
 using Http.Options.Tracing.OpenTelemetry;
 using Http.Options.Tracing.Processors;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.EventSource;
 using Newtonsoft.Json;

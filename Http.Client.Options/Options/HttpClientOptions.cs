@@ -14,7 +14,8 @@ namespace Http.Options
         public HttpTimeoutOptions Timeout { get; set; }= new HttpTimeoutOptions();
         public HttpClientHandlerOptions Handler { get; set; }= new HttpClientHandlerOptions();
         public HttpConnectionOptions Connection { get; set; }= new HttpConnectionOptions();
-        public HttpTelemetryOptions Telemetry { get; set; }= new HttpTelemetryOptions();
+        public HttpTelemetryOptions Telemetry { get; set; }= new HttpTelemetryOptions(); 
+        public HttpClientCompressionOptions Compression { get; set; }= new HttpClientCompressionOptions();
 
         public HttpClientOptions()
         {
@@ -48,6 +49,7 @@ namespace Http.Options
             Timeout?.ConfigureHttpClientBuilder(builder);
             Telemetry?.ConfigureHttpClientBuilder(builder, services);
             Polly?.ConfigureHttpClientBuilder(builder, services);
+            Compression?.ConfigureHttpClientBuilder(builder);
             // builder.AdditionalHandlers.Insert(0, new HttpClientScopeHandler(builder, this));
         }
 
@@ -57,6 +59,7 @@ namespace Http.Options
         protected virtual void ConfigureHttpClient(HttpClient httpClient)
         {
             Connection?.ConfigureHttpClient(httpClient);
+            Compression?.ConfigureHttpClient(httpClient);
         }
 
 
@@ -92,6 +95,7 @@ namespace Http.Options
             options.Handler = Handler ?? options.Handler;
             options.Polly = Polly ?? options.Polly;
             options.Telemetry = Telemetry ?? options.Telemetry;
+            options.Compression = Compression ?? options.Compression;
         }
 
         public void Configure(HttpClientOptions options)

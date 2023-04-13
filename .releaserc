@@ -1,6 +1,47 @@
 {
+  "npmPublish": false,
+  "projectPath": "${process.env.PROJECT_PATH}",
+  "includeSymbols": true,
   "plugins": [
-    "@semantic-release/commit-analyzer",
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "releaseRules": [
+          {
+            "type": "build",
+            "release": "patch"
+          },
+          {
+            "type": "new",
+            "release": "patch"
+          },
+          {
+            "type": "ci",
+            "release": "patch"
+          },
+          {
+            "type": "chore",
+            "release": "patch"
+          },
+          {
+            "type": "docs",
+            "release": "patch"
+          },
+          {
+            "type": "refactor",
+            "release": "patch"
+          },
+          {
+            "type": "style",
+            "release": "patch"
+          },
+          {
+            "type": "test",
+            "release": "patch"
+          }
+        ]
+      }
+    ],
     "@semantic-release/release-notes-generator",
     [
       "@semantic-release/changelog",
@@ -29,32 +70,22 @@
       }
     ],
     [
-      "@semantic-release/exec",
-      {
-        "analyzeCommitsCmd": "minor",
-        "prepareCmd": "dotnet pack ${process.env.PROJECT_PATH} --framework ${process.env.TARGET_FRAMEWORKS} --configuration Release  --no-restore --output ${process.env.PACKAGE_OUTPUT_DIRECTORY} -p:PackageVersion=${context.nextRelease!.version}",
-        "publishCmd": "dotnet nuget push ${process.env.PACKAGE_OUTPUT_DIRECTORY }/*.nupkg -k ${process.env.NUGET_TOKEN } -s ${ process.env.NUGET_PUSH_URL }"
-      }
-    ],
-    [
       "@semantic-release/git",
       {
         "assets": [
           "CHANGELOG.md",
-          "Directory.Build.props"
+          "Directory.Build.props",
+          "${process.env.PACKAGE_OUTPUT_DIRECTORY}"
         ],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ],
     "@semantic-release/github"
   ],
-  "npmPublish": false,
-  "projectPath": "${process.env.PROJECT_PATH}",
-  "includeSymbols": true,
   "files": [
     {
       "path": [
-        "Directory.Build.props" 
+        "Directory.Build.props"
       ],
       "type": "xml",
       "replacements": [
@@ -73,8 +104,9 @@
     "master",
     {
       "name": "beta",
-      "prerelease": true
-    },
+      "prerelease": true,
+      "channel": "beta"
+    },   
     {
       "name": "prerelease",
       "prerelease": true

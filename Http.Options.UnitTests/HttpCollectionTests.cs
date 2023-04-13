@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluTeLib.Core.helper.Linq;
 using Http.Options.Standalone;
+using Http.Options.Tracing.OptionsBuilder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
@@ -17,22 +19,38 @@ using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
+using OpenTelemetry.Trace;
 using Polly;
 using Polly.CircuitBreaker;
 using WireMock.Server;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Http.Options.UnitTests
 {
     [TestFixture, Parallelizable(ParallelScope.Fixtures)]
     public class HttpCollectionTests
     {
+        ActivitySource activitySource = new ActivitySource("test");
+
         [Test]
         public async Task ConfigurationIsWorking()
         {
+            using var a = activitySource.StartActivity(ActivityKind.Server);
             // serviceCollection.AddSingleton<HttpJsonPlaceholderService, HttpJsonPlaceholderService>();
-            var factory = HttpOptionsBuilder.Configure(services =>
+            var factory = HttpOptionsBuilder.Configure(delegate(HttpOptionsBuilder builder) 
                 {
-                    services.Configure(options =>
+                    // builder.Services.AddOpenTelemetrySharedProviderBuilderServices();
+                    builder.Services.AddHttpOptionsTelemetry(delegate(OpenTelemetryOptionsBuilder openTelemetryOptionsBuilder) 
+                    {
+                
+                        openTelemetryOptionsBuilder.ConfigureOpenTelemetryBuilder(providerBuilder => providerBuilder.AddConsoleExporter());
+                        openTelemetryOptionsBuilder.ConfigureTracing(options =>
+                        {
+                            options.Activity.Source = activitySource;
+                        });
+              
+                    });
+                    builder.Configure(options =>
                     {
                         options.Defaults.Connection.Server = "defaults.com";
                         options.AddClient("service", options =>
@@ -59,9 +77,12 @@ namespace Http.Options.UnitTests
                             options.Connection.Port = 1234;
                             options.Connection.TimeoutMS = 50;
                         });
+                        
+                  
                     });
                 })
                 .Build();
+            await factory.StartAsync(CancellationToken.None);
 
             var client = factory.CreateClient("service");
             var client2 = factory.CreateClient("service2");

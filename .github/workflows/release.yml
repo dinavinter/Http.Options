@@ -1,69 +1,224 @@
-name: Release
+name: release
 on:
   workflow_dispatch:
   push:
     branches:
       - "beta"
       - "prerelease"
+      - "master"
+
+
 env:
   PROJECT_PATH: 'Http.Client.Options/Http.Client.Options.csproj'
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
-  NUGET_PUSH_URL: ${{ secrets.NUGET_PUSH_URL }}
   NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-  DOTNET_VERSION: '6.0.x'
-  TARGET_FRAMEWORKS: 'net6.0'
-
-jobs:
+  build_artifact: build-${{github.ref_name}}-${{github.sha}}
+  test_artifact: test-${{github.ref_name}}-${{github.sha}}
+  release_name: ${{github.ref_name}}
   
-  release:
-    name: Release
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    env:
+      release_name: ${{github.ref_name}}
+    outputs:
+      release_name: ${{github.ref_name}}
+      release_base: ${{steps.git_version.outputs.version_tag}}
+      release_tag: v${{steps.git_version.outputs.version}}
+      changelog: ${{steps.git_version.outputs.changelog}}
+      release_branch: ${{steps.git_version.outputs.version}}
+
     steps:
+      - uses: actions/setup-node@v3
+      - name: set git config user
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+      
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          fetch-depth: 0
 
-      - name: Install dependencies
-        run: dotnet restore
-      
-      - name: Semantic Release
-        id: release
-        uses: cycjimmy/semantic-release-action@v3 
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        
+      - name: Git Semantic Version
+        uses: PaulHatch/semantic-version@v5.0.3
+        id: git_version
         with:
-          # You can specify specifying version range for the extra plugins if you prefer.
-          extra_plugins: |
-            @droidsolutions-oss/semantic-release-update-file
-            @semantic-release/git
-            @semantic-release/github
-            @semantic-release/exec
-
-
+          tag_prefix: "v"
+          version_format: "${major}.${minor}.${patch}-beta.${increment}"
+          search_commit_body: true
+          major_pattern: "BREAKING CHANGE"
+          
+          
+      - name: update Directory.Build.props with the version
+        run: |
+          sed -i "s/<Version>.*<\/Version>/<Version>${{steps.git_version.outputs.version}}<\/Version>/g" Directory.Build.props
+          git add Directory.Build.props
+          git commit -m "chore(release): update version ${{steps.git_version.outputs.version}} [skip ci]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-          PROJECT_PATH: ${{ env.PROJECT_PATH }}
-          PACKAGE_OUTPUT_DIRECTORY: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-          TARGET_FRAMEWORKS: ${{ env.TARGET_FRAMEWORKS }}
-            
-            #      - name: Install dependencies
-#        run: dotnet restore
-#
-#      - name: Build
-#        run: dotnet build --configuration Release --no-restore
-#          
-#          
           
-          # - name: 'Pack & Publish project'
-      #   if: ${{ steps.release.outputs.new_release_version }}
-      #   run: |
-      #     dotnet clean
-      #     dotnet pack ${{ env.PROJECT_PATH }} --configuration Release --include-symbols --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-      #     dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ env.NUGET_PUSH_URL }}
+#      - name: Update CHANGELOG
+#        id: changelog
+#        uses: requarks/changelog-action@v1
+#        with:
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          tag: ${{ github.ref_name }}
+#          
+#      - name: update changelog
+#        run: |
+#          git add CHANGELOG.md
+#          git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        
+      - name: changelog
+        id: changelog
+        run: |
+          changes=$(npx conventional-changelog-cli conventional-changelog -p angular --tag-prefix v ) >> $GITHUB_OUTPUT
+          echo -e "$changes" | tee -a CHANGELOG.md 
+          echo -e "$changes" >> $GITHUB_STEP_SUMMARY
+          git add CHANGELOG.md
+          git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      
+      - name: merge changes to v${{steps.git_version.outputs.version}} branch
+        run: |
+          git checkout -b ${{steps.git_version.outputs.version}}
+          git merge ${{github.ref_name}} --no-edit --no-ff
+          git tag v${{steps.git_version.outputs.version}} -a -m "v${{steps.git_version.outputs.version}}"
+          git push origin ${{steps.git_version.outputs.version}} -f  --tags --set-upstream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+     
+#      - name: annotate change log to step summary
+#        run: |
+#          echo "${{steps.changelog.outputs.changes}}" >> $GITHUB_STEP_SUMMARY
+#        id: changelog_annotation
+      
+      - name: Create Release v${{steps.git_version.outputs.version}}
+        id: release
+        run: |
+          gh release create v${{steps.git_version.outputs.version}}  --target ${{steps.git_version.outputs.version}} -d --notes "${{steps.changelog.outputs.changes}}" --title v${{steps.git_version.outputs.version}} --prerelease >> $GITHUB_STEP_SUMMARY
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: annotate release log to step summary
+        run: |
+          echo "Draft Release v${{steps.git_version.outputs.version}}" >> $GITHUB_STEP_SUMMARY
+        id: release_annotation
 
-                    
+
+      - name: Set version
+        run: echo "VERSION=${{ steps.semantic.git_version.version }}" >> $GITHUB_ENV
+      
+
+      - name: GIT CMD
+        env:
+         GH_TOKEN: ${{ github.token }}
+        run: | 
+          gh release list
+          git status
+          git log --decorate  --graph
+          
+      - name: debug git head and tag
+        run: |
+          echo "::debug::$(git show-ref --tags --heads --verify  refs/tags/v${{steps.git_version.outputs.version}})"  
+        id: release_tag
+      
+      
+      
+#      - name: Create Pull Request
+#        if: steps.semantic.outputs.new_release_published == 'true'
+#        uses: peter-evans/create-pull-request@v5
+#        with:
+#            token: ${{ secrets.GITHUB_TOKEN }}
+#            commit-message: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
+#            title: "Semantic Release  ${{ env.RELEASE_GIT_TAG }}"
+#            delete-branch: true
+#            body: "${{env.RELEASE_NOTES}}"
+#            labels: |
+#               ${{steps.semantic.outputs.new_release_git_tag}}
+#               automated pr
+
+
+#      
+#    outputs: 
+#      new_release_git_tag: ${{steps.semantic.outputs.new_release_git_tag}}
+  test:
+    needs: draft
+    uses: './.github/workflows/test.yml'
+    with:
+      ref: ${{ needs.draft.outputs.release_tag }} 
+  
+  
+  nuget:
+    needs: draft
+    uses: './.github/workflows/release-nugets.yml'
+    with:
+      release_tag: ${{ needs.draft.outputs.release_tag }}
+      
+ 
+  
+  publish:
+    environment: release
+    needs: [draft, nuget, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: download nugets from release assets
+        run: |
+          gh release download  ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --pattern "*.nupkg"  --pattern "*.snupkg"  --dir ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+      
+      - name: dotnet nuget push
+        run: |
+          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }} --symbol-source ${{ vars.NUGET_PUSH_URL }}  
+
+  prerelease:
+    needs:  [draft, publish]    
+    runs-on: ubuntu-latest
+    steps:
+      - name: set release as prerelease
+        run: |
+          gh release edit  ${{ needs.draft.outputs.release_tag }} --prerelease true --draft false 
+        env:
+          GH_TOKEN: ${{ github.token }}
+  
+  pr:
+    needs: [draft, publish, prerelease]
+    runs-on: ubuntu-latest
+    steps:
+      - name: create release base branch if does not exist
+        run: |
+          git checkout -b ${{ needs.draft.outputs.release_base }}
+          git push origin ${{ needs.draft.outputs.release_base }} --set-upstream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            commit-message: "Semantic Release  ${{ needs.draft.outputs.release_tag }}"
+            title: "Semantic Release  ${{ needs.draft.outputs.release_tag }}"
+            delete-branch: true
+            body: "${needs.draft.outputs.release_notes}}"
+            branch: ${{ needs.draft.outputs.release_branch }}
+            base: ${{ needs.draft.outputs.release_base }}
+            labels: |
+               ${{needs.draft.outputs.release_tag}}
+               ${{needs.draft.outputs.release_base}}
+               automated pr
+            add-paths: |
+              ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg
+              ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.snupkg
+              CHANGELOG.md
+              Directory.Build.props
+            
