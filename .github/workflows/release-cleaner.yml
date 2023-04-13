@@ -4,27 +4,27 @@ on:
   workflow_dispatch:
     inputs:
       threshold:
-          description: 'The number of days to retain the artifact'
-          required: false
-          type: number
-          default: 5
+        description: 'The number of days to retain the artifact'
+        required: false
+        type: number
+        default: 5
       draft:
-          description: 'Delete draft releases'
-          required: false
-          type: boolean
-          default: true
+        description: 'Delete draft releases'
+        required: false
+        type: boolean
+        default: true
       branch:
-          description: 'The branch to match'
-          required: false
-          type: string
-    
+        description: 'The branch to match'
+        required: false
+        type: string
+  
   release:
-    types: [published]  
-    
+    types: [published]
+  
   push:
     tags: ["*clean-please*"]
-        
-        
+
+
 jobs:
   list_draft_releases:
     runs-on: ubuntu-latest
@@ -35,22 +35,51 @@ jobs:
       releases: ${{ steps.list_releases.outputs.releases }}
     steps:
       - run: echo "grep ${{env.draft_pattern}} | grep ${{env.branch_pattern}}"
-       
+      - name: use github graphql to search for releases, filter for draft and branch from input
+        uses: github/graphql-action@v2.x
+        id: search
+        with:
+          query: |
+            query {
+              repository(owner: "${{github.repository_owner}}", name: "${{github.repository_name}}") {
+                releases(last: 100, orderBy: {field: CREATED_AT, direction: DESC}, isDraft: ${{github.inputs.draft}}, baseRefName: ${{github.inputs.branch}}) {
+                  nodes {
+                    name
+                    createdAt
+                    isDraft
+                    isPrerelease
+                    tag {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          headers: '{"Accept": "application/vnd.github.v3+json"}'
+          owner: ${{ github.event.repository.owner.name }}
+          repo: ${{ github.event.repository.name }}
+
+          env: 
+            GITHUB_TOKEN: ${{ github.token }}
+            
+      - run: "echo 'latest release: ${{ steps.search.outputs.data }}'"
+      
+      
       - name: List draft releases
         id: list_releases
         run: |
-         echo "releases=$(gh release list --repo ${{github.repository}} | grep  ${{env.draft_pattern}} | grep ${{env.branch_pattern}})" >> $GITHUB_OUTPUT
-         echo $releases >> $GITHUB_STEP_SUMMARY
+          echo "releases=$(gh release list --repo ${{github.repository}} | grep  ${{env.draft_pattern}} | grep ${{env.branch_pattern}})" >> $GITHUB_OUTPUT
+          echo $releases >> $GITHUB_STEP_SUMMARY
         env:
-         GH_TOKEN: ${{ github.token }}
-
-        
+          GH_TOKEN: ${{ github.token }}
+  
+  
   build:
     runs-on: ubuntu-latest
     environment: clenup
     needs: list_draft_releases
-    if: ${{ needs.list_draft_releases.outputs.releases || false  }} 
-
+    if: ${{ needs.list_draft_releases.outputs.releases || false  }}
+    
     steps:
       - name: Delete drafts
         run:  echo "${{steps.list_releases.outputs.releases}}" |sed 's/|/ /' | awk '{print $1, $3}'  | while read -r release date; do echo $release; done
