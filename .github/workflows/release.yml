@@ -107,7 +107,7 @@ jobs:
       - name: Create Release v${{steps.git_version.outputs.version}}
         id: release
         run: |
-          gh release create v${{steps.git_version.outputs.version}}  --target ${{steps.git_version.outputs.version}} -d --notes "${{steps.changelog.outputs.log}}" --title v${{steps.git_version.outputs.version}} --prerelease >> $GITHUB_STEP_SUMMARY
+          gh release create v${{steps.git_version.outputs.version}}  --target ${{steps.git_version.outputs.version}} -d --notes-file "$GITHUB_STEP_SUMMARY" --title v${{steps.git_version.outputs.version}} --prerelease >> $GITHUB_STEP_SUMMARY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
@@ -179,8 +179,6 @@ jobs:
 
       - name: dotnet nuget push
         run: |
-          dotnet nuget add source "https://nuget.pkg.github.com/${{github.actor}}/index.json" --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github
-
           dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }} --symbol-source ${{ vars.NUGET_PUSH_URL }}  >> $GITHUB_STEP_SUMMARY
   
   prerelease:
@@ -189,7 +187,7 @@ jobs:
     steps:
       - name: set release as prerelease 
         run: |
-          gh release edit ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --prerelease  --notes-file "$GITHUB_STEP_SUMMARY"
+          gh release edit ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --prerelease  --notes-file "$GITHUB_STEP_SUMMARY" --draft false
         env:
           GH_TOKEN: ${{ github.token }}
   
