@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: clenup
     needs: list_draft_releases
-    if: ${{ steps.list_releases.outputs.releases || false  }} 
+    if: ${{ needs.list_draft_releases.outputs.releases || false  }} 
 
     steps:
       - name: Delete drafts
