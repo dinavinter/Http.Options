@@ -6,6 +6,7 @@ on:
       - "beta"
       - "prerelease"
       - "master"
+      - "alpha"
 
 
 env:
@@ -49,9 +50,11 @@ jobs:
         id: git_version
         with:
           tag_prefix: "v"
-          version_format: "${major}.${minor}.${patch}-beta.${increment}"
+          version_format: "${major}.${minor}.${patch}-${{github.ref_name}}.${increment}"
           search_commit_body: true
           major_pattern: "BREAKING CHANGE"
+          
+          
           
           
       - name: update Directory.Build.props with the version
@@ -79,14 +82,13 @@ jobs:
       - name: changelog
         id: changelog
         run: |
-          changes=$(npx conventional-changelog-cli conventional-changelog -p angular --tag-prefix v ) >> $GITHUB_OUTPUT
-          echo -e "$changes" | tee -a CHANGELOG.md 
-          echo -e "$changes" >> $GITHUB_STEP_SUMMARY
+          changes=$(npx conventional-changelog-cli conventional-changelog -p angular --tag-prefix v ) 
+          echo -e "$changes" | tee -a CHANGELOG.md >> $GITHUB_STEP_SUMMARY
+          echo "::set-output name=log::$changes"
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
       
       - name: merge changes to v${{steps.git_version.outputs.version}} branch
         run: |
@@ -105,7 +107,7 @@ jobs:
       - name: Create Release v${{steps.git_version.outputs.version}}
         id: release
         run: |
-          gh release create v${{steps.git_version.outputs.version}}  --target ${{steps.git_version.outputs.version}} -d --notes "${{steps.changelog.outputs.changes}}" --title v${{steps.git_version.outputs.version}} --prerelease >> $GITHUB_STEP_SUMMARY
+          gh release create v${{steps.git_version.outputs.version}}  --target ${{steps.git_version.outputs.version}} -d --notes "${{steps.changelog.outputs.log}}" --title v${{steps.git_version.outputs.version}} --prerelease >> $GITHUB_STEP_SUMMARY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
@@ -164,11 +166,19 @@ jobs:
     with:
       release_tag: ${{ needs.draft.outputs.release_tag }}
       
- 
+  prerelease:
+    needs: [ draft, test, nuget]
+    runs-on: ubuntu-latest
+    steps:
+      - name: set release as prerelease 
+        run: |
+          gh release edit --tag ${{ needs.draft.outputs.release_tag }} --prerelease  --notes "${{steps.changelog.outputs.log}}"  
+        env:
+          GH_TOKEN: ${{ github.token }}
   
   publish:
-    environment: release
-    needs: [draft, nuget, test]
+    environment: dev
+    needs: [draft, prerelease]
     runs-on: ubuntu-latest
     steps:
       - name: download nugets from release assets
@@ -181,15 +191,7 @@ jobs:
         run: |
           dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }} --symbol-source ${{ vars.NUGET_PUSH_URL }}  
 
-  prerelease:
-    needs:  [draft, publish]    
-    runs-on: ubuntu-latest
-    steps:
-      - name: set release as prerelease
-        run: |
-          gh release edit  ${{ needs.draft.outputs.release_tag }} --prerelease true --draft false 
-        env:
-          GH_TOKEN: ${{ github.token }}
+  
   
   pr:
     needs: [draft, publish, prerelease]
