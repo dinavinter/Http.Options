@@ -31,6 +31,7 @@
         <PackageVersion>$(Version)</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/dinavinter/Http.Options.git</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/dinavinter/Http.Options</RepositoryUrl>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
