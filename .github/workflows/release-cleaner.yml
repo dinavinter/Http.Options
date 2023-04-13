@@ -9,7 +9,7 @@ on:
           type: number
           default: 5
       draft:
-          description: 'The number of days to retain the artifact'
+          description: 'Delete draft releases'
           required: false
           type: boolean
           default: true
