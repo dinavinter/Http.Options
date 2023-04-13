@@ -80,8 +80,8 @@ jobs:
         id: changelog
         run: |
           changes=$(npx conventional-changelog-cli conventional-changelog -p angular --tag-prefix v)
-          echo $changes | tee -a CHANGELOG.md 
-          echo $changes >> $GITHUB_STEP_SUMMARY
+          echo -e $changes | tee -a CHANGELOG.md 
+          echo -e $changes >> $GITHUB_STEP_SUMMARY
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
         env:
