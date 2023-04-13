@@ -165,9 +165,26 @@ jobs:
     uses: './.github/workflows/release-nugets.yml'
     with:
       release_tag: ${{ needs.draft.outputs.release_tag }}
-      
+  
+  publish:
+    environment: dev
+    needs:  [ draft, test, nuget]
+    runs-on: ubuntu-latest
+    steps:
+      - name: download nugets from release assets
+        run: |
+          gh release download  ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --pattern "*.nupkg"  --pattern "*.snupkg"  --dir ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: dotnet nuget push
+        run: |
+          dotnet nuget add source "https://nuget.pkg.github.com/${{github.actor}}/index.json" --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github
+
+          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }} --symbol-source ${{ vars.NUGET_PUSH_URL }}  >> $GITHUB_STEP_SUMMARY
+  
   prerelease:
-    needs: [ draft, test, nuget]
+    needs: [ draft, publish]
     runs-on: ubuntu-latest
     steps:
       - name: set release as prerelease 
@@ -176,21 +193,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
   
-  publish:
-    environment: dev
-    needs: [draft, prerelease]
-    runs-on: ubuntu-latest
-    steps:
-      - name: download nugets from release assets
-        run: |
-          gh release download  ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --pattern "*.nupkg"  --pattern "*.snupkg"  --dir ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-      
-      - name: dotnet nuget push
-        run: |
-          dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg -k ${{ secrets.NUGET_TOKEN }} -s ${{ vars.NUGET_PUSH_URL }} --symbol-source ${{ vars.NUGET_PUSH_URL }}  >> $GITHUB_STEP_SUMMARY
-
+ 
   
   
   pr:
