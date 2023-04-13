@@ -172,7 +172,7 @@ jobs:
     steps:
       - name: set release as prerelease 
         run: |
-          gh release edit --tag ${{ needs.draft.outputs.release_tag }} --prerelease  --notes-file $GITHUB_STEP_SUMMARY 
+          gh release edit ${{ needs.draft.outputs.release_tag }} --prerelease  --notes-file $GITHUB_STEP_SUMMARY 
         env:
           GH_TOKEN: ${{ github.token }}
   
