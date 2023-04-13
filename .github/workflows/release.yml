@@ -189,7 +189,7 @@ jobs:
     steps:
       - name: set release as prerelease 
         run: |
-          gh release edit ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --prerelease  --notes-file $GITHUB_STEP_SUMMARY 
+          gh release edit ${{ needs.draft.outputs.release_tag }} --repo ${{github.repository}} --prerelease  --notes-file "$GITHUB_STEP_SUMMARY"
         env:
           GH_TOKEN: ${{ github.token }}
   
@@ -199,6 +199,7 @@ jobs:
   pr:
     needs: [draft, publish, prerelease]
     runs-on: ubuntu-latest
+    
     steps:
       - name: create release base branch if does not exist
         run: |
@@ -208,6 +209,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
       - name: Create Pull Request
+        continue-on-error: true
         uses: peter-evans/create-pull-request@v5
         with:
             token: ${{ secrets.GITHUB_TOKEN }}
