@@ -18,12 +18,13 @@ on:
           required: false
           type: string
     
-    release:
-      types: [published]  
-      
-    push:
-      tags: ["*clean-please*"]
-          
+  release:
+    types: [published]  
+    
+  push:
+    tags: ["*clean-please*"]
+        
+        
 jobs:
   list_draft_releases:
     runs-on: ubuntu-latest
@@ -34,10 +35,11 @@ jobs:
       releases: ${{ steps.list_releases.outputs.releases }}
     steps:
       - echo "pattern: ${{env.pattern}}"
+       
       - name: List draft releases
         id: list_releases
         run: |
-         echo "releases=$(gh release list | grep  ${{env.draft_pattern}} | grep ${{env.branch_pattern}})" >> $GITHUB_OUTPUT
+         echo "releases=$(gh release list --repo ${{github.repository}} | grep  ${{env.draft_pattern}} | grep ${{env.branch_pattern}})" >> $GITHUB_OUTPUT
          echo $releases >> $GITHUB_STEP_SUMMARY
         
   build:
