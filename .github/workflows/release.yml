@@ -82,6 +82,7 @@ jobs:
           changes=$(npx conventional-changelog-cli conventional-changelog -p angular --tag-prefix v )
           echo -e "$changes" | tee -a CHANGELOG.md 
           echo -e "$changes" >> $GITHUB_STEP_SUMMARY
+          echo $changes >> $GITHUB_OUTPUT
           git add CHANGELOG.md
           git commit -m "chore(release): update changelog ${{steps.git_version.outputs.version}} [skip ci]"
         env:
@@ -105,7 +106,7 @@ jobs:
       - name: Create Release v${{steps.git_version.outputs.version}}
         id: release
         run: |
-          gh release create v${{steps.git_version.outputs.version}}  --target ${{steps.git_version.outputs.version}} -d   --notes-file  CHANGELOG.md --title v${{steps.git_version.outputs.version}} --prerelease >> $GITHUB_STEP_SUMMARY
+          gh release create v${{steps.git_version.outputs.version}}  --target ${{steps.git_version.outputs.version}} -d --release-notes "${{steps.changelog.outputs.changes}}" --title v${{steps.git_version.outputs.version}} --prerelease >> $GITHUB_STEP_SUMMARY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
