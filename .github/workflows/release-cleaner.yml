@@ -41,6 +41,9 @@ jobs:
         run: |
          echo "releases=$(gh release list --repo ${{github.repository}} | grep  ${{env.draft_pattern}} | grep ${{env.branch_pattern}})" >> $GITHUB_OUTPUT
          echo $releases >> $GITHUB_STEP_SUMMARY
+        env:
+         GH_TOKEN: ${{ github.token }}
+
         
   build:
     runs-on: ubuntu-latest
