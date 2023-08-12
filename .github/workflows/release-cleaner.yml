@@ -7,7 +7,7 @@ on:
         description: 'The number of days to retain the artifact'
         required: false
         type: number
-        default: 5
+        default: 1
       draft:
         description: 'Delete draft releases'
         required: false
@@ -35,12 +35,19 @@ jobs:
       releases: ${{ steps.list_releases.outputs.releases }}
     steps:
       - run: echo "grep ${{env.draft_pattern}} | grep ${{env.branch_pattern}}"
+      - name: echo parmas
+        run: |
+          echo owner: ${{ github.event.repository.owner.name }}
+          echo repo: ${{ github.event.repository.name }}
+          echo draft: ${{github.inputs.draft}}
+          echo branch: ${{github.inputs.branch}}
+
       - name: use github graphql to search for releases, filter for draft and branch from input
         uses: github/graphql-action@v2.x
         id: search
         with:
           query: |
-            query release($owner:String!,$repo:String!) {
+            query release($owner:String!,$repo:String!, $draft:Boolean!) {
               repository(owner:$owner,name:$repo)  {
                 releases(last: 100, orderBy: {field: CREATED_AT, direction: DESC}, isDraft: $draft) {
                   nodes {
@@ -61,12 +68,12 @@ jobs:
           draft: ${{github.inputs.draft}}
           branch: ${{github.inputs.branch}}
 
-          env: 
-            GITHUB_TOKEN: ${{ github.token }}
-            
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - run: "echo 'latest release: ${{ steps.search.outputs.data }}'"
-      
-      
+
+
       - name: List draft releases
         id: list_releases
         run: |

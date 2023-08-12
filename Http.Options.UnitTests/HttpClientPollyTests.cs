@@ -66,7 +66,13 @@ namespace Http.Options.UnitTests
         {
             var serviceCollection = new ServiceCollection();
             // serviceCollection.AddSingleton<HttpJsonPlaceholderService, HttpJsonPlaceholderService>();
-
+            serviceCollection.AddHttpClientOptions(options =>
+            {
+                options.ServiceName = "service";
+                options.Compression.AutomaticDecompression = true;
+                options.Compression.Encoding["gzip"] = true;
+                options.Compression.Encoding["deflate"] = false;
+            });
             
             serviceCollection.AddHttpClientOptions(options =>
             {
